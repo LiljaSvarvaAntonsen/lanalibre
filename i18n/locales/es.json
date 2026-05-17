@@ -1,0 +1,233 @@
+{
+  "common": {
+    "close": "Cerrar",
+    "appName": "LanaLibre"
+  },
+  "login": {
+    "tagline": "Tu espacio para crear",
+    "signInWithGoogle": "Continuar con Google",
+    "signInWithApple": "Continuar con Apple",
+    "termsAcceptance": "Continuar implica aceptar los <terms>Términos de uso</terms> y la <privacy>Política de privacidad</privacy>",
+    "welcome": "Bienvenida a LanaLibre"
+  },
+  "legal": {
+    "termsTitle": "Términos de uso",
+    "termsContent": "Estos términos de uso describen las condiciones bajo las cuales puedes utilizar LanaLibre. Al usar la aplicación, aceptas estos términos.",
+    "privacyTitle": "Política de privacidad",
+    "privacyContent": "Tu privacidad es importante para nosotros. LanaLibre sólo recopila los datos necesarios para el funcionamiento de la app y nunca los comparte con terceros."
+  },
+  "errors": {
+    "googleToken": "No se pudo obtener el token de Google.",
+    "googleNotConfigured": "Google Sign-In no está configurado todavía."
+  },
+  "nav": {
+    "inicio": "Inicio",
+    "calculadora": "Calcular",
+    "vistaPrevia": "Previa",
+    "diario": "Diario",
+    "perfil": "Perfil"
+  },
+  "inicio": {
+    "greeting": "Hola! 👋",
+    "subtitle": "¿Qué quieres crear hoy?",
+    "newProject": "Empezar nuevo proyecto",
+    "recentProjects": "Proyectos recientes",
+    "allProjects": "Todos los proyectos",
+    "journal": "Diario"
+  },
+  "perfil": {
+    "title": "Perfil",
+    "idioma": "Idioma"
+  },
+  "placeholder": {
+    "comingSoon": "Próximamente"
+  },
+  "projectDetail": {
+    "noResult": "Sin resultado aún",
+    "modifiedOn": "Modificado {{date}}",
+    "createdOn": "Creado {{date}}",
+    "calculadora": "Calculadora de lana",
+    "previsualizacion": "Vista previa",
+    "diario": "Diario de proyecto"
+  },
+  "calculadora": {
+    "title": "Calculadora de Lana",
+    "metrosEtiqueta": "Metros etiqueta",
+    "gramosEtiqueta": "Gramos etiqueta",
+    "ancho": "Ancho (cm)",
+    "largo": "Largo (cm)",
+    "tension": "Tensión (puntos/10 cm)",
+    "tipoPunto": "Tipo de punto",
+    "tipoPunto_punto_bajo": "Punto bajo",
+    "tipoPunto_punto_alto": "Punto alto",
+    "tipoPunto_puntos_densos": "Puntos densos",
+    "calcular": "Calcular",
+    "result": {
+      "metrosTotales": "Metros Totales",
+      "gramosTotales": "Gramos Totales",
+      "resultadoFinal": "Resultado Final (+10%)",
+      "disclaimer": "Este resultado es una estimación. Los factores reales pueden variar."
+    },
+    "guardarProyecto": "Guardar en proyecto",
+    "calcularOtro": "Calcular otro",
+    "addToJournal": "Añadir al diario",
+    "saved": {
+      "title": "¡Guardado!",
+      "verProyecto": "Ver proyecto",
+      "seguirCalculando": "Seguir calculando"
+    },
+    "overwrite": {
+      "title": "¿Reemplazar resultado?",
+      "message": "Ya tienes un resultado guardado para este proyecto. ¿Deseas reemplazarlo?"
+    },
+    "errors": {
+      "required": "Todos los campos son obligatorios.",
+      "positiveNumber": "Introduce un número mayor que cero."
+    },
+    "freeMode": "Calculadora libre (sin proyecto)"
+  },
+  "vistaPrevia": {
+    "title": "Vista previa del proyecto",
+    "tipoProyecto": "Tipo de proyecto",
+    "seleccionaTipo": "Selecciona un tipo",
+    "ancho": "Ancho (cm)",
+    "largo": "Largo (cm)",
+    "circunferencia": "Circunferencia (cm)",
+    "altura": "Altura (cm)",
+    "paleta": "Paleta de colores",
+    "patronPunto": "Patrón de punto",
+    "generar": "Generar vista previa",
+    "guardarProyecto": "Guardar en proyecto",
+    "añadirDiario": "Guardar captura en diario",
+    "modificar": "Modificar",
+    "coloresSeleccionados": "Colores seleccionados",
+    "saved": {
+      "title": "¡Guardado!",
+      "verProyecto": "Ver proyecto",
+      "crearOtra": "Crear otra"
+    },
+    "overwrite": {
+      "title": "¿Reemplazar vista previa?",
+      "message": "Ya tienes una vista previa guardada para este proyecto. ¿Deseas reemplazarla?",
+      "confirm": "Reemplazar",
+      "cancel": "Cancelar"
+    },
+    "exit": {
+      "title": "¿Seguro que quieres salir sin guardar?",
+      "confirm": "Salir",
+      "cancel": "Cancelar"
+    },
+    "errorNoTemplate": "Este tipo de proyecto aún no tiene plantilla disponible.",
+    "freeMode": "Vista previa libre (sin proyecto)",
+    "tipos": {
+      "bufanda": "Bufanda",
+      "manta": "Manta",
+      "gorro": "Gorro",
+      "top": "Top"
+    },
+    "patrones": {
+      "liso": "Liso",
+      "rayasV": "Rayas ↕",
+      "rayasH": "Rayas ↔"
+    },
+    "errors": {
+      "required": "Selecciona un tipo y al menos un color.",
+      "dimensions": "Introduce dimensiones válidas (números mayores que cero)."
+    }
+  },
+  "projects": {
+    "tabActive": "Activos",
+    "tabDeleted": "Eliminados",
+    "searchPlaceholder": "Buscar proyectos...",
+    "emptyActive": "Aún no tienes proyectos. ¡Empieza uno nuevo!",
+    "emptyDeleted": "No tienes proyectos eliminados.",
+    "searchEmptyActive": "🧶 No encontramos ese proyecto entre los activos. ¿Quizás está en la papelera?",
+    "searchEmptyActiveButton": "Ver en la papelera",
+    "searchEmptyDeleted": "🧶 No encontramos ese proyecto. Si lo eliminaste hace más de 30 días, ya no es posible recuperarlo.",
+    "deletedBanner": "Los proyectos eliminados se pueden recuperar durante 30 días. Después se borran para siempre.",
+    "newProject": "Nuevo proyecto",
+    "editProject": "Editar proyecto",
+    "nombre": "Nombre",
+    "nombrePlaceholder": "Dale un nombre a tu proyecto...",
+    "etiqueta": "Etiqueta",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "deleteTitle": "¿Eliminar proyecto?",
+    "deleteMessage": "El proyecto irá a la papelera. Podrás recuperarlo durante 30 días.",
+    "restoreTitle": "¿Restaurar proyecto?",
+    "restoreMessage": "El proyecto volverá a tu lista de activos.",
+    "daysRemaining_one": "{{count}} día restante",
+    "daysRemaining_other": "{{count}} días restantes",
+    "descripcion": "Descripción",
+    "descripcionPlaceholder": "Describe tu proyecto...",
+    "subirArchivo": "Subir patrón o foto",
+    "subirArchivoLabel": "Toca para subir archivo",
+    "herramientas": "Herramientas del proyecto",
+    "saveProject": "Guardar proyecto",
+    "proximamente": "Próximamente",
+    "tagLegendTitle": "Etiquetas de proyecto",
+    "tagLegendSubtitle": "Términos de la comunidad crochetera.",
+    "tags": {
+      "WIP": "Work In Progress",
+      "PHD": "Project Half Done",
+      "FO": "Finished Object",
+      "UFO": "Unfinished Project",
+      "USO": "Unstarted Object",
+      "YAP": "Yet Another Project",
+      "TOAD": "Trashed Object Abandoned in Disgust"
+    }
+  },
+  "diario": {
+    "title": "Diarios",
+    "nuevoDiario": "Nuevo diario",
+    "nombrePlaceholder": "Nombre del diario",
+    "crear": "Crear",
+    "proyectoLink": "Proyecto: {{nombre}}",
+    "emptyState": "Aún no tienes diarios. ¡Crea uno!",
+    "guardar": "Guardar",
+    "guardado": "Guardado",
+    "eliminarTitle": "¿Eliminar diario?",
+    "eliminarMessage": "Esta acción no se puede deshacer.",
+    "exitTitle": "¿Salir sin guardar?",
+    "exitMessage": "Los cambios de texto no guardados se perderán.",
+    "guardarYSalir": "Guardar y salir",
+    "salirSinGuardar": "Salir sin guardar",
+    "rowCounter": "Contador de filas",
+    "resetTitle": "¿Reiniciar contador?",
+    "resetMessage": "El conteo volverá a cero.",
+    "timer": "Temporizador",
+    "iniciar": "Iniciar",
+    "detener": "Detener",
+    "colores": "Paleta de colores",
+    "añadirColor": "Añadir color",
+    "nombreColor": "Nombre del color",
+    "colorPickerTitle": "Personaliza tu color",
+    "archivosPatron": "Patrones (PDF)",
+    "archivosInspiracion": "Inspiración",
+    "subirPatron": "Subir patrón",
+    "subirInspiracion": "Subir imagen",
+    "errorSubida": "Error al subir. Inténtalo de nuevo.",
+    "exportarPDF": "Exportar PDF",
+    "sinDiario": "Sin diario",
+    "vinculoTitle": "Diario del proyecto",
+    "vinculoNuevo": "Nuevo diario",
+    "vinculoExistente": "Vincular diario existente",
+    "resultadoCalculadora": "Resultado de la calculadora: ~{{gramos}} g",
+    "resultadoVistaPrevia": "Vista previa guardada: {{tipo}}"
+  },
+  "entrada": {
+    "nuevaEntrada": "Nueva entrada",
+    "emptyState": "Aún no hay entradas. ¡Crea la primera!",
+    "lastEdit": "Última edición: {{date}}",
+    "exitTitle": "¿Salir sin guardar?",
+    "exitMessage": "Los cambios del lienzo no guardados se perderán.",
+    "guardarYSalir": "Guardar y salir",
+    "salirSinGuardar": "Salir sin guardar",
+    "rowCounter": "Contador de filas",
+    "textoLibre": "Texto libre",
+    "cuadricula": "Cuadrícula",
+    "guardado": "Guardado",
+    "eliminarElementoTitle": "¿Eliminar este elemento?",
+    "eliminarElementoConfirm": "Eliminar"
+  }
+}

@@ -1,0 +1,233 @@
+{
+  "common": {
+    "close": "Lukk",
+    "appName": "LanaLibre"
+  },
+  "login": {
+    "tagline": "Din kreative plass",
+    "signInWithGoogle": "Fortsett med Google",
+    "signInWithApple": "Fortsett med Apple",
+    "termsAcceptance": "Ved å fortsette godtar du våre <terms>Brukervilkår</terms> og vår <privacy>Personvernpolicy</privacy>",
+    "welcome": "Velkommen til LanaLibre"
+  },
+  "legal": {
+    "termsTitle": "Brukervilkår",
+    "termsContent": "Disse vilkårene beskriver betingelsene for bruk av LanaLibre. Ved å bruke appen godtar du disse vilkårene.",
+    "privacyTitle": "Personvernpolicy",
+    "privacyContent": "Personvernet ditt er viktig for oss. LanaLibre samler kun inn data som er nødvendig for at appen skal fungere, og deler aldri disse med tredjeparter."
+  },
+  "errors": {
+    "googleToken": "Kunne ikke hente Google-token.",
+    "googleNotConfigured": "Google-innlogging er ikke konfigurert ennå."
+  },
+  "nav": {
+    "inicio": "Hjem",
+    "calculadora": "Kalkulator",
+    "vistaPrevia": "Visning",
+    "diario": "Dagbok",
+    "perfil": "Profil"
+  },
+  "inicio": {
+    "greeting": "Hei! 👋",
+    "subtitle": "Hva vil du lage i dag?",
+    "newProject": "Start nytt prosjekt",
+    "recentProjects": "Nylige prosjekter",
+    "allProjects": "Alle prosjekter",
+    "journal": "Dagbok"
+  },
+  "perfil": {
+    "title": "Profil",
+    "idioma": "Språk"
+  },
+  "placeholder": {
+    "comingSoon": "Kommer snart"
+  },
+  "projectDetail": {
+    "noResult": "Ingen resultat ennå",
+    "modifiedOn": "Endret {{date}}",
+    "createdOn": "Opprettet {{date}}",
+    "calculadora": "Garenkalkulator",
+    "previsualizacion": "Forhåndsvisning",
+    "diario": "Prosjektdagbok"
+  },
+  "calculadora": {
+    "title": "Garenkalkulator",
+    "metrosEtiqueta": "Meter på etiketten",
+    "gramosEtiqueta": "Gram på etiketten",
+    "ancho": "Bredde (cm)",
+    "largo": "Lengde (cm)",
+    "tension": "Masketetthet (masker/10 cm)",
+    "tipoPunto": "Masketype",
+    "tipoPunto_punto_bajo": "Enkle luftmasker",
+    "tipoPunto_punto_alto": "Doble luftmasker",
+    "tipoPunto_puntos_densos": "Tette masker",
+    "calcular": "Beregn",
+    "result": {
+      "metrosTotales": "Totale meter",
+      "gramosTotales": "Totale gram",
+      "resultadoFinal": "Endelig resultat (+10%)",
+      "disclaimer": "Dette resultatet er et estimat. De faktiske verdiene kan variere."
+    },
+    "guardarProyecto": "Lagre i prosjekt",
+    "calcularOtro": "Beregn på nytt",
+    "addToJournal": "Legg til i dagbok",
+    "saved": {
+      "title": "Lagret!",
+      "verProyecto": "Vis prosjekt",
+      "seguirCalculando": "Fortsett å beregne"
+    },
+    "overwrite": {
+      "title": "Erstatt resultat?",
+      "message": "Du har allerede et lagret resultat for dette prosjektet. Vil du erstatte det?"
+    },
+    "errors": {
+      "required": "Alle felt er obligatoriske.",
+      "positiveNumber": "Skriv inn et tall større enn null."
+    },
+    "freeMode": "Fri kalkulator (uten prosjekt)"
+  },
+  "vistaPrevia": {
+    "title": "Prosjektforhåndsvisning",
+    "tipoProyecto": "Prosjekttype",
+    "seleccionaTipo": "Velg en type",
+    "ancho": "Bredde (cm)",
+    "largo": "Lengde (cm)",
+    "circunferencia": "Omkrets (cm)",
+    "altura": "Høyde (cm)",
+    "paleta": "Fargepalett",
+    "patronPunto": "Maskemønster",
+    "generar": "Generer forhåndsvisning",
+    "guardarProyecto": "Lagre i prosjekt",
+    "añadirDiario": "Lagre visning i dagbok",
+    "modificar": "Endre",
+    "coloresSeleccionados": "Valgte farger",
+    "saved": {
+      "title": "Lagret!",
+      "verProyecto": "Vis prosjekt",
+      "crearOtra": "Lag en ny"
+    },
+    "overwrite": {
+      "title": "Erstatt forhåndsvisning?",
+      "message": "Du har allerede en lagret forhåndsvisning for dette prosjektet. Vil du erstatte den?",
+      "confirm": "Erstatt",
+      "cancel": "Avbryt"
+    },
+    "exit": {
+      "title": "Avslutte uten å lagre?",
+      "confirm": "Avslutt",
+      "cancel": "Avbryt"
+    },
+    "errorNoTemplate": "Denne prosjekttypen har ikke en mal ennå.",
+    "freeMode": "Fri forhåndsvisning (uten prosjekt)",
+    "tipos": {
+      "bufanda": "Skjerf",
+      "manta": "Teppe",
+      "gorro": "Lue",
+      "top": "Topp"
+    },
+    "patrones": {
+      "liso": "Ensfarget",
+      "rayasV": "Loddrette striper ↕",
+      "rayasH": "Vannrette striper ↔"
+    },
+    "errors": {
+      "required": "Velg en type og minst én farge.",
+      "dimensions": "Skriv inn gyldige mål (tall større enn null)."
+    }
+  },
+  "projects": {
+    "tabActive": "Aktive",
+    "tabDeleted": "Slettede",
+    "searchPlaceholder": "Søk etter prosjekter...",
+    "emptyActive": "Ingen prosjekter ennå. Start et nytt!",
+    "emptyDeleted": "Ingen slettede prosjekter.",
+    "searchEmptyActive": "🧶 Vi fant ikke det prosjektet blant de aktive. Er det kanskje i papirkurven?",
+    "searchEmptyActiveButton": "Se i papirkurven",
+    "searchEmptyDeleted": "🧶 Vi fant ikke det prosjektet. Hvis du slettet det for mer enn 30 dager siden, er det ikke lenger mulig å gjenopprette det.",
+    "deletedBanner": "Slettede prosjekter kan gjenopprettes i 30 dager. Deretter slettes de for alltid.",
+    "newProject": "Nytt prosjekt",
+    "editProject": "Rediger prosjekt",
+    "nombre": "Navn",
+    "nombrePlaceholder": "Gi prosjektet et navn...",
+    "etiqueta": "Merkelapp",
+    "save": "Lagre",
+    "cancel": "Avbryt",
+    "deleteTitle": "Slette prosjekt?",
+    "deleteMessage": "Prosjektet flyttes til papirkurven. Du kan gjenopprette det i 30 dager.",
+    "restoreTitle": "Gjenopprette prosjekt?",
+    "restoreMessage": "Prosjektet flyttes tilbake til den aktive listen.",
+    "daysRemaining_one": "{{count}} dag igjen",
+    "daysRemaining_other": "{{count}} dager igjen",
+    "descripcion": "Beskrivelse",
+    "descripcionPlaceholder": "Beskriv prosjektet ditt...",
+    "subirArchivo": "Last opp mønster eller bilde",
+    "subirArchivoLabel": "Trykk for å laste opp fil",
+    "herramientas": "Prosjektverktøy",
+    "saveProject": "Lagre prosjekt",
+    "proximamente": "Kommer snart",
+    "tagLegendTitle": "Prosjektmerkelapper",
+    "tagLegendSubtitle": "Begreper fra heklesamfunnet.",
+    "tags": {
+      "WIP": "Work In Progress",
+      "PHD": "Project Half Done",
+      "FO": "Finished Object",
+      "UFO": "Unfinished Project",
+      "USO": "Unstarted Object",
+      "YAP": "Yet Another Project",
+      "TOAD": "Trashed Object Abandoned in Disgust"
+    }
+  },
+  "diario": {
+    "title": "Dagbøker",
+    "nuevoDiario": "Ny dagbok",
+    "nombrePlaceholder": "Dagbokens navn",
+    "crear": "Opprett",
+    "proyectoLink": "Prosjekt: {{nombre}}",
+    "emptyState": "Ingen dagbøker ennå. Opprett en!",
+    "guardar": "Lagre",
+    "guardado": "Lagret",
+    "eliminarTitle": "Slette dagbok?",
+    "eliminarMessage": "Denne handlingen kan ikke angres.",
+    "exitTitle": "Avslutte uten å lagre?",
+    "exitMessage": "Ikke-lagrede tekstendringer vil gå tapt.",
+    "guardarYSalir": "Lagre og avslutt",
+    "salirSinGuardar": "Avslutt uten å lagre",
+    "rowCounter": "Radteller",
+    "resetTitle": "Nullstille teller?",
+    "resetMessage": "Tellingen går tilbake til null.",
+    "timer": "Tidtaker",
+    "iniciar": "Start",
+    "detener": "Stopp",
+    "colores": "Fargepalett",
+    "añadirColor": "Legg til farge",
+    "nombreColor": "Fargenavn",
+    "colorPickerTitle": "Tilpass fargen din",
+    "archivosPatron": "Mønstre (PDF)",
+    "archivosInspiracion": "Inspirasjon",
+    "subirPatron": "Last opp mønster",
+    "subirInspiracion": "Last opp bilde",
+    "errorSubida": "Opplasting mislyktes. Prøv igjen.",
+    "exportarPDF": "Eksporter PDF",
+    "sinDiario": "Ingen dagbok",
+    "vinculoTitle": "Prosjektdagbok",
+    "vinculoNuevo": "Ny dagbok",
+    "vinculoExistente": "Koble eksisterende dagbok",
+    "resultadoCalculadora": "Kalkulatorresultat: ~{{gramos}} g",
+    "resultadoVistaPrevia": "Lagret forhåndsvisning: {{tipo}}"
+  },
+  "entrada": {
+    "nuevaEntrada": "Ny oppføring",
+    "emptyState": "Ingen oppføringer ennå. Opprett den første!",
+    "lastEdit": "Sist redigert: {{date}}",
+    "exitTitle": "Avslutte uten å lagre?",
+    "exitMessage": "Ikke-lagrede lerretendringer vil gå tapt.",
+    "guardarYSalir": "Lagre og avslutt",
+    "salirSinGuardar": "Avslutt uten å lagre",
+    "rowCounter": "Radteller",
+    "textoLibre": "Fritekst",
+    "cuadricula": "Rutenett",
+    "guardado": "Lagret",
+    "eliminarElementoTitle": "Slette dette elementet?",
+    "eliminarElementoConfirm": "Slett"
+  }
+}

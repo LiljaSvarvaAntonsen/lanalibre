@@ -1,0 +1,233 @@
+{
+  "common": {
+    "close": "Close",
+    "appName": "LanaLibre"
+  },
+  "login": {
+    "tagline": "Your creative space",
+    "signInWithGoogle": "Continue with Google",
+    "signInWithApple": "Continue with Apple",
+    "termsAcceptance": "By continuing you agree to our <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>",
+    "welcome": "Welcome to LanaLibre"
+  },
+  "legal": {
+    "termsTitle": "Terms of Service",
+    "termsContent": "These terms describe the conditions under which you may use LanaLibre. By using the app, you accept these terms.",
+    "privacyTitle": "Privacy Policy",
+    "privacyContent": "Your privacy matters to us. LanaLibre only collects data necessary for the app to function and never shares it with third parties."
+  },
+  "errors": {
+    "googleToken": "Could not retrieve the Google token.",
+    "googleNotConfigured": "Google Sign-In is not configured yet."
+  },
+  "nav": {
+    "inicio": "Home",
+    "calculadora": "Calculator",
+    "vistaPrevia": "Preview",
+    "diario": "Journal",
+    "perfil": "Profile"
+  },
+  "inicio": {
+    "greeting": "Hello! 👋",
+    "subtitle": "What do you want to create today?",
+    "newProject": "Start new project",
+    "recentProjects": "Recent projects",
+    "allProjects": "All projects",
+    "journal": "Journal"
+  },
+  "perfil": {
+    "title": "Profile",
+    "idioma": "Language"
+  },
+  "placeholder": {
+    "comingSoon": "Coming soon"
+  },
+  "projectDetail": {
+    "noResult": "No result yet",
+    "modifiedOn": "Modified {{date}}",
+    "createdOn": "Created {{date}}",
+    "calculadora": "Yarn calculator",
+    "previsualizacion": "Design preview",
+    "diario": "Project journal"
+  },
+  "calculadora": {
+    "title": "Yarn Calculator",
+    "metrosEtiqueta": "Label metres",
+    "gramosEtiqueta": "Label grams",
+    "ancho": "Width (cm)",
+    "largo": "Length (cm)",
+    "tension": "Tension (stitches/10 cm)",
+    "tipoPunto": "Stitch type",
+    "tipoPunto_punto_bajo": "Single crochet",
+    "tipoPunto_punto_alto": "Double crochet",
+    "tipoPunto_puntos_densos": "Dense stitches",
+    "calcular": "Calculate",
+    "result": {
+      "metrosTotales": "Total Metres",
+      "gramosTotales": "Total Grams",
+      "resultadoFinal": "Final Result (+10%)",
+      "disclaimer": "This result is an estimate. Actual values may vary."
+    },
+    "guardarProyecto": "Save to project",
+    "calcularOtro": "Calculate again",
+    "addToJournal": "Add to journal",
+    "saved": {
+      "title": "Saved!",
+      "verProyecto": "View project",
+      "seguirCalculando": "Keep calculating"
+    },
+    "overwrite": {
+      "title": "Replace result?",
+      "message": "You already have a saved result for this project. Do you want to replace it?"
+    },
+    "errors": {
+      "required": "All fields are required.",
+      "positiveNumber": "Enter a number greater than zero."
+    },
+    "freeMode": "Free calculator (no project)"
+  },
+  "vistaPrevia": {
+    "title": "Project Preview",
+    "tipoProyecto": "Project type",
+    "seleccionaTipo": "Select a type",
+    "ancho": "Width (cm)",
+    "largo": "Length (cm)",
+    "circunferencia": "Circumference (cm)",
+    "altura": "Height (cm)",
+    "paleta": "Colour palette",
+    "patronPunto": "Stitch pattern",
+    "generar": "Generate preview",
+    "guardarProyecto": "Save to project",
+    "añadirDiario": "Save preview to journal",
+    "modificar": "Modify",
+    "coloresSeleccionados": "Selected colours",
+    "saved": {
+      "title": "Saved!",
+      "verProyecto": "View project",
+      "crearOtra": "Create another"
+    },
+    "overwrite": {
+      "title": "Replace preview?",
+      "message": "You already have a saved preview for this project. Do you want to replace it?",
+      "confirm": "Replace",
+      "cancel": "Cancel"
+    },
+    "exit": {
+      "title": "Exit without saving?",
+      "confirm": "Exit",
+      "cancel": "Cancel"
+    },
+    "errorNoTemplate": "This project type doesn't have a template yet.",
+    "freeMode": "Free preview (no project)",
+    "tipos": {
+      "bufanda": "Scarf",
+      "manta": "Blanket",
+      "gorro": "Hat",
+      "top": "Top"
+    },
+    "patrones": {
+      "liso": "Solid",
+      "rayasV": "V-Stripes ↕",
+      "rayasH": "H-Stripes ↔"
+    },
+    "errors": {
+      "required": "Select a type and at least one colour.",
+      "dimensions": "Enter valid dimensions (numbers greater than zero)."
+    }
+  },
+  "projects": {
+    "tabActive": "Active",
+    "tabDeleted": "Deleted",
+    "searchPlaceholder": "Search projects...",
+    "emptyActive": "No projects yet. Start a new one!",
+    "emptyDeleted": "No deleted projects.",
+    "searchEmptyActive": "🧶 We couldn't find that project among your active ones. Maybe it's in the trash?",
+    "searchEmptyActiveButton": "Check the trash",
+    "searchEmptyDeleted": "🧶 We couldn't find that project. If you deleted it more than 30 days ago, it's no longer possible to recover it.",
+    "deletedBanner": "Deleted projects can be recovered for 30 days. After that, they're gone for good.",
+    "newProject": "New project",
+    "editProject": "Edit project",
+    "nombre": "Name",
+    "nombrePlaceholder": "Give your project a name...",
+    "etiqueta": "Tag",
+    "save": "Save",
+    "cancel": "Cancel",
+    "deleteTitle": "Delete project?",
+    "deleteMessage": "The project will go to the trash. You can recover it for 30 days.",
+    "restoreTitle": "Restore project?",
+    "restoreMessage": "The project will be moved back to your active list.",
+    "daysRemaining_one": "{{count}} day remaining",
+    "daysRemaining_other": "{{count}} days remaining",
+    "descripcion": "Description",
+    "descripcionPlaceholder": "Describe your project...",
+    "subirArchivo": "Upload pattern or photo",
+    "subirArchivoLabel": "Tap to upload file",
+    "herramientas": "Project tools",
+    "saveProject": "Save project",
+    "proximamente": "Coming soon",
+    "tagLegendTitle": "Project Tags",
+    "tagLegendSubtitle": "Terms from the crochet community.",
+    "tags": {
+      "WIP": "Work In Progress",
+      "PHD": "Project Half Done",
+      "FO": "Finished Object",
+      "UFO": "Unfinished Project",
+      "USO": "Unstarted Object",
+      "YAP": "Yet Another Project",
+      "TOAD": "Trashed Object Abandoned in Disgust"
+    }
+  },
+  "diario": {
+    "title": "Journals",
+    "nuevoDiario": "New journal",
+    "nombrePlaceholder": "Journal name",
+    "crear": "Create",
+    "proyectoLink": "Project: {{nombre}}",
+    "emptyState": "No journals yet. Create one!",
+    "guardar": "Save",
+    "guardado": "Saved",
+    "eliminarTitle": "Delete journal?",
+    "eliminarMessage": "This action cannot be undone.",
+    "exitTitle": "Exit without saving?",
+    "exitMessage": "Unsaved text changes will be lost.",
+    "guardarYSalir": "Save and exit",
+    "salirSinGuardar": "Exit without saving",
+    "rowCounter": "Row counter",
+    "resetTitle": "Reset counter?",
+    "resetMessage": "The count will go back to zero.",
+    "timer": "Timer",
+    "iniciar": "Start",
+    "detener": "Stop",
+    "colores": "Colour palette",
+    "añadirColor": "Add colour",
+    "nombreColor": "Colour name",
+    "colorPickerTitle": "Customise your colour",
+    "archivosPatron": "Patterns (PDF)",
+    "archivosInspiracion": "Inspiration",
+    "subirPatron": "Upload pattern",
+    "subirInspiracion": "Upload image",
+    "errorSubida": "Upload failed. Please try again.",
+    "exportarPDF": "Export PDF",
+    "sinDiario": "No journal",
+    "vinculoTitle": "Project journal",
+    "vinculoNuevo": "New journal",
+    "vinculoExistente": "Link existing journal",
+    "resultadoCalculadora": "Calculator result: ~{{gramos}} g",
+    "resultadoVistaPrevia": "Saved preview: {{tipo}}"
+  },
+  "entrada": {
+    "nuevaEntrada": "New entry",
+    "emptyState": "No entries yet. Create the first one!",
+    "lastEdit": "Last edited: {{date}}",
+    "exitTitle": "Exit without saving?",
+    "exitMessage": "Unsaved canvas changes will be lost.",
+    "guardarYSalir": "Save and exit",
+    "salirSinGuardar": "Exit without saving",
+    "rowCounter": "Row counter",
+    "textoLibre": "Free text",
+    "cuadricula": "Grid",
+    "guardado": "Saved",
+    "eliminarElementoTitle": "Delete this element?",
+    "eliminarElementoConfirm": "Delete"
+  }
+}
