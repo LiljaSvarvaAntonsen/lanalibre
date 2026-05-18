@@ -3,6 +3,13 @@
     "close": "Close",
     "appName": "LanaLibre"
   },
+  "projectPicker": {
+    "title": "Save to project",
+    "loading": "Loading projects…",
+    "empty": "You don't have any projects yet. Create one first.",
+    "createFirst": "Create project",
+    "savedToast": "Saved to {{nombre}}"
+  },
   "login": {
     "tagline": "Your creative space",
     "signInWithGoogle": "Continue with Google",
@@ -48,7 +55,8 @@
     "createdOn": "Created {{date}}",
     "calculadora": "Yarn calculator",
     "previsualizacion": "Design preview",
-    "diario": "Project journal"
+    "diario": "Project journal",
+    "guardadoEl": "Saved on {{date}}"
   },
   "calculadora": {
     "title": "Yarn Calculator",
@@ -78,7 +86,8 @@
     },
     "overwrite": {
       "title": "Replace result?",
-      "message": "You already have a saved result for this project. Do you want to replace it?"
+      "message": "You already have a saved result for this project. Do you want to replace it?",
+      "messageConFecha": "Result saved on {{date}}. Do you want to replace it?"
     },
     "errors": {
       "required": "All fields are required.",
@@ -109,6 +118,7 @@
     "overwrite": {
       "title": "Replace preview?",
       "message": "You already have a saved preview for this project. Do you want to replace it?",
+      "messageConFecha": "Preview saved on {{date}}. Do you want to replace it?",
       "confirm": "Replace",
       "cancel": "Cancel"
     },
@@ -228,6 +238,33 @@
     "cuadricula": "Grid",
     "guardado": "Saved",
     "eliminarElementoTitle": "Delete this element?",
-    "eliminarElementoConfirm": "Delete"
+    "eliminarElementoConfirm": "Delete",
+    "deshacer": "Undo",
+    "paleta": {
+      "titulo": "Customise your colour",
+      "coloresRecientes": "Recent colours",
+      "siguiente": "Next",
+      "grosor": "Brush width",
+      "activar": "Activate brush",
+      "atras": "Back"
+    },
+    "puntos": {
+      "titulo": "Stitches",
+      "cadena": "Chain",
+      "puntoRaso": "Slip stitch",
+      "puntoBajo": "Single crochet",
+      "medioPuntoAlto": "Half double crochet",
+      "puntoAlto": "Double crochet",
+      "puntoAltoDoble": "Treble crochet",
+      "anilloMagico": "Magic ring"
+    },
+    "subir": {
+      "titulo": "Upload file",
+      "imagen": "Image",
+      "pdf": "PDF document",
+      "subiendo": "Uploading...",
+      "errorToast": "Upload failed. Please try again."
+    },
+    "previewAddedToast": "Preview added to journal ✓"
   }
 }

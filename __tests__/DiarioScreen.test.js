@@ -4,6 +4,35 @@ jest.mock('expo-localization', () => ({
 
 jest.mock('../firebase', () => ({}));
 
+jest.mock('../services/storage', () => ({
+  uploadEntradaStrokes: jest.fn(() => Promise.resolve('https://storage/strokes.json')),
+  fetchEntradaStrokes: jest.fn(() => Promise.resolve({ freeStrokes: [], gridFills: {} })),
+  uploadEntradaFile: jest.fn(() => Promise.resolve({ url: 'https://storage/img.jpg', storagePath: 'path' })),
+  uploadPatron: jest.fn(),
+  uploadInspiracion: jest.fn(),
+  deleteFile: jest.fn(),
+}));
+
+jest.mock('expo-image-picker', () => ({
+  launchImageLibraryAsync: jest.fn(() => Promise.resolve({ canceled: true })),
+  MediaTypeOptions: { Images: 'Images' },
+}));
+
+jest.mock('expo-document-picker', () => ({
+  getDocumentAsync: jest.fn(() => Promise.resolve({ canceled: true })),
+}));
+
+jest.mock('react-native-color-picker', () => ({
+  ColorPicker: () => null,
+  fromHsv: jest.fn(() => '#7C6AAF'),
+  toHsv: jest.fn(() => ({ h: 260, s: 0.4, v: 0.7 })),
+}));
+
+jest.mock('@react-native-community/slider', () => {
+  const { View } = require('react-native');
+  return View;
+});
+
 // ── Firestore mocks ────────────────────────────────────────────────────────────
 
 const mockUpdateEntrada = jest.fn(() => Promise.resolve());

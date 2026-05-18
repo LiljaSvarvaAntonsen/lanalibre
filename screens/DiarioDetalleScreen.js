@@ -36,7 +36,7 @@ function EntradaCard({ item, onPress }) {
 
 export default function DiarioDetalleScreen({ navigation, route }) {
   const { t } = useTranslation();
-  const { diarioId, resultadoCalculadora, resultadoVistaPrevia } = route.params;
+  const { diarioId, resultadoCalculadora, resultadoVistaPrevia, previewImageUri } = route.params;
 
   const [diario, setDiario] = useState(null);
   const [entradas, setEntradas] = useState([]);
@@ -62,6 +62,7 @@ export default function DiarioDetalleScreen({ navigation, route }) {
       entradaId,
       resultadoCalculadora,
       resultadoVistaPrevia,
+      previewImageUri,
     });
   }
 

@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Pencil, Calculator, Eye, BookOpen, ChevronRight } from 'lucide-react-native';
+import ResultSummaryCard from '../components/ResultSummaryCard';
 import { colors, radii } from '../constants/colors';
 import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
@@ -156,24 +157,48 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
         </View>
 
         <View style={styles.cards}>
-          <ToolCard
-            icon={Calculator}
-            label={t('projectDetail.calculadora')}
-            summary={project ? getResultSummary(project, 'calculadora') : null}
-            noResultText={t('projectDetail.noResult')}
-            iconColor={colors.secondary.cinnamon}
-            iconBg="#FDE8D8"
-            onPress={() => navigation.navigate('CalculadoraScreen', { projectId })}
-          />
-          <ToolCard
-            icon={Eye}
-            label={t('projectDetail.previsualizacion')}
-            summary={project ? getResultSummary(project, 'previsualizacion') : null}
-            noResultText={t('projectDetail.noResult')}
-            iconColor={colors.primary.dark}
-            iconBg="#EDE5F8"
-            onPress={() => navigation.navigate('VistaPreviaScreen', { projectId })}
-          />
+          {project?.resultadoCalculadora ? (
+            <ResultSummaryCard
+              icon={Calculator}
+              label={t('projectDetail.calculadora')}
+              keyValue={`~${Math.round(project.resultadoCalculadora.resultadoFinal)} g`}
+              savedDate={project.resultadoCalculadora.fechaGuardado}
+              iconColor={colors.secondary.cinnamon}
+              iconBg="#FDE8D8"
+              onPress={() => navigation.navigate('CalculadoraScreen', { projectId })}
+            />
+          ) : (
+            <ToolCard
+              icon={Calculator}
+              label={t('projectDetail.calculadora')}
+              summary={null}
+              noResultText={t('projectDetail.noResult')}
+              iconColor={colors.secondary.cinnamon}
+              iconBg="#FDE8D8"
+              onPress={() => navigation.navigate('CalculadoraScreen', { projectId })}
+            />
+          )}
+          {project?.resultadoPrevisualización ? (
+            <ResultSummaryCard
+              icon={Eye}
+              label={t('projectDetail.previsualizacion')}
+              keyValue={project.resultadoPrevisualización.tipoProyecto}
+              savedDate={project.resultadoPrevisualización.fechaGuardado}
+              iconColor={colors.primary.dark}
+              iconBg="#EDE5F8"
+              onPress={() => navigation.navigate('VistaPreviaScreen', { projectId })}
+            />
+          ) : (
+            <ToolCard
+              icon={Eye}
+              label={t('projectDetail.previsualizacion')}
+              summary={null}
+              noResultText={t('projectDetail.noResult')}
+              iconColor={colors.primary.dark}
+              iconBg="#EDE5F8"
+              onPress={() => navigation.navigate('VistaPreviaScreen', { projectId })}
+            />
+          )}
           <ToolCard
             icon={BookOpen}
             label={t('projectDetail.diario')}
