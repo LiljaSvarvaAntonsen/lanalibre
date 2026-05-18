@@ -3,6 +3,13 @@
     "close": "Lukk",
     "appName": "LanaLibre"
   },
+  "projectPicker": {
+    "title": "Lagre i prosjekt",
+    "loading": "Laster prosjekter…",
+    "empty": "Du har ingen prosjekter ennå. Opprett ett først.",
+    "createFirst": "Opprett prosjekt",
+    "savedToast": "Lagret i {{nombre}}"
+  },
   "login": {
     "tagline": "Din kreative plass",
     "signInWithGoogle": "Fortsett med Google",
@@ -48,7 +55,8 @@
     "createdOn": "Opprettet {{date}}",
     "calculadora": "Garenkalkulator",
     "previsualizacion": "Forhåndsvisning",
-    "diario": "Prosjektdagbok"
+    "diario": "Prosjektdagbok",
+    "guardadoEl": "Lagret {{date}}"
   },
   "calculadora": {
     "title": "Garenkalkulator",
@@ -78,7 +86,8 @@
     },
     "overwrite": {
       "title": "Erstatt resultat?",
-      "message": "Du har allerede et lagret resultat for dette prosjektet. Vil du erstatte det?"
+      "message": "Du har allerede et lagret resultat for dette prosjektet. Vil du erstatte det?",
+      "messageConFecha": "Resultat lagret {{date}}. Vil du erstatte det?"
     },
     "errors": {
       "required": "Alle felt er obligatoriske.",
@@ -109,6 +118,7 @@
     "overwrite": {
       "title": "Erstatt forhåndsvisning?",
       "message": "Du har allerede en lagret forhåndsvisning for dette prosjektet. Vil du erstatte den?",
+      "messageConFecha": "Forhåndsvisning lagret {{date}}. Vil du erstatte den?",
       "confirm": "Erstatt",
       "cancel": "Avbryt"
     },
@@ -228,6 +238,33 @@
     "cuadricula": "Rutenett",
     "guardado": "Lagret",
     "eliminarElementoTitle": "Slette dette elementet?",
-    "eliminarElementoConfirm": "Slett"
+    "eliminarElementoConfirm": "Slett",
+    "deshacer": "Angre",
+    "paleta": {
+      "titulo": "Tilpass fargen din",
+      "coloresRecientes": "Nylige farger",
+      "siguiente": "Neste",
+      "grosor": "Penselbredde",
+      "activar": "Aktiver pensel",
+      "atras": "Tilbake"
+    },
+    "puntos": {
+      "titulo": "Masker",
+      "cadena": "Luftmaske",
+      "puntoRaso": "Slippmaske",
+      "puntoBajo": "Enkle luftmasker",
+      "medioPuntoAlto": "Halvstolpe",
+      "puntoAlto": "Stolpe",
+      "puntoAltoDoble": "Dobbelt stolpe",
+      "anilloMagico": "Magisk ring"
+    },
+    "subir": {
+      "titulo": "Last opp fil",
+      "imagen": "Bilde",
+      "pdf": "PDF-dokument",
+      "subiendo": "Laster opp...",
+      "errorToast": "Opplasting mislyktes. Prøv igjen."
+    },
+    "previewAddedToast": "Forhåndsvisning lagt til i dagboken ✓"
   }
 }

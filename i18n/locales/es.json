@@ -3,6 +3,13 @@
     "close": "Cerrar",
     "appName": "LanaLibre"
   },
+  "projectPicker": {
+    "title": "Guardar en proyecto",
+    "loading": "Cargando proyectos…",
+    "empty": "Aún no tienes proyectos. Crea uno primero.",
+    "createFirst": "Crear proyecto",
+    "savedToast": "Guardado en {{nombre}}"
+  },
   "login": {
     "tagline": "Tu espacio para crear",
     "signInWithGoogle": "Continuar con Google",
@@ -48,7 +55,8 @@
     "createdOn": "Creado {{date}}",
     "calculadora": "Calculadora de lana",
     "previsualizacion": "Vista previa",
-    "diario": "Diario de proyecto"
+    "diario": "Diario de proyecto",
+    "guardadoEl": "Guardado el {{date}}"
   },
   "calculadora": {
     "title": "Calculadora de Lana",
@@ -78,7 +86,8 @@
     },
     "overwrite": {
       "title": "¿Reemplazar resultado?",
-      "message": "Ya tienes un resultado guardado para este proyecto. ¿Deseas reemplazarlo?"
+      "message": "Ya tienes un resultado guardado para este proyecto. ¿Deseas reemplazarlo?",
+      "messageConFecha": "Resultado guardado el {{date}}. ¿Deseas reemplazarlo?"
     },
     "errors": {
       "required": "Todos los campos son obligatorios.",
@@ -109,6 +118,7 @@
     "overwrite": {
       "title": "¿Reemplazar vista previa?",
       "message": "Ya tienes una vista previa guardada para este proyecto. ¿Deseas reemplazarla?",
+      "messageConFecha": "Vista previa guardada el {{date}}. ¿Deseas reemplazarla?",
       "confirm": "Reemplazar",
       "cancel": "Cancelar"
     },
@@ -228,6 +238,33 @@
     "cuadricula": "Cuadrícula",
     "guardado": "Guardado",
     "eliminarElementoTitle": "¿Eliminar este elemento?",
-    "eliminarElementoConfirm": "Eliminar"
+    "eliminarElementoConfirm": "Eliminar",
+    "deshacer": "Deshacer",
+    "paleta": {
+      "titulo": "Personaliza tu color",
+      "coloresRecientes": "Colores recientes",
+      "siguiente": "Siguiente",
+      "grosor": "Grosor del pincel",
+      "activar": "Activar pincel",
+      "atras": "Atrás"
+    },
+    "puntos": {
+      "titulo": "Puntos",
+      "cadena": "Cadena",
+      "puntoRaso": "Punto raso",
+      "puntoBajo": "Punto bajo",
+      "medioPuntoAlto": "Medio punto alto",
+      "puntoAlto": "Punto alto",
+      "puntoAltoDoble": "Punto alto doble",
+      "anilloMagico": "Anillo mágico"
+    },
+    "subir": {
+      "titulo": "Subir archivo",
+      "imagen": "Imagen",
+      "pdf": "Documento PDF",
+      "subiendo": "Subiendo...",
+      "errorToast": "Error al subir. Inténtalo de nuevo."
+    },
+    "previewAddedToast": "Vista previa añadida al diario ✓"
   }
 }

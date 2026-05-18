@@ -9,10 +9,13 @@ import {
   Pressable,
   Keyboard,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import Svg, { Line } from 'react-native-svg';
+import Svg, { Line, Path, Rect } from 'react-native-svg';
+import { launchImageLibraryAsync } from 'expo-image-picker';
+import { getDocumentAsync } from 'expo-document-picker';
 import {
   ArrowLeft,
   Trash2,
@@ -34,8 +37,15 @@ import { colors, radii } from '../constants/colors';
 import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
 import { getEntrada, updateEntrada } from '../services/firestore';
+import { uploadEntradaStrokes, fetchEntradaStrokes, uploadEntradaFile } from '../services/storage';
+import { useAuth } from '../hooks/useAuth';
 import ConfirmationModal from '../components/ConfirmationModal';
 import LoadingOverlay from '../components/LoadingOverlay';
+import ColorPickerPanel from '../components/journal/ColorPickerPanel';
+import PuntosPanel from '../components/journal/PuntosPanel';
+import StitchWidget from '../components/journal/StitchWidget';
+import ImageWidget from '../components/journal/ImageWidget';
+import Toast from '../components/Toast';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -65,6 +75,61 @@ function GridLayer({ width, height }) {
     <Svg style={StyleSheet.absoluteFill} width={width} height={height} pointerEvents="none">
       {hLines}
       {vLines}
+    </Svg>
+  );
+}
+
+// ── StrokesLayer ──────────────────────────────────────────────────────────────
+
+function toSvgPath(pts) {
+  return pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+}
+
+function StrokesLayer({ freeStrokes, currentPoints, currentColor, currentWidth, gridFills, width, height }) {
+  if (!width || !height) return null;
+  const fills = Object.entries(gridFills);
+  const hasFills = fills.length > 0;
+  const hasStrokes = freeStrokes.length > 0;
+  const hasLive = currentPoints.length > 1;
+  if (!hasFills && !hasStrokes && !hasLive) return null;
+
+  return (
+    <Svg style={StyleSheet.absoluteFill} width={width} height={height} pointerEvents="none">
+      {fills.map(([key, color]) => {
+        const [col, row] = key.split('_').map(Number);
+        return (
+          <Rect
+            key={key}
+            x={col * CELL}
+            y={row * CELL}
+            width={CELL}
+            height={CELL}
+            fill={color}
+            opacity={0.55}
+          />
+        );
+      })}
+      {freeStrokes.map((s) => (
+        <Path
+          key={s.id}
+          d={toSvgPath(s.points)}
+          stroke={s.color}
+          strokeWidth={s.width}
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      ))}
+      {hasLive && (
+        <Path
+          d={toSvgPath(currentPoints)}
+          stroke={currentColor}
+          strokeWidth={currentWidth}
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      )}
     </Svg>
   );
 }
@@ -272,9 +337,16 @@ function FloatingToolbar({
   onToggle,
   textInsertMode,
   gridMode,
+  paintMode,
+  showColorPicker,
+  stitchInsertMode,
+  showPuntosPanel,
   onRowCounter,
   onText,
   onGrid,
+  onPalette,
+  onPuntos,
+  onUpload,
   t,
 }) {
   const initX = canvasSize.width > 0 ? Math.max(0, canvasSize.width / 2 - 140) : 80;
@@ -304,10 +376,10 @@ function FloatingToolbar({
       {!collapsed && (
         <View style={styles.toolbarBtns}>
           <TbBtn icon={AlignJustify} onPress={onRowCounter} label={t('entrada.rowCounter')} />
-          <TbBtn icon={Palette} disabled label="Paleta" />
+          <TbBtn icon={Palette} onPress={onPalette} active={paintMode || showColorPicker} label={t('entrada.paleta.titulo')} />
           <TbBtn icon={Type} onPress={onText} active={textInsertMode} label={t('entrada.textoLibre')} />
-          <TbBtn icon={Upload} disabled label="Subir" />
-          <TbBtn icon={Hash} disabled label="Puntos" />
+          <TbBtn icon={Upload} onPress={onUpload} label={t('entrada.subir.titulo')} />
+          <TbBtn icon={Hash} onPress={onPuntos} active={stitchInsertMode || showPuntosPanel} label={t('entrada.puntos.titulo')} />
           <TbBtn icon={LayoutGrid} onPress={onGrid} active={gridMode} label={t('entrada.cuadricula')} />
         </View>
       )}
@@ -318,8 +390,9 @@ function FloatingToolbar({
 // ── Main screen ───────────────────────────────────────────────────────────────
 
 export default function EntradaDiarioScreen({ navigation, route }) {
-  const { diarioId, entradaId, resultadoCalculadora, resultadoVistaPrevia } = route.params;
+  const { diarioId, entradaId, resultadoCalculadora, resultadoVistaPrevia, previewImageUri } = route.params;
   const { t } = useTranslation();
+  const { user } = useAuth();
 
   const [entradaNombre, setEntradaNombre] = useState('');
   const [elementos, setElementos] = useState([]);
@@ -340,8 +413,39 @@ export default function EntradaDiarioScreen({ navigation, route }) {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
   const [eraseTargetId, setEraseTargetId] = useState(null);
+
+  // ── Paint mode state ────────────────────────────────────────────────────────
+  const [paintMode, setPaintMode] = useState(false);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [brushColor, setBrushColor] = useState(colors.primary.DEFAULT);
+  const [brushWidth, setBrushWidth] = useState(8);
+  const [freeStrokes, setFreeStrokes] = useState([]);
+  const [gridFills, setGridFills] = useState({});
+  const [currentPoints, setCurrentPoints] = useState([]);
+  const [undoStack, setUndoStack] = useState([]);
+  const [strokesDirty, setStrokesDirty] = useState(false);
+  const [recentColors, setRecentColors] = useState([]);
+  const strokesUrlRef = useRef(null);
+  const currentStrokeId = useRef(null);
+  // Refs so PanResponder (created once) sees live paint state
+  const paintModeRef = useRef(false);
+  paintModeRef.current = paintMode;
+  const gridModeRef = useRef(false);
+  gridModeRef.current = gridMode;
+  const brushColorRef = useRef(brushColor);
+  brushColorRef.current = brushColor;
+  const brushWidthRef = useRef(brushWidth);
+  brushWidthRef.current = brushWidth;
+  const gridFillsAtGestureStart = useRef({});
+  const currentPointsRef = useRef([]);
+
+  // ── Stitch insert state ─────────────────────────────────────────────────────
+  const [stitchInsertMode, setStitchInsertMode] = useState(false);
+  const [pendingStitchType, setPendingStitchType] = useState(null);
+  const [showPuntosPanel, setShowPuntosPanel] = useState(false);
 
   // ── Keyboard height tracking ─────────────────────────────────────────────────
   useEffect(() => {
@@ -374,15 +478,37 @@ export default function EntradaDiarioScreen({ navigation, route }) {
         const gramos = Math.round(resultadoCalculadora.gramosTotales ?? 0);
         initial = [makeTextBox(40, 40, t('diario.resultadoCalculadora', { gramos })), ...initial];
       }
-      if (resultadoVistaPrevia) {
-        const tipo = resultadoVistaPrevia.tipoProyecto ?? '';
-        const offsetY = resultadoCalculadora ? 120 : 40;
-        initial = [makeTextBox(40, offsetY, t('diario.resultadoVistaPrevia', { tipo })), ...initial];
+      if (previewImageUri && user?.uid) {
+        let placed = false;
+        if (user.uid === 'dev-user') {
+          // Dev bypass has no real auth token — use local URI directly without uploading to Storage
+          initial = [{ id: makeId(), type: 'image', x: 40, y: 40, width: 240, height: 180, url: previewImageUri, storagePath: null, isPdf: false }, ...initial];
+          placed = true;
+        } else {
+          try {
+            const { url, storagePath } = await uploadEntradaFile(user.uid, diarioId, { uri: previewImageUri, name: 'vista-previa.png' });
+            initial = [{ id: makeId(), type: 'image', x: 40, y: 40, width: 240, height: 180, url, storagePath, isPdf: false }, ...initial];
+            placed = true;
+          } catch { /* skip if upload fails — non-fatal */ }
+        }
+        if (placed) setPreviewPlaced(true);
       }
 
       setEntradaNombre(data?.nombre ?? '');
       setElementos(initial);
       savedRef.current = Array.isArray(data?.elementos) ? data.elementos : [];
+
+      if (data?.strokesUrl) {
+        try {
+          const strokes = await fetchEntradaStrokes(data.strokesUrl);
+          if (!cancelled) {
+            setFreeStrokes(strokes.freeStrokes ?? []);
+            setGridFills(strokes.gridFills ?? {});
+            strokesUrlRef.current = data.strokesUrl;
+          }
+        } catch { /* strokes load failure is non-fatal */ }
+      }
+
       setLoading(false);
     }
 
@@ -391,7 +517,7 @@ export default function EntradaDiarioScreen({ navigation, route }) {
   }, []);
 
   function isUnsaved() {
-    return JSON.stringify(elementos) !== JSON.stringify(savedRef.current);
+    return JSON.stringify(elementos) !== JSON.stringify(savedRef.current) || strokesDirty;
   }
 
   function updateElement(id, changes) {
@@ -407,12 +533,82 @@ export default function EntradaDiarioScreen({ navigation, route }) {
   async function handleSave() {
     setSaving(true);
     try {
-      await updateEntrada(diarioId, entradaId, { elementos });
+      let strokesUrl = strokesUrlRef.current;
+      if (strokesDirty && user?.uid) {
+        strokesUrl = await uploadEntradaStrokes(
+          user.uid, diarioId, entradaId,
+          { freeStrokes, gridFills },
+        );
+        strokesUrlRef.current = strokesUrl;
+        setStrokesDirty(false);
+      }
+      await updateEntrada(diarioId, entradaId, { elementos, strokesUrl });
       savedRef.current = [...elementos];
     } finally {
       setSaving(false);
     }
   }
+
+  // ── Paint PanResponder ──────────────────────────────────────────────────────
+  const paintPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => paintModeRef.current,
+      onMoveShouldSetPanResponder: () => paintModeRef.current,
+      onPanResponderGrant: (evt) => {
+        const { locationX, locationY } = evt.nativeEvent;
+        if (gridModeRef.current) {
+          gridFillsAtGestureStart.current = { ...gridFillsRef.current };
+        } else {
+          currentStrokeId.current = makeId();
+          currentPointsRef.current = [{ x: locationX, y: locationY }];
+          setCurrentPoints([{ x: locationX, y: locationY }]);
+        }
+        setStrokesDirty(true);
+      },
+      onPanResponderMove: (evt) => {
+        const { locationX, locationY } = evt.nativeEvent;
+        if (gridModeRef.current) {
+          const col = Math.floor(locationX / CELL);
+          const row = Math.floor(locationY / CELL);
+          if (col >= 0 && row >= 0) {
+            setGridFills((prev) => ({ ...prev, [`${col}_${row}`]: brushColorRef.current }));
+          }
+        } else {
+          const newPt = { x: locationX, y: locationY };
+          currentPointsRef.current = [...currentPointsRef.current, newPt];
+          setCurrentPoints([...currentPointsRef.current]);
+        }
+      },
+      onPanResponderRelease: () => {
+        if (gridModeRef.current) {
+          setUndoStack((prev) => [
+            ...prev,
+            { type: 'gridFill', snapshot: gridFillsAtGestureStart.current },
+          ]);
+        } else {
+          const pts = currentPointsRef.current;
+          const id = currentStrokeId.current;
+          if (pts.length > 0 && id) {
+            const stroke = {
+              id,
+              color: brushColorRef.current,
+              width: brushWidthRef.current,
+              points: pts,
+            };
+            setFreeStrokes((prev) => [...prev, stroke]);
+            setUndoStack((prev) => [...prev, { type: 'freeStroke', id }]);
+          }
+          currentPointsRef.current = [];
+          setCurrentPoints([]);
+          currentStrokeId.current = null;
+        }
+      },
+    }),
+  ).current;
+
+  // Ref so the PanResponder can see current gridFills
+  const gridFillsRef = useRef(gridFills);
+  gridFillsRef.current = gridFills;
 
   async function handleSaveAndExit() {
     await handleSave();
@@ -458,6 +654,27 @@ export default function EntradaDiarioScreen({ navigation, route }) {
   }, [canvasOffset]);
 
   function handleCanvasTap(evt) {
+    if (paintMode) return; // paint overlay handles this
+
+    if (stitchInsertMode && pendingStitchType) {
+      const { locationX, locationY } = evt.nativeEvent;
+      const rawX = locationX - 20;
+      const rawY = locationY + canvasOffset - 20;
+      const x = gridMode
+        ? Math.round(rawX / CELL) * CELL
+        : Math.max(0, rawX);
+      const y = gridMode
+        ? Math.round(rawY / CELL) * CELL
+        : Math.max(0, rawY);
+      setElementos((prev) => [
+        ...prev,
+        { id: makeId(), type: 'stitch', x, y, stitchType: pendingStitchType, rotation: 0 },
+      ]);
+      setStitchInsertMode(false);
+      setPendingStitchType(null);
+      return;
+    }
+
     if (textInsertMode) {
       const { locationX, locationY } = evt.nativeEvent;
       // locationY is in unshifted canvas coordinates; add canvasOffset to get content coordinates
@@ -467,10 +684,12 @@ export default function EntradaDiarioScreen({ navigation, route }) {
       setEditingId(null);
       setTextInsertMode(false);
     } else {
-      // Deselect everything
+      // Deselect everything; also close panels
       Keyboard.dismiss();
       setSelectedId(null);
       setEditingId(null);
+      if (showPuntosPanel) setShowPuntosPanel(false);
+      if (showColorPicker) setShowColorPicker(false);
     }
   }
 
@@ -497,10 +716,125 @@ export default function EntradaDiarioScreen({ navigation, route }) {
     Keyboard.dismiss();
     setEraserMode((prev) => !prev);
     setTextInsertMode(false);
+    setStitchInsertMode(false);
+    setPaintMode(false);
+    setShowColorPicker(false);
+    setShowPuntosPanel(false);
     setSelectedId(null);
     setEditingId(null);
     setEraseTargetId(null);
   }
+
+  function clearAllModes() {
+    setTextInsertMode(false);
+    setEraserMode(false);
+    setStitchInsertMode(false);
+    setSelectedId(null);
+    setEditingId(null);
+    Keyboard.dismiss();
+  }
+
+  // ── Paint mode handlers ─────────────────────────────────────────────────────
+
+  function handleTogglePalette() {
+    if (paintMode) {
+      setPaintMode(false);
+      setShowColorPicker(false);
+    } else {
+      clearAllModes();
+      setShowPuntosPanel(false);
+      setShowColorPicker(true);
+    }
+  }
+
+  function handleActivateBrush({ color, width }) {
+    setBrushColor(color);
+    setBrushWidth(width);
+    setRecentColors((prev) => [color, ...prev.filter((c) => c !== color)].slice(0, 8));
+    setShowColorPicker(false);
+    setPaintMode(true);
+  }
+
+  function handleUndo() {
+    setUndoStack((prev) => {
+      if (!prev.length) return prev;
+      const last = prev[prev.length - 1];
+      if (last.type === 'freeStroke') {
+        setFreeStrokes((s) => s.filter((st) => st.id !== last.id));
+      } else if (last.type === 'gridFill') {
+        setGridFills(last.snapshot);
+      }
+      return prev.slice(0, -1);
+    });
+    setStrokesDirty(true);
+  }
+
+  // ── Stitch handlers ─────────────────────────────────────────────────────────
+
+  function handleTogglePuntos() {
+    clearAllModes();
+    setPaintMode(false);
+    setShowColorPicker(false);
+    setShowPuntosPanel((prev) => !prev);
+  }
+
+  function handleSelectStitch(stitchType) {
+    setPendingStitchType(stitchType);
+    setStitchInsertMode(true);
+    setShowPuntosPanel(false);
+  }
+
+  // ── Upload handlers ─────────────────────────────────────────────────────────
+
+  function handleUploadPress() {
+    Alert.alert(
+      t('entrada.subir.titulo'),
+      null,
+      [
+        { text: t('entrada.subir.imagen'), onPress: handlePickImage },
+        { text: t('entrada.subir.pdf'), onPress: handlePickPdf },
+        { text: t('projects.cancel'), style: 'cancel' },
+      ],
+    );
+  }
+
+  async function handlePickImage() {
+    const result = await launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.8,
+      allowsEditing: false,
+    });
+    if (result.canceled) return;
+    const asset = result.assets[0];
+    await runUpload(asset.uri, asset.fileName ?? `image_${Date.now()}.jpg`, false);
+  }
+
+  async function handlePickPdf() {
+    const result = await getDocumentAsync({ type: 'application/pdf', copyToCacheDirectory: true });
+    if (result.canceled) return;
+    const asset = result.assets[0];
+    await runUpload(asset.uri, asset.name, true);
+  }
+
+  async function runUpload(uri, name, isPdf) {
+    if (!user?.uid) return;
+    setUploading(true);
+    try {
+      const { url, storagePath } = await uploadEntradaFile(user.uid, diarioId, { uri, name });
+      setElementos((prev) => [
+        ...prev,
+        { id: makeId(), type: 'image', x: 60, y: 60, width: 240, height: 180, url, storagePath, isPdf, fileName: name },
+      ]);
+    } catch {
+      // Toast is shown in the render tree via a state flag
+      setUploadError(true);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  const [uploadError, setUploadError] = useState(false);
+  const [previewPlaced, setPreviewPlaced] = useState(false);
 
   const selectedEl = selectedId ? elementos.find((el) => el.id === selectedId) : null;
 
@@ -545,6 +879,15 @@ export default function EntradaDiarioScreen({ navigation, route }) {
         </View>
 
         <View style={styles.topActions}>
+          {paintMode && (
+            <TouchableOpacity
+              onPress={handleUndo}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityLabel={t('entrada.deshacer')}
+            >
+              <RotateCcw size={20} color={colors.primary.dark} strokeWidth={1.8} />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             onPress={handleToggleEraser}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -578,13 +921,24 @@ export default function EntradaDiarioScreen({ navigation, route }) {
         }
       >
         {/* Tap catcher stays in unshifted canvas frame so locationX/Y are in canvas coords */}
-        <Pressable style={StyleSheet.absoluteFill} onPress={handleCanvasTap} />
+        <Pressable style={StyleSheet.absoluteFill} onPress={handleCanvasTap} testID="canvas-tap" />
 
         {/* Canvas elements — only the active editing element shifts, via its own Animated.View */}
         <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
           {gridMode && (
             <GridLayer width={canvasSize.width} height={canvasSize.height} />
           )}
+
+          {/* Stroke / grid-fill painting layer — above grid, below elements */}
+          <StrokesLayer
+            freeStrokes={freeStrokes}
+            currentPoints={currentPoints}
+            currentColor={brushColor}
+            currentWidth={brushWidth}
+            gridFills={gridFills}
+            width={canvasSize.width}
+            height={canvasSize.height}
+          />
 
           {elementos.map((el) => (
             <DraggableElement
@@ -603,6 +957,18 @@ export default function EntradaDiarioScreen({ navigation, route }) {
                   onIncrement={() => updateElement(el.id, { count: el.count + 1 })}
                   onReset={() => updateElement(el.id, { count: 0 })}
                 />
+              ) : el.type === 'stitch' ? (
+                <StitchWidget
+                  element={el}
+                  onRotate={(id, angle) => updateElement(id, { rotation: angle })}
+                />
+              ) : el.type === 'image' ? (
+                <ImageWidget
+                  element={el}
+                  selected={el.id === selectedId}
+                  onPress={() => setSelectedId(el.id)}
+                  onResize={(id, changes) => updateElement(id, changes)}
+                />
               ) : (
                 <TextBoxWidget
                   element={el}
@@ -618,6 +984,13 @@ export default function EntradaDiarioScreen({ navigation, route }) {
             </DraggableElement>
           ))}
 
+          {/* Paint overlay — absorbs all gestures when paintMode is active */}
+          <View
+            style={StyleSheet.absoluteFill}
+            pointerEvents={paintMode ? 'auto' : 'none'}
+            {...paintPanResponder.panHandlers}
+          />
+
           {/* Floating toolbar */}
           <FloatingToolbar
             canvasSize={canvasSize}
@@ -625,9 +998,16 @@ export default function EntradaDiarioScreen({ navigation, route }) {
             onToggle={() => setToolbarCollapsed((p) => !p)}
             textInsertMode={textInsertMode}
             gridMode={gridMode}
+            paintMode={paintMode}
+            showColorPicker={showColorPicker}
+            stitchInsertMode={stitchInsertMode}
+            showPuntosPanel={showPuntosPanel}
             onRowCounter={handleAddRowCounter}
             onText={handleToggleText}
             onGrid={() => setGridMode((p) => !p)}
+            onPalette={handleTogglePalette}
+            onPuntos={handleTogglePuntos}
+            onUpload={handleUploadPress}
             t={t}
           />
 
@@ -642,9 +1022,39 @@ export default function EntradaDiarioScreen({ navigation, route }) {
             />
           )}
         </View>
+
+        {/* Colour picker panel */}
+        <ColorPickerPanel
+          visible={showColorPicker}
+          recentColors={recentColors}
+          onActivate={handleActivateBrush}
+          onDismiss={() => setShowColorPicker(false)}
+        />
+
+        {/* Puntos panel */}
+        <PuntosPanel
+          visible={showPuntosPanel}
+          onSelect={handleSelectStitch}
+          onDismiss={() => setShowPuntosPanel(false)}
+          t={t}
+        />
       </View>
 
-      <LoadingOverlay visible={loading || saving} />
+      <LoadingOverlay visible={loading || saving || uploading} />
+
+      <Toast
+        visible={uploadError}
+        message={t('entrada.subir.errorToast')}
+        type="error"
+        onHide={() => setUploadError(false)}
+      />
+
+      <Toast
+        visible={previewPlaced}
+        message={t('entrada.previewAddedToast')}
+        type="success"
+        onHide={() => setPreviewPlaced(false)}
+      />
 
       <ConfirmationModal
         visible={showExitModal}

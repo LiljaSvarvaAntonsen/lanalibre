@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   Platform,
   BackHandler,
   useWindowDimensions,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -28,9 +29,13 @@ import {
   saveResultadoPrevisualización,
   getResultadoPrevisualización,
 } from '../services/firestore';
+import { formatShortDate } from '../utils/dates';
+import { useAuth } from '../hooks/useAuth';
 import ConfirmationModal from '../components/ConfirmationModal';
 import PreviewCanvas from '../components/PreviewCanvas';
 import LoadingOverlay from '../components/LoadingOverlay';
+import ProjectPickerModal from '../components/ProjectPickerModal';
+import Toast from '../components/Toast';
 
 const PRESET_PALETTE = [
   '#C17B4E', '#D4868A', '#7A9E7E', '#E8C9A0',
@@ -62,6 +67,7 @@ function prefillFromSaved(saved) {
 
 export default function VistaPreviaScreen({ navigation, route }) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const { width: screenWidth } = useWindowDimensions();
   const projectId = route?.params?.projectId ?? null;
   const isProjectMode = !!projectId;
@@ -76,6 +82,11 @@ export default function VistaPreviaScreen({ navigation, route }) {
   const [showSavedModal, setShowSavedModal] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
   const [showTypePicker, setShowTypePicker] = useState(false);
+  const [showProjectPicker, setShowProjectPicker] = useState(false);
+  const [savedToastVisible, setSavedToastVisible] = useState(false);
+  const [savedToastMessage, setSavedToastMessage] = useState('');
+  const pickedProjectName = useRef('');
+  const canvasRef = useRef(null);
 
   useEffect(() => {
     if (!isProjectMode) return;
@@ -128,6 +139,7 @@ export default function VistaPreviaScreen({ navigation, route }) {
         colores: fields.colores,
         patronPunto: fields.patronPunto,
       });
+      Keyboard.dismiss();
       setParams(p);
       setErrors({});
       setShowResult(true);
@@ -139,20 +151,33 @@ export default function VistaPreviaScreen({ navigation, route }) {
   }
 
   function handleGuardar() {
-    if (savedParams) {
+    if (!isProjectMode) {
+      setShowProjectPicker(true);
+    } else if (savedParams) {
       setShowOverwriteModal(true);
     } else {
       doSave();
     }
   }
 
-  async function doSave() {
+  function handlePickProject(project) {
+    pickedProjectName.current = project.nombre;
+    setShowProjectPicker(false);
+    doSave(project.id);
+  }
+
+  async function doSave(targetProjectId = projectId) {
     setShowOverwriteModal(false);
     setLoading(true);
     try {
-      await saveResultadoPrevisualización(projectId, params);
+      await saveResultadoPrevisualización(targetProjectId, params);
       setSavedParams(params);
-      setShowSavedModal(true);
+      if (isProjectMode) {
+        setShowSavedModal(true);
+      } else {
+        setSavedToastMessage(t('projectPicker.savedToast', { nombre: pickedProjectName.current }));
+        setSavedToastVisible(true);
+      }
     } catch {
       // leave in result view; user can retry
     } finally {
@@ -188,8 +213,32 @@ export default function VistaPreviaScreen({ navigation, route }) {
     setShowResult(false);
   }
 
-  function handleAddToJournal() {
-    navigation.navigate('DiarioScreen', { projectId, resultadoPrevisualización: params });
+  async function handleAddToJournal() {
+    setLoading(true);
+    console.log('[preview] canvasRef.current:', canvasRef.current);
+    try {
+      const previewImageUri = await new Promise((resolve, reject) => {
+        if (!canvasRef.current?.toDataURL) { reject(new Error('no toDataURL')); return; }
+        canvasRef.current.toDataURL((data) => {
+          console.log('[preview] toDataURL result:', data ? 'got data' : 'null/undefined');
+          if (data) resolve('data:image/png;base64,' + data);
+          else reject(new Error('empty'));
+        });
+      });
+      console.log('[preview] navigating with previewImageUri:', previewImageUri ? 'yes' : 'no');
+      navigation.navigate('Diario', {
+        screen: 'DiarioRoot',
+        params: { previewImageUri, projectId },
+      });
+    } catch (err) {
+      console.log('[preview] capture failed:', err?.message);
+      navigation.navigate('Diario', {
+        screen: 'DiarioRoot',
+        params: { projectId },
+      });
+    } finally {
+      setLoading(false);
+    }
   }
 
   const showBackArrow = navigation.canGoBack() || showResult;
@@ -344,10 +393,11 @@ export default function VistaPreviaScreen({ navigation, route }) {
             </TouchableOpacity>
           </ScrollView>
         ) : (
-          <ScrollView contentContainerStyle={styles.resultBody} showsVerticalScrollIndicator={false}>
+          <ScrollView contentContainerStyle={styles.resultBody} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             {/* Canvas card */}
             <View style={styles.canvasCard}>
               <PreviewCanvas
+                ref={canvasRef}
                 tipoProyecto={params.tipoProyecto}
                 medidas={params.medidas}
                 colores={params.colores}
@@ -376,24 +426,20 @@ export default function VistaPreviaScreen({ navigation, route }) {
             </View>
 
             <View style={styles.actionButtons}>
-              {isProjectMode && (
-                <>
-                  <TouchableOpacity
-                    style={styles.primaryBtn}
-                    onPress={handleGuardar}
-                    activeOpacity={0.85}
-                  >
-                    <Text style={styles.primaryBtnText}>{t('vistaPrevia.guardarProyecto')}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.journalBtn}
-                    onPress={handleAddToJournal}
-                    activeOpacity={0.85}
-                  >
-                    <Text style={styles.journalBtnText}>{t('vistaPrevia.añadirDiario')}</Text>
-                  </TouchableOpacity>
-                </>
-              )}
+              <TouchableOpacity
+                style={styles.primaryBtn}
+                onPress={handleGuardar}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.primaryBtnText}>{t('vistaPrevia.guardarProyecto')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.journalBtn}
+                onPress={handleAddToJournal}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.journalBtnText}>{t('vistaPrevia.añadirDiario')}</Text>
+              </TouchableOpacity>
               <TouchableOpacity
                 style={styles.outlineBtn}
                 onPress={() => setShowResult(false)}
@@ -443,7 +489,11 @@ export default function VistaPreviaScreen({ navigation, route }) {
       <ConfirmationModal
         visible={showOverwriteModal}
         title={t('vistaPrevia.overwrite.title')}
-        message={t('vistaPrevia.overwrite.message')}
+        message={
+          savedParams?.fechaGuardado
+            ? t('vistaPrevia.overwrite.messageConFecha', { date: formatShortDate(savedParams.fechaGuardado) })
+            : t('vistaPrevia.overwrite.message')
+        }
         confirmLabel={t('vistaPrevia.overwrite.confirm')}
         cancelLabel={t('vistaPrevia.overwrite.cancel')}
         onConfirm={doSave}
@@ -487,6 +537,24 @@ export default function VistaPreviaScreen({ navigation, route }) {
           </View>
         </View>
       </Modal>
+
+      <ProjectPickerModal
+        visible={showProjectPicker}
+        uid={user?.uid}
+        onClose={() => setShowProjectPicker(false)}
+        onSelect={handlePickProject}
+        onCreateProject={() => {
+          setShowProjectPicker(false);
+          navigation.navigate('Inicio', { screen: 'ProyectoFormScreen' });
+        }}
+      />
+
+      <Toast
+        visible={savedToastVisible}
+        message={savedToastMessage}
+        type="success"
+        onHide={() => setSavedToastVisible(false)}
+      />
 
       <LoadingOverlay visible={loading} />
     </SafeAreaView>
@@ -617,7 +685,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     alignItems: 'center',
   },
-  primaryBtnDisabled: { opacity: 0.5 },
   primaryBtnText: {
     fontFamily: fonts.bold,
     fontSize: fontSizes.md,
@@ -627,7 +694,7 @@ const styles = StyleSheet.create({
   // Result view
   resultBody: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xl,
+    paddingBottom: 120,
     gap: spacing.md,
   },
   canvasCard: {

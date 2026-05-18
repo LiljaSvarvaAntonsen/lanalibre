@@ -103,7 +103,7 @@ export async function hardDeleteProject(id) {
 
 export async function saveResultadoCalculadora(projectId, data) {
   await updateDoc(doc(db, 'projects', projectId), {
-    resultadoCalculadora: data,
+    resultadoCalculadora: { ...data, fechaGuardado: new Date() },
     fechaModificacion: serverTimestamp(),
   });
 }
@@ -115,7 +115,7 @@ export async function getResultadoCalculadora(projectId) {
 
 export async function saveResultadoPrevisualización(projectId, data) {
   await updateDoc(doc(db, 'projects', projectId), {
-    resultadoPrevisualización: data,
+    resultadoPrevisualización: { ...data, fechaGuardado: new Date() },
     fechaModificacion: serverTimestamp(),
   });
 }

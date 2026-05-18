@@ -1,17 +1,11 @@
+import { forwardRef } from 'react';
 import { Svg, Rect } from 'react-native-svg';
 import { PATRONES_PUNTO } from '../services/previsualización';
 
 const STRIPE_COUNT = 12;
 
-/**
- * Renders a proportionally-scaled canvas preview using react-native-svg.
- *
- * SKIA SWAP POINT — to migrate to @shopify/react-native-skia:
- *   1. Replace <Svg>/<Rect> imports with <Canvas>/<Paint>/<Path> from @shopify/react-native-skia
- *   2. Re-implement renderStripes using Skia Path commands
- *   3. Props and layout stay identical; caller code is unchanged.
- */
-export default function PreviewCanvas({ tipoProyecto, medidas, colores, patronPunto, width }) {
+// forwardRef exposes the Svg node so callers can call ref.current.toDataURL() for PNG capture.
+const PreviewCanvas = forwardRef(function PreviewCanvas({ tipoProyecto, medidas, colores, patronPunto, width }, ref) {
   const dimValues = Object.values(medidas);
   const [d1, d2] = dimValues;
 
@@ -59,8 +53,10 @@ export default function PreviewCanvas({ tipoProyecto, medidas, colores, patronPu
   }
 
   return (
-    <Svg width={canvasWidth} height={canvasHeight}>
+    <Svg ref={ref} width={canvasWidth} height={canvasHeight}>
       {renderStripes()}
     </Svg>
   );
-}
+});
+
+export default PreviewCanvas;

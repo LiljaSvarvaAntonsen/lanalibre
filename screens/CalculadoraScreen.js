@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -18,8 +19,12 @@ import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
 import { calcularConsumo, MULTIPLICADORES } from '../services/calculadora';
 import { saveResultadoCalculadora, getResultadoCalculadora } from '../services/firestore';
+import { formatShortDate } from '../utils/dates';
+import { useAuth } from '../hooks/useAuth';
 import ConfirmationModal from '../components/ConfirmationModal';
 import LoadingOverlay from '../components/LoadingOverlay';
+import ProjectPickerModal from '../components/ProjectPickerModal';
+import Toast from '../components/Toast';
 
 const STITCH_TYPES = Object.keys(MULTIPLICADORES);
 
@@ -46,6 +51,7 @@ function prefillFromSaved(saved) {
 
 export default function CalculadoraScreen({ navigation, route }) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const projectId = route?.params?.projectId ?? null;
   const isProjectMode = !!projectId;
 
@@ -57,6 +63,10 @@ export default function CalculadoraScreen({ navigation, route }) {
   const [showOverwriteModal, setShowOverwriteModal] = useState(false);
   const [showSavedModal, setShowSavedModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showProjectPicker, setShowProjectPicker] = useState(false);
+  const [savedToastVisible, setSavedToastVisible] = useState(false);
+  const [savedToastMessage, setSavedToastMessage] = useState('');
+  const pickedProjectName = useRef('');
 
   useEffect(() => {
     if (!isProjectMode) return;
@@ -108,6 +118,7 @@ export default function CalculadoraScreen({ navigation, route }) {
         tipoPunto: fields.tipoPunto,
         dimensiones: { ancho: parseFloat(fields.ancho), largo: parseFloat(fields.largo) },
       });
+      Keyboard.dismiss();
       setResult(res);
       setShowResult(true);
     } catch {
@@ -116,14 +127,22 @@ export default function CalculadoraScreen({ navigation, route }) {
   }
 
   function handleGuardar() {
-    if (savedResult) {
+    if (!isProjectMode) {
+      setShowProjectPicker(true);
+    } else if (savedResult) {
       setShowOverwriteModal(true);
     } else {
       doSave();
     }
   }
 
-  async function doSave() {
+  function handlePickProject(project) {
+    pickedProjectName.current = project.nombre;
+    setShowProjectPicker(false);
+    doSave(project.id);
+  }
+
+  async function doSave(targetProjectId = projectId) {
     setShowOverwriteModal(false);
     setLoading(true);
     const data = {
@@ -137,9 +156,14 @@ export default function CalculadoraScreen({ navigation, route }) {
       resultadoFinal: result.resultadoFinal,
     };
     try {
-      await saveResultadoCalculadora(projectId, data);
+      await saveResultadoCalculadora(targetProjectId, data);
       setSavedResult(data);
-      setShowSavedModal(true);
+      if (isProjectMode) {
+        setShowSavedModal(true);
+      } else {
+        setSavedToastMessage(t('projectPicker.savedToast', { nombre: pickedProjectName.current }));
+        setSavedToastVisible(true);
+      }
     } catch {
       // leave in result view; user can retry
     } finally {
@@ -148,7 +172,10 @@ export default function CalculadoraScreen({ navigation, route }) {
   }
 
   function handleAddToJournal() {
-    navigation.navigate('DiarioScreen', { projectId, resultadoCalculadora: result });
+    navigation.navigate('Diario', {
+      screen: 'DiarioRoot',
+      params: { resultadoCalculadora: result, projectId },
+    });
   }
 
   function handleCalcularOtro() {
@@ -282,6 +309,7 @@ export default function CalculadoraScreen({ navigation, route }) {
         ) : (
           <ScrollView
             contentContainerStyle={styles.resultBody}
+            keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
             <ResultCard
@@ -304,25 +332,21 @@ export default function CalculadoraScreen({ navigation, route }) {
             <Text style={styles.disclaimer}>{t('calculadora.result.disclaimer')}</Text>
 
             <View style={styles.actionButtons}>
-              {isProjectMode && (
-                <>
-                  <TouchableOpacity
-                    style={styles.primaryBtn}
-                    onPress={handleGuardar}
-                    activeOpacity={0.85}
-                  >
-                    <Text style={styles.primaryBtnText}>{t('calculadora.guardarProyecto')}</Text>
-                  </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.primaryBtn}
+                onPress={handleGuardar}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.primaryBtnText}>{t('calculadora.guardarProyecto')}</Text>
+              </TouchableOpacity>
 
-                  <TouchableOpacity
-                    style={styles.journalBtn}
-                    onPress={handleAddToJournal}
-                    activeOpacity={0.85}
-                  >
-                    <Text style={styles.journalBtnText}>{t('calculadora.addToJournal')}</Text>
-                  </TouchableOpacity>
-                </>
-              )}
+              <TouchableOpacity
+                style={styles.journalBtn}
+                onPress={handleAddToJournal}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.journalBtnText}>{t('calculadora.addToJournal')}</Text>
+              </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.outlineBtn}
@@ -339,7 +363,11 @@ export default function CalculadoraScreen({ navigation, route }) {
       <ConfirmationModal
         visible={showOverwriteModal}
         title={t('calculadora.overwrite.title')}
-        message={t('calculadora.overwrite.message')}
+        message={
+          savedResult?.fechaGuardado
+            ? t('calculadora.overwrite.messageConFecha', { date: formatShortDate(savedResult.fechaGuardado) })
+            : t('calculadora.overwrite.message')
+        }
         confirmLabel={t('projects.save')}
         cancelLabel={t('projects.cancel')}
         onConfirm={doSave}
@@ -373,6 +401,24 @@ export default function CalculadoraScreen({ navigation, route }) {
           </View>
         </View>
       </Modal>
+
+      <ProjectPickerModal
+        visible={showProjectPicker}
+        uid={user?.uid}
+        onClose={() => setShowProjectPicker(false)}
+        onSelect={handlePickProject}
+        onCreateProject={() => {
+          setShowProjectPicker(false);
+          navigation.navigate('Inicio', { screen: 'ProyectoFormScreen' });
+        }}
+      />
+
+      <Toast
+        visible={savedToastVisible}
+        message={savedToastMessage}
+        type="success"
+        onHide={() => setSavedToastVisible(false)}
+      />
 
       <LoadingOverlay visible={loading} />
     </SafeAreaView>
@@ -502,7 +548,7 @@ const styles = StyleSheet.create({
 
   resultBody: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xl,
+    paddingBottom: 120,
     gap: spacing.md,
   },
   resultCard: {

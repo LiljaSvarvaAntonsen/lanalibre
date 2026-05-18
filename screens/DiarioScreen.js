@@ -65,6 +65,7 @@ export default function DiarioScreen({ navigation, route }) {
   // Params forwarded from calculator / preview "Añadir al diario"
   const resultadoCalculadora = route?.params?.resultadoCalculadora ?? null;
   const resultadoVistaPrevia = route?.params?.resultadoPrevisualización ?? null;
+  const previewImageUri = route?.params?.previewImageUri ?? null;
 
   const load = useCallback(async () => {
     if (!user?.uid) {
@@ -91,6 +92,7 @@ export default function DiarioScreen({ navigation, route }) {
       diarioId,
       resultadoCalculadora,
       resultadoVistaPrevia,
+      previewImageUri,
     });
   }
 

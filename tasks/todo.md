@@ -172,18 +172,98 @@ Tasks are ordered by development slice. Complete each slice fully (services → 
 - [x] i18n `entrada` namespace added to all three locale files
 - [x] Component test: row counter widget + save calls `updateEntrada` with correct `elementos`
 
-### Phase B — Rich tools (deferred — implement after Phase A confirmed working)
-- [ ] **Paleta de colores**: colour picker modal (react-native-color-picker), paintbrush mode — tap/drag to paint individual grid squares, brush width slider (1–5 squares), undo last stroke
-- [ ] **Puntos**: stitch symbol panel (chain, slip stitch, sc, hdc, dc, treble, magic ring) — draggable symbols, independently rotatable via rotation handle, grid-snapping
-- [ ] **Subir archivo**: native file picker (`expo-image-picker` / `expo-document-picker`), spawns draggable+resizable image element on canvas with corner resize handles and top drag handle; uploads to Firebase Storage via `uploadInspiracion`
+### Phase B — Rich tools
+
+#### Package installs
+- [x] Install `expo-image-picker` and `expo-document-picker`
+
+#### Stroke storage (service layer)
+- [x] `services/storage.js` — `uploadEntradaStrokes(uid, diarioId, entradaId, strokes)`: serialise strokes array to JSON blob, upload to `entradas/${uid}/${diarioId}/${entradaId}/strokes.json`, return download URL
+- [x] `services/storage.js` — `fetchEntradaStrokes(url)`: fetch the JSON from the given Storage URL and return the parsed strokes object `{ freeStrokes, gridFills }`
+- [x] `services/storage.js` — `uploadEntradaFile(uid, diarioId, { uri, name })`: upload image/PDF to `inspiracion/${uid}/${diarioId}/${archivoId}`, return `{ url, storagePath }`
+
+#### Tool 1 — Paleta de colores
+**`components/journal/ColorPickerPanel.js`** — bottom slide-up panel (two-step flow)
+- [x] Step 1: react-native-color-picker (HSV picker), recently-used colour row (max 8 swatches, per-session state), "Siguiente" button
+- [x] Step 2: selected-colour preview swatch, "Grosor del pincel" label + slider (1–20 px, live px label), "Activar pincel" amber CTA, "Atrás" link to step 1
+- [x] Dismissed by tapping the Palette toolbar button again or pressing "Activar pincel"
+
+**`EntradaDiarioScreen.js` — paint mode**
+- [x] `paintMode` boolean + `brushColor` + `brushWidth` state; activating paint mode clears textInsertMode, eraserMode, stitchInsertMode
+- [x] Canvas `Pressable` extended: in `paintMode`, its `PanResponder` captures each gesture as a stroke — collecting `[{x, y}]` points on every `onPanResponderMove` event, appending `{ id, color, width, points }` to `freeStrokes` on gesture release
+- [x] Grid-fill mode (`gridMode && paintMode`): instead of recording points, compute `{ col: Math.floor(x/CELL), row: Math.floor(y/CELL) }` from each touch position and write into `gridFills` state (flat object keyed `"${col}_${row}"` → `color`); dragging fills all touched cells in one gesture
+- [x] Render `freeStrokes` as SVG `<Path>` elements (polyline `d` attribute) inside a `<Svg style={absoluteFill}>` layer drawn above the grid overlay and below all canvas elements
+- [x] Render `gridFills` as SVG `<Rect>` elements (one per filled cell, opacity 0.55) in the same SVG layer
+- [x] Undo: `undoStack` array of `{ type: 'freeStroke'|'gridFill', data }` — "Undo" button (RotateCcw icon, shown in top bar only while paintMode is active) pops last action and reverses `freeStrokes` / `gridFills`
+- [x] `recentColors`: prepend + dedup when user activates a new brush colour; passed to `ColorPickerPanel` for display
+- [x] On save: if `strokesDirty` flag set since last save → `uploadEntradaStrokes(uid, diarioId, entradaId, { freeStrokes, gridFills })` → update Firestore entrada with returned URL in `strokesUrl` field alongside the `elementos` update
+- [x] On load: if Firestore entrada contains `strokesUrl` → `fetchEntradaStrokes(strokesUrl)` → populate `freeStrokes` and `gridFills`; reset `strokesDirty`
+
+#### Tool 2 — Puntos (stitch symbols)
+**`components/journal/PuntosPanel.js`** — bottom slide-up panel
+- [x] 2-column grid of 7 stitch symbol tiles (matches Figma mockup 20): Cadena, Punto raso, Punto bajo, Medio punto alto, Punto alto, Punto alto doble, Anillo mágico
+- [x] Each tile: SVG symbol icon (react-native-svg) + i18n name label below
+- [x] Tap a tile → close panel, set `stitchInsertMode = true` + `pendingStitchType`
+- [x] Panel opened by Puntos (Hash) toolbar button; closed by tapping outside or selecting a stitch
+
+**`components/journal/StitchWidget.js`** — canvas element
+- [x] Renders the correct SVG symbol for `element.stitchType` at 40×40 inside a View
+- [x] Rotation handle: small circle (12 px diameter, primary colour) positioned 20 px above element centre; its own `PanResponder` with `onStartShouldSetPanResponder: () => true` computes angle on each move and calls `onRotate(newAngle)` — outer `DraggableElement` wraps the whole thing with `transform: [{ rotate }]`
+- [x] When `gridMode`: on `DraggableElement` release, x/y snapped to nearest grid cell centre (`Math.round(x/CELL)*CELL`, `Math.round(y/CELL)*CELL`)
+
+**`EntradaDiarioScreen.js` — stitch-insert mode**
+- [x] `stitchInsertMode` + `pendingStitchType` state; activating clears all other modes
+- [x] `handleCanvasTap` extended: if `stitchInsertMode`, create `{ id, type: 'stitch', x, y, stitchType: pendingStitchType, rotation: 0 }` and append to `elementos`; if `gridMode`, snap x/y to nearest cell; then clear `stitchInsertMode`
+- [x] Stitch elementos serialised to Firestore `elementos` (small: just type, x, y, stitchType, rotation)
+- [x] Eraser mode works on stitch elements identically to other element types (no special casing needed)
+
+#### Tool 3 — Subir archivo (file upload)
+**`EntradaDiarioScreen.js`**
+- [x] Toolbar Upload button: open a two-option action sheet ("Imagen" / "Documento PDF") using `Alert.alert` with button array
+- [x] Image picker: `expo-image-picker` → `launchImageLibraryAsync({ mediaTypes: MediaTypeOptions.Images, quality: 0.8, allowsEditing: false })` → on selection, start upload flow
+- [x] PDF picker: `expo-document-picker` → `getDocumentAsync({ type: 'application/pdf', copyToCacheDirectory: true })` → on selection, start upload flow
+- [x] Upload flow: set `uploading = true` → `uploadEntradaFile(uid, diarioId, { uri, name })` → on success, create `{ id, type: 'image', x: 60, y: 60, width: 240, height: 180, url, storagePath, isPdf }` elemento → set `uploading = false`; on error → show Toast error, set `uploading = false`; no partial elemento added on error
+- [x] `uploading` overlay blocks interaction (reuses `LoadingOverlay`) while upload is in progress
+- [x] `uid` available via `useAuth()` context
+
+**`components/journal/ImageWidget.js`** — canvas element
+- [x] `<Image source={{ uri: element.url }} style={{ width, height }} resizeMode="cover" />` for images; PDF: FileText icon (lucide) + filename text for PDFs
+- [x] 4 corner resize handles: 14×14 View at each corner; each has its own `PanResponder` with `onStartShouldSetPanResponder: () => true` (wins over parent drag); drag dx/dy applied to width/height anchoring the opposite corner; min clamp at 60×60; calls `onResize(id, { width, height, x, y })`
+- [x] Top-centre drag handle (6px tall pill, shown above image): purely visual affordance
+
+#### i18n — new strings for all three locale files (`es`, `en`, `nb`)
+- [x] `entrada.paleta.titulo`, `entrada.paleta.grosor`, `entrada.paleta.activar`, `entrada.paleta.atras`, `entrada.paleta.coloresRecientes`, `entrada.paleta.siguiente`
+- [x] `entrada.puntos.titulo` + one key per stitch: `cadena`, `puntoRaso`, `puntoBajo`, `medioPuntoAlto`, `puntoAlto`, `puntoAltoDoble`, `anilloMagico`
+- [x] `entrada.subir.titulo`, `entrada.subir.imagen`, `entrada.subir.pdf`, `entrada.subir.subiendo`, `entrada.subir.errorToast`
+- [x] `entrada.deshacer` (undo button aria label)
+
+#### Component tests
+- [x] Paint mode: palette → Siguiente → Activar pincel activates paint mode (undo button visible)
+- [x] Undo button: visible in top bar when paintMode active
+- [x] PuntosPanel: tapping a stitch tile calls `onSelect` with the correct `stitchType`
+- [x] PuntosPanel: all 7 tiles render when visible
+- [x] Stitch insert: canvas tap in `stitchInsertMode` adds a stitch elemento with correct `stitchType`
+- [x] Puntos button opens panel
+- [x] Upload success: `uploadEntradaFile` resolves → image elemento added to `elementos`
+- [x] Upload error: `uploadEntradaFile` rejects → Toast shown, no elemento added
 
 ---
 
 ## Slice 9 — Save flow & result management (RF-06, RF-07)
-- [ ] Reusable `ConfirmationModal` component (title, message, confirm/cancel buttons)
-- [ ] Wire confirmation modal to: delete project, overwrite calculator result, overwrite preview result, delete account
-- [ ] `ResultSummaryCard` component — shows saved result date + key value for each tool, used on project detail
-- [ ] "Reemplazar resultado" UX: inform user a result already exists → show existing date → confirm before overwriting
+- [x] Reusable `ConfirmationModal` component (title, message, confirm/cancel buttons)
+- [x] Wire confirmation modal to: delete project, overwrite calculator result, overwrite preview result, delete account
+- [x] `ResultSummaryCard` component — shows saved result date + key value for each tool, used on project detail
+- [x] "Reemplazar resultado" UX: inform user a result already exists → show existing date → confirm before overwriting
+
+---
+
+## Slice 9b — Project picker for standalone tools (RF-06 enhancement)
+- [x] `i18n` — add `projectPicker.title`, `projectPicker.empty`, `projectPicker.createFirst`, `projectPicker.savedToast` (with `{{nombre}}`) to `calculadora` and `vistaPrevia` namespaces in all three locale files
+- [x] `screens/CalculadoraScreen.js` — when `!isProjectMode`: show 'Guardar en proyecto' button (same as project mode); tapping opens `ProjectPickerModal` instead of saving directly
+- [x] `screens/VistaPreviaScreen.js` — same pattern as CalculadoraScreen
+- [x] `components/ProjectPickerModal.js` — reusable slide-up modal; props: `visible`, `onClose`, `onSelect(project)`, `uid`; calls `getActiveProjects(uid)` on open; FlatList of rows (name + tag badge); empty state with 'Crear proyecto' button; loading indicator while fetching
+- [x] After project selected: close modal → call appropriate save function → show success toast with project name
+- [x] Component test: modal fetches projects on open, project tap calls `onSelect`
 
 ---
 
@@ -238,3 +318,13 @@ Tasks are ordered by development slice. Complete each slice fully (services → 
 - [ ] Submit to Apple App Store (TestFlight first)
 - [ ] Verify Firebase plan is on Blaze (pay-as-you-go) for production Storage usage
 - [ ] Final smoke test on physical iOS and Android devices
+
+---
+
+## UI Polish (post-slice, before release)
+- [ ] Eraser/delete tool should remove brush stroke paths drawn with the colour painting tool (currently only removes canvas elements, not freeStrokes/gridFills)
+- [ ] Uploaded images: implement working corner drag-to-resize handles and a rotation gesture
+- [ ] Stitch rotation handle: replace the purple dot with a classic rotation arrow icon; make the rotation gesture more precise
+- [ ] Stitch symbols: redesign all 7 SVG icons to match accurate, standard crochet symbol conventions
+- [ ] Floating toolbar: support both horizontal and vertical orientations, toggled by the user (currently fixed horizontal)
+- [ ] Review all toolbar icons and replace with more intuitive and descriptive alternatives
