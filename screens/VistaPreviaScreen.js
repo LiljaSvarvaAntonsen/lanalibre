@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -16,7 +16,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Check, ChevronDown } from 'lucide-react-native';
-import { colors, radii } from '../constants/colors';
+import { radii } from '../constants/colors';
+import { useTheme } from '../contexts/ThemeContext';
 import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
 import {
@@ -66,6 +67,8 @@ function prefillFromSaved(saved) {
 }
 
 export default function VistaPreviaScreen({ navigation, route }) {
+  const { theme: colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const { user } = useAuth();
   const { width: screenWidth } = useWindowDimensions();
@@ -561,7 +564,7 @@ export default function VistaPreviaScreen({ navigation, route }) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors) { return StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
 
@@ -860,4 +863,4 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.sm,
     color: colors.text.secondary,
   },
-});
+}); }

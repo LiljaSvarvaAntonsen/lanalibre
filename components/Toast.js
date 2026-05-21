@@ -1,40 +1,24 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { Animated, Text, StyleSheet } from 'react-native';
-import { colors, radii } from '../constants/colors';
+import { radii } from '../constants/colors';
+import { useTheme } from '../contexts/ThemeContext';
 import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
 
-const BG = {
-  success: colors.status.success,
-  error: colors.status.error,
-  info: colors.primary.light,
-};
-
-const TEXT = {
-  success: colors.text.primary,
-  error: colors.text.primary,
-  info: colors.primary.dark,
-};
-
 export default function Toast({ visible, message, type = 'info', onHide }) {
+  const { theme: colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const bg = { success: colors.status.success, error: colors.status.error, info: colors.primary.light };
+  const textColor = { success: colors.text.primary, error: colors.text.primary, info: colors.primary.dark };
+
   const translateY = useRef(new Animated.Value(100)).current;
 
   useEffect(() => {
     if (visible) {
-      Animated.timing(translateY, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: true,
-      }).start();
-
+      Animated.timing(translateY, { toValue: 0, duration: 250, useNativeDriver: true }).start();
       const timer = setTimeout(() => {
-        Animated.timing(translateY, {
-          toValue: 100,
-          duration: 200,
-          useNativeDriver: true,
-        }).start(() => onHide?.());
+        Animated.timing(translateY, { toValue: 100, duration: 200, useNativeDriver: true }).start(() => onHide?.());
       }, 3000);
-
       return () => clearTimeout(timer);
     }
   }, [visible]);
@@ -43,17 +27,14 @@ export default function Toast({ visible, message, type = 'info', onHide }) {
 
   return (
     <Animated.View
-      style={[
-        styles.toast,
-        { backgroundColor: BG[type], transform: [{ translateY }] },
-      ]}
+      style={[styles.toast, { backgroundColor: bg[type], transform: [{ translateY }] }]}
     >
-      <Text style={[styles.message, { color: TEXT[type] }]}>{message}</Text>
+      <Text style={[styles.message, { color: textColor[type] }]}>{message}</Text>
     </Animated.View>
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors) { return StyleSheet.create({
   toast: {
     position: 'absolute',
     bottom: 90,
@@ -73,4 +54,4 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.sm,
     textAlign: 'center',
   },
-});
+}); }

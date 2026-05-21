@@ -1,7 +1,9 @@
 {
   "common": {
     "close": "Close",
-    "appName": "LanaLibre"
+    "appName": "LanaLibre",
+    "cancel": "Cancel",
+    "error": "Something went wrong."
   },
   "projectPicker": {
     "title": "Save to project",
@@ -44,7 +46,30 @@
   },
   "perfil": {
     "title": "Profile",
-    "idioma": "Language"
+    "memberSince": "Member since {{date}}",
+    "editNombre": "Edit name",
+    "saveNombre": "Save",
+    "editPhoto": "Change photo",
+    "apariencia": "Appearance",
+    "modoOscuro": "Dark mode",
+    "idioma": "Language",
+    "notificaciones": "Notifications",
+    "notifWIP": "Remind me about my works in progress",
+    "notifPermissionDenied": "Enable notifications in your device settings.",
+    "notifTitle": "LanaLibre",
+    "notifBody": "Don't forget to check on your works in progress 🧶",
+    "datosPrivacidad": "Data & privacy",
+    "exportarDatos": "Export my data",
+    "exportando": "Preparing export…",
+    "exportError": "Could not export. Please try again.",
+    "eliminarCuenta": "Delete account",
+    "eliminarTitle": "Are you sure?",
+    "eliminarMessage": "This action cannot be undone. All your projects and journal entries will be deleted.",
+    "eliminarConfirm": "Delete",
+    "acercaDe": "About",
+    "version": "Version",
+    "terminos": "Terms & conditions",
+    "politica": "Privacy policy"
   },
   "placeholder": {
     "comingSoon": "Coming soon"

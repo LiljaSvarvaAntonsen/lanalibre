@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,11 +12,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation, Trans } from 'react-i18next';
-import { colors, radii } from '../constants/colors';
+import { radii } from '../constants/colors';
+import { useTheme } from '../contexts/ThemeContext';
 import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
 
 function TermsModal({ visible, title, onClose }) {
+  const { theme: colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const isTerms = title === 'terms';
   return (
@@ -41,6 +44,8 @@ function TermsModal({ visible, title, onClose }) {
 }
 
 export default function LoginScreen({ signInWithGoogle, signInWithApple, error, devSignIn }) {
+  const { theme: colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
   const [modal, setModal] = useState(null);
@@ -136,7 +141,7 @@ export default function LoginScreen({ signInWithGoogle, signInWithApple, error, 
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors) { return StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.background,
@@ -291,4 +296,4 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     color: colors.card,
   },
-});
+}); }

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
@@ -11,7 +11,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Plus, Info, Search, X, ArrowLeft } from 'lucide-react-native';
-import { colors, radii } from '../constants/colors';
+import { radii } from '../constants/colors';
+import { useTheme } from '../contexts/ThemeContext';
 import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
 import { useAuth } from '../hooks/useAuth';
@@ -23,6 +24,8 @@ import LoadingOverlay from '../components/LoadingOverlay';
 import Toast from '../components/Toast';
 
 export default function ProyectosScreen({ navigation }) {
+  const { theme: colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const { user } = useAuth();
   const { activeProjects, deletedProjects, loading, hasMore, loadMore, refresh, softDelete, restore } =
@@ -237,7 +240,7 @@ export default function ProyectosScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors) { return StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: 'row',
@@ -340,4 +343,4 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.sm,
     color: colors.card,
   },
-});
+}); }

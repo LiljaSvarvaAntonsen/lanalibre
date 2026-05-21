@@ -4,6 +4,10 @@ jest.mock('expo-localization', () => ({
 
 jest.mock('../firebase', () => ({}));
 
+jest.mock('../contexts/ThemeContext', () => ({
+  useTheme: () => ({ theme: require('../constants/colors').colors, isDark: false, toggleTheme: jest.fn() }),
+}));
+
 import { render, screen } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import i18n from '../i18n';

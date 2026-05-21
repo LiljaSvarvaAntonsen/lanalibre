@@ -1,7 +1,9 @@
 {
   "common": {
     "close": "Cerrar",
-    "appName": "LanaLibre"
+    "appName": "LanaLibre",
+    "cancel": "Cancelar",
+    "error": "Algo salió mal."
   },
   "projectPicker": {
     "title": "Guardar en proyecto",
@@ -44,7 +46,30 @@
   },
   "perfil": {
     "title": "Perfil",
-    "idioma": "Idioma"
+    "memberSince": "Miembro desde {{date}}",
+    "editNombre": "Editar nombre",
+    "saveNombre": "Guardar",
+    "editPhoto": "Cambiar foto",
+    "apariencia": "Apariencia",
+    "modoOscuro": "Modo oscuro",
+    "idioma": "Idioma",
+    "notificaciones": "Notificaciones",
+    "notifWIP": "Recuérdame mis proyectos en progreso",
+    "notifPermissionDenied": "Activa las notificaciones en la configuración de tu dispositivo.",
+    "notifTitle": "LanaLibre",
+    "notifBody": "No olvides revisar tus proyectos en progreso 🧶",
+    "datosPrivacidad": "Datos y privacidad",
+    "exportarDatos": "Exportar mis datos",
+    "exportando": "Preparando exportación…",
+    "exportError": "No se pudo exportar. Inténtalo de nuevo.",
+    "eliminarCuenta": "Eliminar cuenta",
+    "eliminarTitle": "¿Estás seguro?",
+    "eliminarMessage": "Esta acción no se puede deshacer. Se eliminarán todos tus proyectos y entradas de diario.",
+    "eliminarConfirm": "Eliminar",
+    "acercaDe": "Acerca de",
+    "version": "Versión",
+    "terminos": "Términos y condiciones",
+    "politica": "Política de privacidad"
   },
   "placeholder": {
     "comingSoon": "Próximamente"

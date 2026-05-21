@@ -1,73 +1,72 @@
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import { View, PanResponder, StyleSheet } from 'react-native';
 import Svg, { Circle, Ellipse, Line } from 'react-native-svg';
-import { colors } from '../../constants/colors';
+import { useTheme } from '../../contexts/ThemeContext';
 
-const STROKE = colors.text.primary;
 const SW = 1.8;
 const SIZE = 40;
 
 // ── Stitch SVG icons (40×40) ──────────────────────────────────────────────────
 
-function CadenaIcon() {
+function CadenaIcon({ stroke = '#1A1917' }) {
   return (
     <Svg width={SIZE} height={SIZE} viewBox="0 0 40 40">
-      <Ellipse cx={20} cy={20} rx={15} ry={10} stroke={STROKE} strokeWidth={SW} fill="none" />
+      <Ellipse cx={20} cy={20} rx={15} ry={10} stroke={stroke} strokeWidth={SW} fill="none" />
     </Svg>
   );
 }
 
-function PuntoRasoIcon() {
+function PuntoRasoIcon({ stroke = '#1A1917' }) {
   return (
     <Svg width={SIZE} height={SIZE} viewBox="0 0 40 40">
-      <Circle cx={20} cy={20} r={8} fill={STROKE} />
+      <Circle cx={20} cy={20} r={8} fill={stroke} />
     </Svg>
   );
 }
 
-function PuntoBajoIcon() {
+function PuntoBajoIcon({ stroke = '#1A1917' }) {
   return (
     <Svg width={SIZE} height={SIZE} viewBox="0 0 40 40">
-      <Line x1={20} y1={4} x2={20} y2={36} stroke={STROKE} strokeWidth={SW} strokeLinecap="round" />
-      <Line x1={4} y1={20} x2={36} y2={20} stroke={STROKE} strokeWidth={SW} strokeLinecap="round" />
+      <Line x1={20} y1={4} x2={20} y2={36} stroke={stroke} strokeWidth={SW} strokeLinecap="round" />
+      <Line x1={4} y1={20} x2={36} y2={20} stroke={stroke} strokeWidth={SW} strokeLinecap="round" />
     </Svg>
   );
 }
 
-function MedioPuntoAltoIcon() {
+function MedioPuntoAltoIcon({ stroke = '#1A1917' }) {
   return (
     <Svg width={SIZE} height={SIZE} viewBox="0 0 40 40">
-      <Line x1={20} y1={8} x2={20} y2={36} stroke={STROKE} strokeWidth={SW} strokeLinecap="round" />
-      <Line x1={8} y1={16} x2={32} y2={16} stroke={STROKE} strokeWidth={SW} strokeLinecap="round" />
+      <Line x1={20} y1={8} x2={20} y2={36} stroke={stroke} strokeWidth={SW} strokeLinecap="round" />
+      <Line x1={8} y1={16} x2={32} y2={16} stroke={stroke} strokeWidth={SW} strokeLinecap="round" />
     </Svg>
   );
 }
 
-function PuntoAltoIcon() {
+function PuntoAltoIcon({ stroke = '#1A1917' }) {
   return (
     <Svg width={SIZE} height={SIZE} viewBox="0 0 40 40">
-      <Line x1={20} y1={4} x2={20} y2={36} stroke={STROKE} strokeWidth={SW} strokeLinecap="round" />
-      <Line x1={8} y1={14} x2={32} y2={14} stroke={STROKE} strokeWidth={SW} strokeLinecap="round" />
+      <Line x1={20} y1={4} x2={20} y2={36} stroke={stroke} strokeWidth={SW} strokeLinecap="round" />
+      <Line x1={8} y1={14} x2={32} y2={14} stroke={stroke} strokeWidth={SW} strokeLinecap="round" />
     </Svg>
   );
 }
 
-function PuntoAltoDobleIcon() {
+function PuntoAltoDobleIcon({ stroke = '#1A1917' }) {
   return (
     <Svg width={SIZE} height={SIZE} viewBox="0 0 40 40">
-      <Line x1={20} y1={4} x2={20} y2={36} stroke={STROKE} strokeWidth={SW} strokeLinecap="round" />
-      <Line x1={8} y1={12} x2={32} y2={12} stroke={STROKE} strokeWidth={SW} strokeLinecap="round" />
-      <Line x1={8} y1={20} x2={32} y2={20} stroke={STROKE} strokeWidth={SW} strokeLinecap="round" />
+      <Line x1={20} y1={4} x2={20} y2={36} stroke={stroke} strokeWidth={SW} strokeLinecap="round" />
+      <Line x1={8} y1={12} x2={32} y2={12} stroke={stroke} strokeWidth={SW} strokeLinecap="round" />
+      <Line x1={8} y1={20} x2={32} y2={20} stroke={stroke} strokeWidth={SW} strokeLinecap="round" />
     </Svg>
   );
 }
 
-function AnilloMagicoIcon() {
+function AnilloMagicoIcon({ stroke = '#1A1917' }) {
   return (
     <Svg width={SIZE} height={SIZE} viewBox="0 0 40 40">
-      <Circle cx={20} cy={22} r={11} stroke={STROKE} strokeWidth={SW} fill="none" />
-      <Line x1={20} y1={4} x2={20} y2={11} stroke={STROKE} strokeWidth={SW} strokeLinecap="round" />
-      <Line x1={13} y1={22} x2={27} y2={22} stroke={STROKE} strokeWidth={SW} strokeLinecap="round" />
+      <Circle cx={20} cy={22} r={11} stroke={stroke} strokeWidth={SW} fill="none" />
+      <Line x1={20} y1={4} x2={20} y2={11} stroke={stroke} strokeWidth={SW} strokeLinecap="round" />
+      <Line x1={13} y1={22} x2={27} y2={22} stroke={stroke} strokeWidth={SW} strokeLinecap="round" />
     </Svg>
   );
 }
@@ -85,6 +84,8 @@ const ICON_MAP = {
 // ── StitchWidget ──────────────────────────────────────────────────────────────
 
 export default function StitchWidget({ element, onRotate }) {
+  const { theme: colors } = useTheme();
+  const s = useMemo(() => makeStyles(colors), [colors]);
   const Icon = ICON_MAP[element.stitchType] ?? PuntoBajoIcon;
   const initialRotation = useRef(element.rotation ?? 0);
 
@@ -104,7 +105,7 @@ export default function StitchWidget({ element, onRotate }) {
 
   return (
     <View style={[s.wrapper, { transform: [{ rotate: `${element.rotation ?? 0}deg` }] }]}>
-      <Icon />
+      <Icon stroke={colors.text.primary} />
       {/* Rotation handle — sits 20px above the element centre */}
       <View style={s.rotHandle} {...rotateResponder.panHandlers} />
     </View>
@@ -113,7 +114,7 @@ export default function StitchWidget({ element, onRotate }) {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
-const s = StyleSheet.create({
+function makeStyles(colors) { return StyleSheet.create({
   wrapper: {
     width: SIZE,
     height: SIZE,
@@ -131,4 +132,4 @@ const s = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: colors.card,
   },
-});
+}); }

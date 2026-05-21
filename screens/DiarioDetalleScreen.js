@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, BookOpen, Plus } from 'lucide-react-native';
-import { colors, radii } from '../constants/colors';
+import { radii } from '../constants/colors';
+import { useTheme } from '../contexts/ThemeContext';
 import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
 import { getDiario, getEntradas, createEntrada } from '../services/firestore';
@@ -22,7 +23,7 @@ function formatDate(timestamp) {
   return d.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-function EntradaCard({ item, onPress }) {
+function EntradaCard({ item, onPress, styles }) {
   const { t } = useTranslation();
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
@@ -35,6 +36,8 @@ function EntradaCard({ item, onPress }) {
 }
 
 export default function DiarioDetalleScreen({ navigation, route }) {
+  const { theme: colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const { diarioId, resultadoCalculadora, resultadoVistaPrevia, previewImageUri } = route.params;
 
@@ -109,7 +112,7 @@ export default function DiarioDetalleScreen({ navigation, route }) {
         keyExtractor={(item) => item.id}
         contentContainerStyle={entradas.length === 0 ? styles.emptyContainer : styles.listContent}
         renderItem={({ item }) => (
-          <EntradaCard item={item} onPress={() => openEntrada(item.id)} />
+          <EntradaCard item={item} onPress={() => openEntrada(item.id)} styles={styles} />
         )}
         ListEmptyComponent={
           !loading ? (
@@ -126,7 +129,7 @@ export default function DiarioDetalleScreen({ navigation, route }) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors) { return StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: 'row',
@@ -194,4 +197,4 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.xs,
     color: colors.text.tertiary,
   },
-});
+}); }

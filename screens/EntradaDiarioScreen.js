@@ -33,7 +33,8 @@ import {
   GripVertical,
   Check,
 } from 'lucide-react-native';
-import { colors, radii } from '../constants/colors';
+import { radii } from '../constants/colors';
+import { useTheme } from '../contexts/ThemeContext';
 import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
 import { getEntrada, updateEntrada } from '../services/firestore';
@@ -136,7 +137,7 @@ function StrokesLayer({ freeStrokes, currentPoints, currentColor, currentWidth, 
 
 // ── DraggableElement ──────────────────────────────────────────────────────────
 
-function DraggableElement({ element, selected, isEditing, eraserMode, onErase, onMove, editShift, children }) {
+function DraggableElement({ element, selected, isEditing, eraserMode, onErase, onMove, editShift, children, styles }) {
   const pan = useRef(new Animated.ValueXY({ x: element.x, y: element.y })).current;
 
   // Refs so PanResponder callbacks (created once) see live values
@@ -203,7 +204,7 @@ function DraggableElement({ element, selected, isEditing, eraserMode, onErase, o
 
 // ── RowCounterWidget ──────────────────────────────────────────────────────────
 
-function RowCounterWidget({ count, onIncrement, onReset }) {
+function RowCounterWidget({ count, onIncrement, onReset, styles, colors }) {
   return (
     <View style={styles.rowCard}>
       <Text style={styles.rowCount}>{count}</Text>
@@ -235,6 +236,8 @@ function textBoxFont(bold, italic) {
 //   onPress when selected but not editing → activates edit mode (TextInput + autoFocus)
 //   isEditing → renders TextInput with autoFocus; keyboard opens
 function TextBoxWidget({ element, isEditing, onChange, onPress }) {
+  const { theme: colors } = useTheme();
+  const styles = makeStyles(colors);
   const textStyle = {
     fontSize: sizeMap[element.fontSize] ?? fontSizes.md,
     fontFamily: textBoxFont(element.bold, element.italic),
@@ -268,6 +271,8 @@ function TextBoxWidget({ element, isEditing, onChange, onPress }) {
 // ── TextFormatBar ─────────────────────────────────────────────────────────────
 
 function FmtBtn({ children, active, onPress, disabled }) {
+  const { theme: colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <TouchableOpacity
       style={[styles.fmtBtn, active && styles.fmtBtnActive]}
@@ -281,6 +286,8 @@ function FmtBtn({ children, active, onPress, disabled }) {
 }
 
 function TextFormatBar({ element, onChange, onDelete, onDone, style }) {
+  const { theme: colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <View style={[styles.formatBar, style]}>
       <FmtBtn active={element.bold} onPress={() => onChange({ bold: !element.bold })}>
@@ -313,6 +320,8 @@ function TextFormatBar({ element, onChange, onDelete, onDone, style }) {
 // ── FloatingToolbar ───────────────────────────────────────────────────────────
 
 function TbBtn({ icon: Icon, onPress, active, disabled, label }) {
+  const { theme: colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <TouchableOpacity
       style={[styles.tbBtn, active && styles.tbBtnActive]}
@@ -349,6 +358,8 @@ function FloatingToolbar({
   onUpload,
   t,
 }) {
+  const { theme: colors } = useTheme();
+  const styles = makeStyles(colors);
   const initX = canvasSize.width > 0 ? Math.max(0, canvasSize.width / 2 - 140) : 80;
   const initY = canvasSize.height > 0 ? canvasSize.height - 110 : 300;
 
@@ -390,6 +401,8 @@ function FloatingToolbar({
 // ── Main screen ───────────────────────────────────────────────────────────────
 
 export default function EntradaDiarioScreen({ navigation, route }) {
+  const { theme: colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { diarioId, entradaId, resultadoCalculadora, resultadoVistaPrevia, previewImageUri } = route.params;
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -950,12 +963,15 @@ export default function EntradaDiarioScreen({ navigation, route }) {
               onErase={setEraseTargetId}
               onMove={(id, pos) => updateElement(id, pos)}
               editShift={el.id === editingId ? canvasShift : undefined}
+              styles={styles}
             >
               {el.type === 'rowCounter' ? (
                 <RowCounterWidget
                   count={el.count}
                   onIncrement={() => updateElement(el.id, { count: el.count + 1 })}
                   onReset={() => updateElement(el.id, { count: 0 })}
+                  styles={styles}
+                  colors={colors}
                 />
               ) : el.type === 'stitch' ? (
                 <StitchWidget
@@ -1087,7 +1103,7 @@ export default function EntradaDiarioScreen({ navigation, route }) {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+function makeStyles(colors) { return StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FFFFFF' },
 
   topBar: {
@@ -1264,4 +1280,4 @@ const styles = StyleSheet.create({
   tbBtnActive: {
     backgroundColor: 'rgba(0,0,0,0.12)',
   },
-});
+}); }

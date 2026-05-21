@@ -253,3 +253,27 @@ export async function updateEntrada(diarioId, entradaId, data) {
 export async function deleteEntrada(diarioId, entradaId) {
   await deleteDoc(doc(db, 'diarios', diarioId, 'entradas', entradaId));
 }
+
+// ── User / settings ───────────────────────────────────────────────────────────
+
+export async function updateUserDocument(uid, data) {
+  await updateDoc(doc(db, 'users', uid), data);
+}
+
+export async function saveUserSettings(uid, settings) {
+  await updateDoc(doc(db, 'users', uid), settings);
+}
+
+export async function getAllUserProjects(uid) {
+  const snap = await getDocs(
+    query(collection(db, 'projects'), where('uId', '==', uid), orderBy('fechaCreacion', 'desc')),
+  );
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function getAllUserDiarios(uid) {
+  const snap = await getDocs(
+    query(collection(db, 'diarios'), where('uId', '==', uid), orderBy('fechaCreacion', 'desc')),
+  );
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}

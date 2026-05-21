@@ -14,18 +14,20 @@ import {
 } from '@expo-google-fonts/nunito';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { useAuth } from './hooks/useAuth';
 import LoginScreen from './screens/LoginScreen';
 import MainTabs from './navigation/MainTabs';
-import { colors } from './constants/colors';
+import { colors as lightColors } from './constants/colors';
 
 const Stack = createStackNavigator();
 
 function AuthRouter() {
+  const { theme: colors } = useTheme();
   const { user, loading, error, signInWithGoogle, signInWithApple, devSignIn } = useAuth();
 
   if (loading) {
-    return <View style={styles.loading} />;
+    return <View style={[styles.loading, { backgroundColor: colors.background }]} />;
   }
 
   return (
@@ -65,10 +67,12 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <NavigationContainer>
-          <StatusBar style="auto" />
-          <AuthRouter />
-        </NavigationContainer>
+        <ThemeProvider>
+          <NavigationContainer>
+            <StatusBar style="auto" />
+            <AuthRouter />
+          </NavigationContainer>
+        </ThemeProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );
@@ -77,6 +81,6 @@ export default function App() {
 const styles = StyleSheet.create({
   loading: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: lightColors.background,
   },
 });

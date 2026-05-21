@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import Slider from '@react-native-community/slider';
-import { colors, radii } from '../../constants/colors';
+import { radii } from '../../constants/colors';
+import { useTheme } from '../../contexts/ThemeContext';
 import { spacing } from '../../constants/spacing';
 import { fonts, fontSizes } from '../../constants/typography';
 
@@ -131,6 +132,8 @@ function isLight(hex) {
 // ── ColorPickerPanel ──────────────────────────────────────────────────────────
 
 export default function ColorPickerPanel({ visible, recentColors, onActivate, onDismiss }) {
+  const { theme: colors } = useTheme();
+  const s = useMemo(() => makeStyles(colors), [colors]);
   const [step, setStep] = useState(1);
   const [selectedHex, setSelectedHex] = useState(DEFAULT_COLOR);
   const [brushWidth, setBrushWidth] = useState(8);
@@ -231,7 +234,7 @@ export default function ColorPickerPanel({ visible, recentColors, onActivate, on
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
-const s = StyleSheet.create({
+function makeStyles(colors) { return StyleSheet.create({
   panel: {
     position: 'absolute',
     bottom: 80,
@@ -345,4 +348,4 @@ const s = StyleSheet.create({
     color: colors.text.tertiary,
     textDecorationLine: 'underline',
   },
-});
+}); }

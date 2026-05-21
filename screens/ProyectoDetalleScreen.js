@@ -1,11 +1,12 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Modal, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Pencil, Calculator, Eye, BookOpen, ChevronRight } from 'lucide-react-native';
 import ResultSummaryCard from '../components/ResultSummaryCard';
-import { colors, radii } from '../constants/colors';
+import { radii } from '../constants/colors';
+import { useTheme } from '../contexts/ThemeContext';
 import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
 import { useAuth } from '../hooks/useAuth';
@@ -17,7 +18,7 @@ import {
   updateDiario,
 } from '../services/firestore';
 
-function getTagStyle(tag) {
+function getTagStyle(tag, colors) {
   return colors.tags[tag] || { bg: colors.primary.light, text: colors.primary.dark, border: colors.primary.DEFAULT };
 }
 import LoadingOverlay from '../components/LoadingOverlay';
@@ -46,7 +47,7 @@ function getResultSummary(project, tool, linkedDiario) {
   return null;
 }
 
-function ToolCard({ icon: Icon, label, summary, noResultText, iconColor, iconBg, onPress }) {
+function ToolCard({ icon: Icon, label, summary, noResultText, iconColor, iconBg, onPress, styles, colors }) {
   return (
     <TouchableOpacity style={styles.toolCard} onPress={onPress} activeOpacity={0.8}>
       <View style={styles.toolLeft}>
@@ -66,6 +67,8 @@ function ToolCard({ icon: Icon, label, summary, noResultText, iconColor, iconBg,
 }
 
 export default function ProyectoDetalleScreen({ navigation, route }) {
+  const { theme: colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const { user } = useAuth();
   const { projectId } = route.params;
@@ -146,7 +149,7 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
         <View style={styles.meta}>
           {project?.etiqueta ? (() => {
-            const ts = getTagStyle(project.etiqueta);
+            const ts = getTagStyle(project.etiqueta, colors);
             return (
               <View style={[styles.badge, { backgroundColor: ts.bg, borderColor: ts.border }]}>
                 <Text style={[styles.badgeText, { color: ts.text }]}>{project.etiqueta}</Text>
@@ -176,6 +179,8 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
               iconColor={colors.secondary.cinnamon}
               iconBg="#FDE8D8"
               onPress={() => navigation.navigate('CalculadoraScreen', { projectId })}
+              styles={styles}
+              colors={colors}
             />
           )}
           {project?.resultadoPrevisualización ? (
@@ -197,6 +202,8 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
               iconColor={colors.primary.dark}
               iconBg="#EDE5F8"
               onPress={() => navigation.navigate('VistaPreviaScreen', { projectId })}
+              styles={styles}
+              colors={colors}
             />
           )}
           <ToolCard
@@ -206,6 +213,8 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
             noResultText={t('diario.sinDiario')}
             iconColor={colors.secondary.teal}
             iconBg="#D5EEF0"
+            styles={styles}
+            colors={colors}
             onPress={() => {
               if (linkedDiario) {
                 navigation.navigate('DiarioDetalleScreen', { diarioId: linkedDiario.id });
@@ -255,7 +264,7 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors) { return StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: 'row',
@@ -397,4 +406,4 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     color: colors.text.primary,
   },
-});
+}); }

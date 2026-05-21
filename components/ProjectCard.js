@@ -1,7 +1,9 @@
+import { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { MoreVertical } from 'lucide-react-native';
-import { colors, radii } from '../constants/colors';
+import { radii } from '../constants/colors';
+import { useTheme } from '../contexts/ThemeContext';
 import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
 
@@ -14,14 +16,16 @@ function daysRemaining(deletedAt) {
   return Math.max(0, Math.ceil(ms / (24 * 60 * 60 * 1000)));
 }
 
-function getTagStyle(tag) {
+function getTagStyle(tag, colors) {
   return colors.tags[tag] || { bg: colors.primary.light, text: colors.primary.dark, border: colors.primary.DEFAULT };
 }
 
 export default function ProjectCard({ project, onDelete, onRestore, isDeleted, onPress }) {
+  const { theme: colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const days = isDeleted ? daysRemaining(project.deletedAt) : 0;
-  const tagStyle = getTagStyle(project.etiqueta);
+  const tagStyle = getTagStyle(project.etiqueta, colors);
 
   return (
     <TouchableOpacity
@@ -67,7 +71,7 @@ export default function ProjectCard({ project, onDelete, onRestore, isDeleted, o
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors) { return StyleSheet.create({
   card: {
     backgroundColor: colors.card,
     borderRadius: radii.card,
@@ -123,4 +127,4 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.sm,
     color: colors.primary.dark,
   },
-});
+}); }

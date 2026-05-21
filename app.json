@@ -30,7 +30,8 @@
     "plugins": [
       "expo-font",
       "expo-web-browser",
-      "expo-localization"
+      "expo-localization",
+      "expo-notifications"
     ]
   }
 }
