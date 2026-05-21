@@ -268,10 +268,10 @@ Tasks are ordered by development slice. Complete each slice fully (services → 
 ---
 
 ## Slice 10 — User profile (RF-03)
-- [ ] Profile screen: display nombre, fotoPerfil (avatar), email (from Firebase Auth), fechaRegistro
-- [ ] Edit profile: update nombre, upload new profile photo → save to Firestore
-- [ ] Delete account: confirmation dialog → delete `users/{uid}` document → delete all user's projects (soft then scheduled hard) → `Firebase Auth deleteUser()` (RGPD compliance)
-- [ ] Settings screen: language selector (es / en / nb) → persists choice to Firestore and updates i18next at runtime
+- [x] Profile screen: display nombre, fotoPerfil (avatar), email (from Firebase Auth), fechaRegistro
+- [x] Edit profile: update nombre, upload new profile photo → save to Firestore
+- [x] Delete account: confirmation dialog → delete `users/{uid}` document → delete all user's projects (soft then scheduled hard) → `Firebase Auth deleteUser()` (RGPD compliance)
+- [x] Settings screen: language selector (es / en / nb) → persists choice to Firestore and updates i18next at runtime
 
 ---
 
@@ -323,7 +323,8 @@ Tasks are ordered by development slice. Complete each slice fully (services → 
 
 ## UI Polish (post-slice, before release)
 - [ ] Eraser/delete tool should remove brush stroke paths drawn with the colour painting tool (currently only removes canvas elements, not freeStrokes/gridFills)
-- [ ] Uploaded images: implement working corner drag-to-resize handles and a rotation gesture
+- [x] Uploaded images: working corner drag-to-resize handles (live-ref PanResponder fix, resizeMode="contain", proportional scaling via scaleToFit, MIN_SIZE=50)
+- [ ] Uploaded images: rotation gesture
 - [ ] Stitch rotation handle: replace the purple dot with a classic rotation arrow icon; make the rotation gesture more precise
 - [ ] Stitch symbols: redesign all 7 SVG icons to match accurate, standard crochet symbol conventions
 - [ ] Floating toolbar: support both horizontal and vertical orientations, toggled by the user (currently fixed horizontal)

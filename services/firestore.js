@@ -257,7 +257,7 @@ export async function deleteEntrada(diarioId, entradaId) {
 // ── User / settings ───────────────────────────────────────────────────────────
 
 export async function updateUserDocument(uid, data) {
-  await updateDoc(doc(db, 'users', uid), data);
+  await setDoc(doc(db, 'users', uid), data, { merge: true });
 }
 
 export async function saveUserSettings(uid, settings) {

@@ -69,11 +69,13 @@ export default function ProyectoFormScreen({ route, navigation }) {
     try {
       if (isEdit) {
         await fsUpdateProject(projectId, { nombre: nombre.trim(), descripcion: descripcion.trim(), etiqueta });
+        showToast(t('projects.save'));
+        setTimeout(() => navigation.goBack(), 600);
       } else {
-        await fsCreateProject(user.uid, { nombre: nombre.trim(), descripcion: descripcion.trim(), etiqueta });
+        const project = await fsCreateProject(user.uid, { nombre: nombre.trim(), etiqueta });
+        showToast(t('projects.save'));
+        setTimeout(() => navigation.replace('ProyectoDetalleScreen', { projectId: project.id }), 600);
       }
-      showToast(t('projects.save'));
-      setTimeout(() => navigation.goBack(), 600);
     } catch {
       showToast(t('errors.googleToken', { defaultValue: 'Algo salió mal. Intenta de nuevo.' }), 'error');
     } finally {

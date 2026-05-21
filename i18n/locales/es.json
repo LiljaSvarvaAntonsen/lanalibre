@@ -58,6 +58,7 @@
     "notifPermissionDenied": "Activa las notificaciones en la configuración de tu dispositivo.",
     "notifTitle": "LanaLibre",
     "notifBody": "No olvides revisar tus proyectos en progreso 🧶",
+    "notifDevToast": "Recordatorio activado — las notificaciones funcionarán en la versión publicada de la aplicación",
     "datosPrivacidad": "Datos y privacidad",
     "exportarDatos": "Exportar mis datos",
     "exportando": "Preparando exportación…",

@@ -58,6 +58,12 @@ function makeTextBox(x, y, text = '') {
   return { id: makeId(), type: 'textBox', x, y, text, bold: false, italic: false, underline: false, fontSize: 'M' };
 }
 
+function scaleToFit(srcWidth, srcHeight, maxSize = 200) {
+  if (!srcWidth || !srcHeight) return { width: maxSize, height: maxSize };
+  const ratio = Math.min(maxSize / srcWidth, maxSize / srcHeight);
+  return { width: Math.round(srcWidth * ratio), height: Math.round(srcHeight * ratio) };
+}
+
 const CELL = 22;
 
 // ── GridLayer ─────────────────────────────────────────────────────────────────
@@ -145,6 +151,12 @@ function DraggableElement({ element, selected, isEditing, eraserMode, onErase, o
   isEditingRef.current = isEditing;
   const eraserModeRef = useRef(eraserMode);
   eraserModeRef.current = eraserMode;
+
+  // Keep pan in sync when x/y is changed programmatically (e.g. by a corner resize).
+  // After a user drag, element.x/y equals pan._value, so this is a no-op in that case.
+  useEffect(() => {
+    pan.setValue({ x: element.x, y: element.y });
+  }, [element.x, element.y]);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -254,7 +266,7 @@ function TextBoxWidget({ element, isEditing, onChange, onPress }) {
         multiline
         scrollEnabled={false}
         placeholder="Escribe aquí..."
-        placeholderTextColor={colors.neutral.tertiary}
+        placeholderTextColor="#A8A9A6"
       />
     );
   }
@@ -800,6 +812,7 @@ export default function EntradaDiarioScreen({ navigation, route }) {
   // ── Upload handlers ─────────────────────────────────────────────────────────
 
   function handleUploadPress() {
+    console.log('[upload] handleUploadPress triggered');
     Alert.alert(
       t('entrada.subir.titulo'),
       null,
@@ -819,7 +832,7 @@ export default function EntradaDiarioScreen({ navigation, route }) {
     });
     if (result.canceled) return;
     const asset = result.assets[0];
-    await runUpload(asset.uri, asset.fileName ?? `image_${Date.now()}.jpg`, false);
+    await runUpload(asset.uri, asset.fileName ?? `image_${Date.now()}.jpg`, false, asset.width, asset.height);
   }
 
   async function handlePickPdf() {
@@ -829,17 +842,29 @@ export default function EntradaDiarioScreen({ navigation, route }) {
     await runUpload(asset.uri, asset.name, true);
   }
 
-  async function runUpload(uri, name, isPdf) {
+  async function runUpload(uri, name, isPdf, srcWidth, srcHeight) {
     if (!user?.uid) return;
+    console.log('[upload] runUpload', { uid: user.uid, name, isPdf, srcWidth, srcHeight });
     setUploading(true);
     try {
-      const { url, storagePath } = await uploadEntradaFile(user.uid, diarioId, { uri, name });
+      let url, storagePath;
+      if (user.uid === 'dev-user') {
+        url = uri;
+        storagePath = null;
+      } else {
+        const result = await uploadEntradaFile(user.uid, diarioId, { uri, name });
+        url = result.url;
+        storagePath = result.storagePath;
+      }
+      const { width, height } = isPdf
+        ? { width: 200, height: 200 }
+        : scaleToFit(srcWidth, srcHeight);
       setElementos((prev) => [
         ...prev,
-        { id: makeId(), type: 'image', x: 60, y: 60, width: 240, height: 180, url, storagePath, isPdf, fileName: name },
+        { id: makeId(), type: 'image', x: 60, y: 60, width, height, url, storagePath, isPdf, fileName: name },
       ]);
-    } catch {
-      // Toast is shown in the render tree via a state flag
+    } catch (e) {
+      console.error('[upload] runUpload error:', e);
       setUploadError(true);
     } finally {
       setUploading(false);
@@ -1151,12 +1176,12 @@ function makeStyles(colors) { return StyleSheet.create({
     opacity: 0.7,
   },
 
-  // Row counter
+  // Row counter — canvas is always white, so card and text colours are hardcoded
   rowCard: {
-    backgroundColor: colors.card,
+    backgroundColor: '#FFFFFF',
     borderRadius: radii.card,
     borderWidth: 1,
-    borderColor: colors.neutral.greige,
+    borderColor: '#D4CFC7',
     padding: spacing.sm,
     alignItems: 'center',
     gap: spacing.xs,
@@ -1170,7 +1195,7 @@ function makeStyles(colors) { return StyleSheet.create({
   rowCount: {
     fontFamily: fonts.extraBold,
     fontSize: 36,
-    color: colors.text.primary,
+    color: '#2C2C2A',
     lineHeight: 40,
   },
   rowBtns: {
@@ -1187,9 +1212,9 @@ function makeStyles(colors) { return StyleSheet.create({
     minWidth: 36,
   },
   rowResetBtn: {
-    backgroundColor: colors.background,
+    backgroundColor: '#F5F4F0',
     borderWidth: 1,
-    borderColor: colors.neutral.greige,
+    borderColor: '#D4CFC7',
   },
   rowBtnLabel: {
     fontFamily: fonts.semiBold,
@@ -1197,16 +1222,16 @@ function makeStyles(colors) { return StyleSheet.create({
     color: colors.card,
   },
 
-  // Text box
+  // Text box — canvas is always white, so text colours are hardcoded regardless of theme
   textBox: {
     minWidth: 120,
     minHeight: 60,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    color: colors.text.primary,
+    color: '#2C2C2A',
   },
   textBoxPlaceholder: {
-    color: colors.neutral.tertiary,
+    color: '#A8A9A6',
   },
 
   // Text format bar

@@ -245,30 +245,40 @@ export default function CalculadoraScreen({ navigation, route }) {
               value={fields.metrosEtiqueta}
               onChangeText={(v) => setField('metrosEtiqueta', v)}
               error={errors.metrosEtiqueta}
+              styles={styles}
+              colors={colors}
             />
             <FormField
               label={t('calculadora.gramosEtiqueta')}
               value={fields.gramosEtiqueta}
               onChangeText={(v) => setField('gramosEtiqueta', v)}
               error={errors.gramosEtiqueta}
+              styles={styles}
+              colors={colors}
             />
             <FormField
               label={t('calculadora.ancho')}
               value={fields.ancho}
               onChangeText={(v) => setField('ancho', v)}
               error={errors.ancho}
+              styles={styles}
+              colors={colors}
             />
             <FormField
               label={t('calculadora.largo')}
               value={fields.largo}
               onChangeText={(v) => setField('largo', v)}
               error={errors.largo}
+              styles={styles}
+              colors={colors}
             />
             <FormField
               label={t('calculadora.tension')}
               value={fields.tension}
               onChangeText={(v) => setField('tension', v)}
               error={errors.tension}
+              styles={styles}
+              colors={colors}
             />
 
             <View style={styles.fieldGroup}>
@@ -319,17 +329,20 @@ export default function CalculadoraScreen({ navigation, route }) {
               label={t('calculadora.result.metrosTotales')}
               value={`${Math.round(result.metrosTotales)} m`}
               valueColor={colors.primary.dark}
+              styles={styles}
             />
             <ResultCard
               label={t('calculadora.result.gramosTotales')}
               value={`${Math.round(result.gramosTotales)} g`}
               valueColor={colors.primary.DEFAULT}
+              styles={styles}
             />
             <ResultCard
               label={t('calculadora.result.resultadoFinal')}
               value={`${Math.round(result.resultadoFinal)} g`}
               valueColor={colors.secondary.cinnamon}
               highlight
+              styles={styles}
             />
 
             <Text style={styles.disclaimer}>{t('calculadora.result.disclaimer')}</Text>
@@ -428,7 +441,7 @@ export default function CalculadoraScreen({ navigation, route }) {
   );
 }
 
-function FormField({ label, value, onChangeText, error }) {
+function FormField({ label, value, onChangeText, error, styles, colors }) {
   return (
     <View style={styles.fieldGroup}>
       <Text style={styles.fieldLabel}>{label}</Text>
@@ -445,7 +458,7 @@ function FormField({ label, value, onChangeText, error }) {
   );
 }
 
-function ResultCard({ label, value, valueColor, highlight }) {
+function ResultCard({ label, value, valueColor, highlight, styles }) {
   return (
     <View style={[styles.resultCard, highlight && styles.resultCardHighlight]}>
       <Text style={[styles.resultLabel, highlight && styles.resultLabelHighlight]}>{label}</Text>
