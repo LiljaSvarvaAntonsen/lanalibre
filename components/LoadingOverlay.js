@@ -1,7 +1,9 @@
-import { Modal, View, ActivityIndicator, StyleSheet } from 'react-native';
-import { colors } from '../constants/colors';
+import { Modal, View, StyleSheet } from 'react-native';
+import { ActivityIndicator } from 'react-native';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function LoadingOverlay({ visible }) {
+  const { theme: colors } = useTheme();
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>

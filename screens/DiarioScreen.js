@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { BookOpen, Plus, X, ChevronRight } from 'lucide-react-native';
-import { colors, radii } from '../constants/colors';
+import { radii } from '../constants/colors';
+import { useTheme } from '../contexts/ThemeContext';
 import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
 import { useAuth } from '../hooks/useAuth';
@@ -27,7 +28,7 @@ function formatDate(timestamp) {
   return d.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-function DiarioCard({ item, onPress }) {
+function DiarioCard({ item, onPress, styles }) {
   const { t } = useTranslation();
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
@@ -43,6 +44,8 @@ function DiarioCard({ item, onPress }) {
 }
 
 export default function DiarioScreen({ navigation, route }) {
+  const { theme: colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const { user } = useAuth();
 
@@ -162,7 +165,7 @@ export default function DiarioScreen({ navigation, route }) {
         keyExtractor={(item) => item.id}
         contentContainerStyle={diarios.length === 0 ? styles.emptyContainer : styles.listContent}
         renderItem={({ item }) => (
-          <DiarioCard item={item} onPress={() => openDetalle(item.id)} />
+          <DiarioCard item={item} onPress={() => openDetalle(item.id)} styles={styles} />
         )}
         ListEmptyComponent={
           !loading ? (
@@ -293,7 +296,7 @@ export default function DiarioScreen({ navigation, route }) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors) { return StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   header: {
     paddingHorizontal: spacing.lg,
@@ -489,4 +492,4 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     color: colors.text.primary,
   },
-});
+}); }

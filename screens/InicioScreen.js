@@ -1,14 +1,16 @@
+import { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Plus, Clock, Folder, BookOpen } from 'lucide-react-native';
-import { colors, radii } from '../constants/colors';
+import { radii } from '../constants/colors';
+import { useTheme } from '../contexts/ThemeContext';
 import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
 
 const CARD_TERRACOTTA = '#C07050';
 
-function ShortcutCard({ label, icon: Icon, bg, iconColor, textColor, border, onPress }) {
+function ShortcutCard({ label, icon: Icon, bg, iconColor, textColor, border, onPress, styles }) {
   return (
     <TouchableOpacity
       style={[styles.card, { backgroundColor: bg }, border && styles.cardBorder]}
@@ -24,6 +26,8 @@ function ShortcutCard({ label, icon: Icon, bg, iconColor, textColor, border, onP
 }
 
 export default function InicioScreen({ navigation }) {
+  const { theme: colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
 
   return (
@@ -34,6 +38,7 @@ export default function InicioScreen({ navigation }) {
 
         <View style={styles.grid}>
           <ShortcutCard
+            styles={styles}
             label={t('inicio.newProject')}
             icon={Plus}
             bg={CARD_TERRACOTTA}
@@ -42,6 +47,7 @@ export default function InicioScreen({ navigation }) {
             onPress={() => navigation.navigate('ProyectoFormScreen')}
           />
           <ShortcutCard
+            styles={styles}
             label={t('inicio.recentProjects')}
             icon={Clock}
             bg={colors.primary.light}
@@ -50,6 +56,7 @@ export default function InicioScreen({ navigation }) {
             onPress={() => navigation.navigate('ProyectosScreen')}
           />
           <ShortcutCard
+            styles={styles}
             label={t('inicio.allProjects')}
             icon={Folder}
             bg={colors.secondary.olive}
@@ -58,6 +65,7 @@ export default function InicioScreen({ navigation }) {
             onPress={() => navigation.navigate('ProyectosScreen')}
           />
           <ShortcutCard
+            styles={styles}
             label={t('inicio.journal')}
             icon={BookOpen}
             bg={colors.card}
@@ -72,7 +80,7 @@ export default function InicioScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors) { return StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.background,
@@ -116,4 +124,4 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.sm,
     lineHeight: 20,
   },
-});
+}); }

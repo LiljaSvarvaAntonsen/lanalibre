@@ -5,6 +5,7 @@ import {
   signInWithCredential,
   signOut as firebaseSignOut,
   onAuthStateChanged,
+  deleteUser,
 } from 'firebase/auth';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import app from '../firebase';
@@ -38,4 +39,10 @@ export async function signOut() {
 
 export function onAuthChange(callback) {
   return onAuthStateChanged(auth, callback);
+}
+
+export async function deleteAccount() {
+  const currentUser = auth.currentUser;
+  if (!currentUser) throw new Error('No authenticated user');
+  await deleteUser(currentUser);
 }

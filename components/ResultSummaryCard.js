@@ -1,7 +1,9 @@
+import { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { ChevronRight } from 'lucide-react-native';
-import { colors, radii } from '../constants/colors';
+import { radii } from '../constants/colors';
+import { useTheme } from '../contexts/ThemeContext';
 import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
 import { formatShortDate } from '../utils/dates';
@@ -15,6 +17,8 @@ export default function ResultSummaryCard({
   iconBg,
   onPress,
 }) {
+  const { theme: colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const dateStr = formatShortDate(savedDate);
 
@@ -37,7 +41,7 @@ export default function ResultSummaryCard({
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors) { return StyleSheet.create({
   card: {
     backgroundColor: colors.card,
     borderRadius: radii.card,
@@ -81,4 +85,4 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.xs,
     color: colors.text.tertiary,
   },
-});
+}); }

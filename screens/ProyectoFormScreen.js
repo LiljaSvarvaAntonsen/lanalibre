@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Upload, Calculator, Eye, BookOpen, ChevronRight } from 'lucide-react-native';
-import { colors, radii } from '../constants/colors';
+import { radii } from '../constants/colors';
+import { useTheme } from '../contexts/ThemeContext';
 import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
 import { createProject as fsCreateProject, updateProject as fsUpdateProject } from '../services/firestore';
@@ -22,17 +23,19 @@ import Toast from '../components/Toast';
 
 const TAGS = ['WIP', 'PHD', 'FO', 'UFO', 'USO', 'YAP', 'TOAD'];
 
-function getTagStyle(tag) {
+function getTagStyle(tag, colors) {
   return colors.tags[tag] || { bg: colors.primary.light, text: colors.primary.dark, border: colors.primary.DEFAULT };
 }
 
 const TOOLS = [
-  { key: 'calculadora', icon: Calculator, iconColor: colors.secondary.cinnamon, iconBg: '#FDE8D8' },
-  { key: 'previsualizacion', icon: Eye, iconColor: colors.primary.dark, iconBg: '#EDE5F8' },
-  { key: 'diario', icon: BookOpen, iconColor: colors.secondary.teal, iconBg: '#D5EEF0' },
+  { key: 'calculadora', icon: Calculator, iconColor: '#D47E30', iconBg: '#FDE8D8' },
+  { key: 'previsualizacion', icon: Eye, iconColor: '#7C6AAF', iconBg: '#EDE5F8' },
+  { key: 'diario', icon: BookOpen, iconColor: '#7DCEC4', iconBg: '#D5EEF0' },
 ];
 
 export default function ProyectoFormScreen({ route, navigation }) {
+  const { theme: colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const { user } = useAuth();
   const projectId = route?.params?.projectId ?? route?.params?.project?.id ?? null;
@@ -78,7 +81,7 @@ export default function ProyectoFormScreen({ route, navigation }) {
     }
   }
 
-  const selectedTagStyle = getTagStyle(etiqueta);
+  const selectedTagStyle = getTagStyle(etiqueta, colors);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -126,7 +129,7 @@ export default function ProyectoFormScreen({ route, navigation }) {
               contentContainerStyle={styles.tagScroll}
             >
               {TAGS.map((tag) => {
-                const ts = getTagStyle(tag);
+                const ts = getTagStyle(tag, colors);
                 const selected = etiqueta === tag;
                 return (
                   <TouchableOpacity
@@ -217,7 +220,7 @@ export default function ProyectoFormScreen({ route, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors) { return StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
   header: {
@@ -358,4 +361,4 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     color: colors.card,
   },
-});
+}); }

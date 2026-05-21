@@ -1,84 +1,75 @@
+import { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import Svg, { Circle, Ellipse, Line, Path, Rect } from 'react-native-svg';
-import { colors, radii } from '../../constants/colors';
+import { radii } from '../../constants/colors';
+import { useTheme } from '../../contexts/ThemeContext';
 import { spacing } from '../../constants/spacing';
 import { fonts, fontSizes } from '../../constants/typography';
 
 // ── Stitch SVG symbols ────────────────────────────────────────────────────────
 
-const STROKE = colors.text.primary;
 const SW = 1.8;
 const SIZE = 36;
 
-function CadenaIcon() {
+function CadenaIcon({ stroke = '#1A1917' }) {
   return (
     <Svg width={SIZE} height={SIZE} viewBox="0 0 36 36">
-      <Ellipse cx={18} cy={18} rx={13} ry={9} stroke={STROKE} strokeWidth={SW} fill="none" />
+      <Ellipse cx={18} cy={18} rx={13} ry={9} stroke={stroke} strokeWidth={SW} fill="none" />
     </Svg>
   );
 }
 
-function PuntoRasoIcon() {
+function PuntoRasoIcon({ stroke = '#1A1917' }) {
   return (
     <Svg width={SIZE} height={SIZE} viewBox="0 0 36 36">
-      <Circle cx={18} cy={18} r={7} fill={STROKE} />
+      <Circle cx={18} cy={18} r={7} fill={stroke} />
     </Svg>
   );
 }
 
-function PuntoBajoIcon() {
+function PuntoBajoIcon({ stroke = '#1A1917' }) {
   return (
     <Svg width={SIZE} height={SIZE} viewBox="0 0 36 36">
-      <Line x1={18} y1={4} x2={18} y2={32} stroke={STROKE} strokeWidth={SW} strokeLinecap="round" />
-      <Line x1={4} y1={18} x2={32} y2={18} stroke={STROKE} strokeWidth={SW} strokeLinecap="round" />
+      <Line x1={18} y1={4} x2={18} y2={32} stroke={stroke} strokeWidth={SW} strokeLinecap="round" />
+      <Line x1={4} y1={18} x2={32} y2={18} stroke={stroke} strokeWidth={SW} strokeLinecap="round" />
     </Svg>
   );
 }
 
-function MedioPuntoAltoIcon() {
+function MedioPuntoAltoIcon({ stroke = '#1A1917' }) {
   return (
     <Svg width={SIZE} height={SIZE} viewBox="0 0 36 36">
-      {/* stem */}
-      <Line x1={18} y1={8} x2={18} y2={32} stroke={STROKE} strokeWidth={SW} strokeLinecap="round" />
-      {/* crossbar */}
-      <Line x1={8} y1={14} x2={28} y2={14} stroke={STROKE} strokeWidth={SW} strokeLinecap="round" />
+      <Line x1={18} y1={8} x2={18} y2={32} stroke={stroke} strokeWidth={SW} strokeLinecap="round" />
+      <Line x1={8} y1={14} x2={28} y2={14} stroke={stroke} strokeWidth={SW} strokeLinecap="round" />
     </Svg>
   );
 }
 
-function PuntoAltoIcon() {
+function PuntoAltoIcon({ stroke = '#1A1917' }) {
   return (
     <Svg width={SIZE} height={SIZE} viewBox="0 0 36 36">
-      {/* stem */}
-      <Line x1={18} y1={4} x2={18} y2={32} stroke={STROKE} strokeWidth={SW} strokeLinecap="round" />
-      {/* crossbar */}
-      <Line x1={8} y1={12} x2={28} y2={12} stroke={STROKE} strokeWidth={SW} strokeLinecap="round" />
+      <Line x1={18} y1={4} x2={18} y2={32} stroke={stroke} strokeWidth={SW} strokeLinecap="round" />
+      <Line x1={8} y1={12} x2={28} y2={12} stroke={stroke} strokeWidth={SW} strokeLinecap="round" />
     </Svg>
   );
 }
 
-function PuntoAltoDobleIcon() {
+function PuntoAltoDobleIcon({ stroke = '#1A1917' }) {
   return (
     <Svg width={SIZE} height={SIZE} viewBox="0 0 36 36">
-      {/* stem */}
-      <Line x1={18} y1={4} x2={18} y2={32} stroke={STROKE} strokeWidth={SW} strokeLinecap="round" />
-      {/* upper crossbar */}
-      <Line x1={9} y1={10} x2={27} y2={10} stroke={STROKE} strokeWidth={SW} strokeLinecap="round" />
-      {/* lower crossbar */}
-      <Line x1={9} y1={17} x2={27} y2={17} stroke={STROKE} strokeWidth={SW} strokeLinecap="round" />
+      <Line x1={18} y1={4} x2={18} y2={32} stroke={stroke} strokeWidth={SW} strokeLinecap="round" />
+      <Line x1={9} y1={10} x2={27} y2={10} stroke={stroke} strokeWidth={SW} strokeLinecap="round" />
+      <Line x1={9} y1={17} x2={27} y2={17} stroke={stroke} strokeWidth={SW} strokeLinecap="round" />
     </Svg>
   );
 }
 
-function AnilloMagicoIcon() {
+function AnilloMagicoIcon({ stroke = '#1A1917' }) {
   return (
     <Svg width={SIZE} height={SIZE} viewBox="0 0 36 36">
-      {/* outer ring */}
-      <Circle cx={18} cy={20} r={10} stroke={STROKE} strokeWidth={SW} fill="none" />
-      {/* vertical hook above */}
-      <Line x1={18} y1={4} x2={18} y2={10} stroke={STROKE} strokeWidth={SW} strokeLinecap="round" />
-      {/* horizontal cross */}
-      <Line x1={12} y1={20} x2={24} y2={20} stroke={STROKE} strokeWidth={SW} strokeLinecap="round" />
+      <Circle cx={18} cy={20} r={10} stroke={stroke} strokeWidth={SW} fill="none" />
+      <Line x1={18} y1={4} x2={18} y2={10} stroke={stroke} strokeWidth={SW} strokeLinecap="round" />
+      <Line x1={12} y1={20} x2={24} y2={20} stroke={stroke} strokeWidth={SW} strokeLinecap="round" />
     </Svg>
   );
 }
@@ -96,6 +87,9 @@ const STITCHES = [
 // ── PuntosPanel ───────────────────────────────────────────────────────────────
 
 export default function PuntosPanel({ visible, onSelect, t }) {
+  const { theme: colors } = useTheme();
+  const s = useMemo(() => makeStyles(colors), [colors]);
+
   if (!visible) return null;
 
   return (
@@ -109,7 +103,7 @@ export default function PuntosPanel({ visible, onSelect, t }) {
             onPress={() => onSelect(type)}
             activeOpacity={0.75}
           >
-            <Icon />
+            <Icon stroke={colors.text.primary} />
             <Text style={s.tileLabel}>{t(`entrada.puntos.${type}`)}</Text>
           </TouchableOpacity>
         ))}
@@ -120,7 +114,7 @@ export default function PuntosPanel({ visible, onSelect, t }) {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
-const s = StyleSheet.create({
+function makeStyles(colors) { return StyleSheet.create({
   panel: {
     position: 'absolute',
     bottom: 0,
@@ -168,4 +162,4 @@ const s = StyleSheet.create({
     color: colors.text.secondary,
     textAlign: 'center',
   },
-});
+}); }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,12 +10,15 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react-native';
-import { colors, radii } from '../constants/colors';
+import { radii } from '../constants/colors';
+import { useTheme } from '../contexts/ThemeContext';
 import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
 import { getActiveProjects } from '../services/firestore';
 
 export default function ProjectPickerModal({ visible, onClose, onSelect, uid, onCreateProject }) {
+  const { theme: colors } = useTheme();
+  const s = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -87,7 +90,7 @@ export default function ProjectPickerModal({ visible, onClose, onSelect, uid, on
   );
 }
 
-const s = StyleSheet.create({
+function makeStyles(colors) { return StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
@@ -163,4 +166,4 @@ const s = StyleSheet.create({
     fontSize: fontSizes.sm,
     color: colors.card,
   },
-});
+}); }

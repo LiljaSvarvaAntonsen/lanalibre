@@ -1,7 +1,9 @@
 {
   "common": {
     "close": "Lukk",
-    "appName": "LanaLibre"
+    "appName": "LanaLibre",
+    "cancel": "Avbryt",
+    "error": "Noe gikk galt."
   },
   "projectPicker": {
     "title": "Lagre i prosjekt",
@@ -44,7 +46,30 @@
   },
   "perfil": {
     "title": "Profil",
-    "idioma": "Språk"
+    "memberSince": "Medlem siden {{date}}",
+    "editNombre": "Rediger navn",
+    "saveNombre": "Lagre",
+    "editPhoto": "Bytt bilde",
+    "apariencia": "Utseende",
+    "modoOscuro": "Mørk modus",
+    "idioma": "Språk",
+    "notificaciones": "Varsler",
+    "notifWIP": "Minn meg på prosjekter som er i gang",
+    "notifPermissionDenied": "Aktiver varsler i telefoninnstillingene dine.",
+    "notifTitle": "LanaLibre",
+    "notifBody": "Ikke glem å sjekke prosjektene dine som er i gang 🧶",
+    "datosPrivacidad": "Data og personvern",
+    "exportarDatos": "Eksporter dataene mine",
+    "exportando": "Forbereder eksport…",
+    "exportError": "Kunne ikke eksportere. Prøv igjen.",
+    "eliminarCuenta": "Slett konto",
+    "eliminarTitle": "Er du sikker?",
+    "eliminarMessage": "Denne handlingen kan ikke angres. Alle prosjekter og dagbokoppføringer slettes.",
+    "eliminarConfirm": "Slett",
+    "acercaDe": "Om appen",
+    "version": "Versjon",
+    "terminos": "Vilkår og betingelser",
+    "politica": "Personvernerklæring"
   },
   "placeholder": {
     "comingSoon": "Kommer snart"

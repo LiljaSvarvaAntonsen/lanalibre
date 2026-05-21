@@ -3,7 +3,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Home, Calculator, Pencil, BookOpen, User } from 'lucide-react-native';
-import { colors } from '../constants/colors';
+import { useTheme } from '../contexts/ThemeContext';
 import { fonts, fontSizes } from '../constants/typography';
 import InicioScreen from '../screens/InicioScreen';
 import CalculadoraScreen from '../screens/CalculadoraScreen';
@@ -69,6 +69,7 @@ function PerfilStack() {
 }
 
 export default function MainTabs() {
+  const { theme: colors } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 

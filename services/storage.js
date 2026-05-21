@@ -40,6 +40,15 @@ export async function fetchEntradaStrokes(url) {
   return response.json();
 }
 
+export async function uploadProfilePhoto(uid, uri) {
+  const path = `profilePhotos/${uid}/avatar`;
+  const storageRef = ref(storage, path);
+  const response = await fetch(uri);
+  const blob = await response.blob();
+  await uploadBytes(storageRef, blob);
+  return getDownloadURL(storageRef);
+}
+
 export async function uploadEntradaFile(uid, diarioId, { uri, name }) {
   const path = `inspiracion/${uid}/${diarioId}/${Date.now()}_${name}`;
   const storageRef = ref(storage, path);

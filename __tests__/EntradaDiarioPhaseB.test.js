@@ -4,6 +4,10 @@ jest.mock('expo-localization', () => ({
 
 jest.mock('../firebase', () => ({}));
 
+jest.mock('../contexts/ThemeContext', () => ({
+  useTheme: () => ({ theme: require('../constants/colors').colors, isDark: false, toggleTheme: jest.fn() }),
+}));
+
 // ── Storage mocks ──────────────────────────────────────────────────────────────
 
 const mockUploadEntradaStrokes = jest.fn(() => Promise.resolve('https://storage/strokes.json'));

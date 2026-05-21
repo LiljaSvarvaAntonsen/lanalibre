@@ -1,7 +1,8 @@
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import { View, Image, Text, TouchableOpacity, PanResponder, StyleSheet } from 'react-native';
 import { FileText } from 'lucide-react-native';
-import { colors, radii } from '../../constants/colors';
+import { radii } from '../../constants/colors';
+import { useTheme } from '../../contexts/ThemeContext';
 import { spacing } from '../../constants/spacing';
 import { fonts, fontSizes } from '../../constants/typography';
 
@@ -10,7 +11,7 @@ const HANDLE = 14;
 
 // ── CornerHandle ──────────────────────────────────────────────────────────────
 
-function CornerHandle({ corner, element, onResize }) {
+function CornerHandle({ corner, element, onResize, styles }) {
   const start = useRef({});
 
   const panResponder = useRef(
@@ -62,7 +63,7 @@ function CornerHandle({ corner, element, onResize }) {
 
   return (
     <View
-      style={[s.handle, pos]}
+      style={[styles.handle, pos]}
       {...panResponder.panHandlers}
     />
   );
@@ -71,6 +72,9 @@ function CornerHandle({ corner, element, onResize }) {
 // ── ImageWidget ───────────────────────────────────────────────────────────────
 
 export default function ImageWidget({ element, onResize, selected, onPress }) {
+  const { theme: colors } = useTheme();
+  const s = useMemo(() => makeStyles(colors), [colors]);
+
   return (
     <TouchableOpacity
       activeOpacity={selected ? 1 : 0.9}
@@ -94,10 +98,10 @@ export default function ImageWidget({ element, onResize, selected, onPress }) {
 
       {selected && (
         <>
-          <CornerHandle corner="tl" element={element} onResize={onResize} />
-          <CornerHandle corner="tr" element={element} onResize={onResize} />
-          <CornerHandle corner="bl" element={element} onResize={onResize} />
-          <CornerHandle corner="br" element={element} onResize={onResize} />
+          <CornerHandle corner="tl" element={element} onResize={onResize} styles={s} />
+          <CornerHandle corner="tr" element={element} onResize={onResize} styles={s} />
+          <CornerHandle corner="bl" element={element} onResize={onResize} styles={s} />
+          <CornerHandle corner="br" element={element} onResize={onResize} styles={s} />
         </>
       )}
     </TouchableOpacity>
@@ -106,7 +110,7 @@ export default function ImageWidget({ element, onResize, selected, onPress }) {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
-const s = StyleSheet.create({
+function makeStyles(colors) { return StyleSheet.create({
   handle: {
     position: 'absolute',
     width: HANDLE,
@@ -144,4 +148,4 @@ const s = StyleSheet.create({
     color: colors.text.secondary,
     textAlign: 'center',
   },
-});
+}); }

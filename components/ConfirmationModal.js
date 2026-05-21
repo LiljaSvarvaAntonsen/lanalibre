@@ -1,5 +1,7 @@
+import { useMemo } from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { colors, radii } from '../constants/colors';
+import { radii } from '../constants/colors';
+import { useTheme } from '../contexts/ThemeContext';
 import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
 
@@ -13,6 +15,8 @@ export default function ConfirmationModal({
   onCancel,
   destructive = false,
 }) {
+  const { theme: colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <Modal visible={visible} animationType="slide" transparent statusBarTranslucent>
       <View style={styles.overlay}>
@@ -35,7 +39,7 @@ export default function ConfirmationModal({
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors) { return StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
@@ -85,4 +89,4 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     color: colors.text.secondary,
   },
-});
+}); }
