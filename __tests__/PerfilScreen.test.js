@@ -124,29 +124,31 @@ test('dark mode toggle calls toggleTheme', async () => {
   expect(mockToggleTheme).toHaveBeenCalledTimes(1);
 });
 
-test('notifications toggle: when permission denied, shows toast and does not persist', async () => {
-  mockRequestPermission.mockResolvedValueOnce(false);
-  render(<PerfilScreen navigation={mockNavigation} />, { wrapper: Wrapper });
-  await waitFor(() => screen.getByText(i18n.t('perfil.notifWIP')));
-  const switches = screen.UNSAFE_getAllByType(Switch);
-  fireEvent(switches[1], 'valueChange', true);
-  await waitFor(() => {
-    expect(screen.getByText(i18n.t('perfil.notifPermissionDenied'))).toBeTruthy();
-  });
-  expect(mockScheduleWIPReminder).not.toHaveBeenCalled();
-});
-
-test('notifications toggle: when permission granted, schedules reminder and saves setting', async () => {
-  mockRequestPermission.mockResolvedValueOnce(true);
+test('notifications toggle: toggling on shows informational toast and saves setting', async () => {
   const { saveUserSettings } = require('../services/firestore');
   render(<PerfilScreen navigation={mockNavigation} />, { wrapper: Wrapper });
   await waitFor(() => screen.getByText(i18n.t('perfil.notifWIP')));
   const switches = screen.UNSAFE_getAllByType(Switch);
   fireEvent(switches[1], 'valueChange', true);
   await waitFor(() => {
-    expect(mockScheduleWIPReminder).toHaveBeenCalledTimes(1);
+    expect(screen.getByText(i18n.t('perfil.notifDevToast'))).toBeTruthy();
     expect(saveUserSettings).toHaveBeenCalledWith('test-uid', { notifWIP: true });
   });
+  expect(mockScheduleWIPReminder).not.toHaveBeenCalled();
+  expect(mockRequestPermission).not.toHaveBeenCalled();
+});
+
+test('notifications toggle: toggling off saves setting and shows no toast', async () => {
+  const { getUserDocument, saveUserSettings } = require('../services/firestore');
+  getUserDocument.mockResolvedValueOnce({ nombre: 'Test User', notifWIP: true });
+  render(<PerfilScreen navigation={mockNavigation} />, { wrapper: Wrapper });
+  await waitFor(() => screen.getByText(i18n.t('perfil.notifWIP')));
+  const switches = screen.UNSAFE_getAllByType(Switch);
+  fireEvent(switches[1], 'valueChange', false);
+  await waitFor(() => {
+    expect(saveUserSettings).toHaveBeenCalledWith('test-uid', { notifWIP: false });
+  });
+  expect(mockRequestPermission).not.toHaveBeenCalled();
 });
 
 test('export button calls exportUserData with uid', async () => {

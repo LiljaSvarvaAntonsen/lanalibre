@@ -24,11 +24,6 @@ import { getUserDocument, saveUserSettings, updateUserDocument } from '../servic
 import { deleteAccount } from '../services/auth';
 import { uploadProfilePhoto } from '../services/storage';
 import { exportUserData } from '../services/exportData';
-import {
-  requestNotificationPermission,
-  scheduleWIPReminder,
-  cancelWIPReminder,
-} from '../services/notifications';
 import { formatShortDate } from '../utils/dates';
 import ConfirmationModal from '../components/ConfirmationModal';
 import LoadingOverlay from '../components/LoadingOverlay';
@@ -176,10 +171,15 @@ export default function PerfilScreen({ navigation }) {
     const uri = result.assets[0].uri;
     setUploadingPhoto(true);
     try {
-      const url = await uploadProfilePhoto(uid, uri);
-      await updateUserDocument(uid, { fotoPerfil: url });
-      setFotoPerfil(url);
-    } catch {
+      if (uid === 'dev-user') {
+        setFotoPerfil(uri);
+      } else {
+        const url = await uploadProfilePhoto(uid, uri);
+        await updateUserDocument(uid, { fotoPerfil: url });
+        setFotoPerfil(url);
+      }
+    } catch (e) {
+      console.error('[PerfilScreen] handleAvatarEdit error:', e);
       showToast(t('common.error'), 'error');
     } finally {
       setUploadingPhoto(false);
@@ -198,9 +198,12 @@ export default function PerfilScreen({ navigation }) {
       return;
     }
     try {
-      await updateUserDocument(uid, { nombre: trimmed });
+      if (uid !== 'dev-user') {
+        await updateUserDocument(uid, { nombre: trimmed });
+      }
       setNombre(trimmed);
-    } catch {
+    } catch (e) {
+      console.error('[PerfilScreen] saveName error:', e);
       showToast(t('common.error'), 'error');
     }
     setEditingName(false);
@@ -212,28 +215,20 @@ export default function PerfilScreen({ navigation }) {
   }
 
   async function handleToggleNotif(value) {
-    if (value) {
-      const granted = await requestNotificationPermission();
-      if (!granted) {
-        showToast(t('perfil.notifPermissionDenied'), 'error');
-        return;
-      }
-      await scheduleWIPReminder(
-        t('perfil.notifTitle'),
-        t('perfil.notifBody'),
-      );
-    } else {
-      await cancelWIPReminder();
-    }
     setNotifEnabled(value);
     if (uid) saveUserSettings(uid, { notifWIP: value }).catch(() => {});
+    if (value) {
+      showToast(t('perfil.notifDevToast'));
+    }
   }
 
   async function handleExport() {
+    console.log('[export] handleExport triggered, uid:', uid);
     setExportLoading(true);
     try {
       await exportUserData(uid);
-    } catch {
+    } catch (e) {
+      console.error('[export] handleExport error:', e);
       showToast(t('perfil.exportError'), 'error');
     } finally {
       setExportLoading(false);

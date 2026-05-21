@@ -4,10 +4,14 @@ import * as FileSystem from 'expo-file-system';
 import { getAllUserProjects, getAllUserDiarios } from './firestore';
 
 export async function exportUserData(uid) {
+  console.log('[export] exportUserData start, uid:', uid);
+
+  console.log('[export] fetching projects and diarios...');
   const [projects, diarios] = await Promise.all([
     getAllUserProjects(uid),
     getAllUserDiarios(uid),
   ]);
+  console.log('[export] fetched:', projects.length, 'projects,', diarios.length, 'diarios');
 
   const payload = {
     exportedAt: new Date().toISOString(),
@@ -17,24 +21,39 @@ export async function exportUserData(uid) {
   };
 
   const jsonStr = JSON.stringify(payload, null, 2);
-  const jsonPath = FileSystem.cacheDirectory + 'lanalibre_export.json';
-  await FileSystem.writeAsStringAsync(jsonPath, jsonStr, { encoding: FileSystem.EncodingType.UTF8 });
+  const cacheDir = FileSystem.cacheDirectory ?? FileSystem.documentDirectory;
+  console.log('[export] cacheDirectory:', FileSystem.cacheDirectory);
+  if (!cacheDir) throw new Error('expo-file-system: cacheDirectory and documentDirectory are both unavailable');
+  const jsonPath = cacheDir + 'lanalibre_export.json';
+  console.log('[export] writing JSON to', jsonPath);
+  await FileSystem.writeAsStringAsync(jsonPath, jsonStr, { encoding: 'utf8' });
+  console.log('[export] JSON written');
 
-  if (await Sharing.isAvailableAsync()) {
+  const sharingAvailable = await Sharing.isAvailableAsync();
+  console.log('[export] Sharing.isAvailableAsync:', sharingAvailable);
+  if (sharingAvailable) {
+    console.log('[export] opening share sheet for JSON...');
     await Sharing.shareAsync(jsonPath, {
       mimeType: 'application/json',
       dialogTitle: 'Exportar datos',
     });
+    console.log('[export] JSON share sheet closed');
   }
 
+  console.log('[export] generating PDF...');
   const html = buildExportHtml(payload);
   const { uri: pdfUri } = await Print.printToFileAsync({ html });
+  console.log('[export] PDF generated at', pdfUri);
   if (await Sharing.isAvailableAsync()) {
+    console.log('[export] opening share sheet for PDF...');
     await Sharing.shareAsync(pdfUri, {
       mimeType: 'application/pdf',
       dialogTitle: 'Exportar datos (PDF)',
     });
+    console.log('[export] PDF share sheet closed');
   }
+
+  console.log('[export] exportUserData complete');
 }
 
 function buildExportHtml({ exportedAt, projects, diarios }) {

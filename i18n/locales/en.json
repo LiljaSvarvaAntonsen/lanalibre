@@ -58,6 +58,7 @@
     "notifPermissionDenied": "Enable notifications in your device settings.",
     "notifTitle": "LanaLibre",
     "notifBody": "Don't forget to check on your works in progress 🧶",
+    "notifDevToast": "Reminder enabled — notifications will work in the published version of the app",
     "datosPrivacidad": "Data & privacy",
     "exportarDatos": "Export my data",
     "exportando": "Preparing export…",

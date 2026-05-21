@@ -1,34 +1,11 @@
-import * as Notifications from 'expo-notifications';
-
-const WIP_NOTIFICATION_ID = 'wip-reminder';
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-  }),
-});
-
-export async function requestNotificationPermission() {
-  const { status } = await Notifications.requestPermissionsAsync();
-  return status === 'granted';
-}
+// Real push notifications require an EAS build and will be implemented in Slice 14
+// during deployment. expo-notifications is not supported in Expo Go SDK 53+.
+// These are no-op mocks for development.
 
 export async function scheduleWIPReminder(title, body) {
-  await cancelWIPReminder();
-  await Notifications.scheduleNotificationAsync({
-    identifier: WIP_NOTIFICATION_ID,
-    content: { title, body },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
-      weekday: 2,
-      hour: 10,
-      minute: 0,
-    },
-  });
+  console.log('[notifications] scheduleWIPReminder (mock):', title, body);
 }
 
 export async function cancelWIPReminder() {
-  await Notifications.cancelScheduledNotificationAsync(WIP_NOTIFICATION_ID);
+  console.log('[notifications] cancelWIPReminder (mock)');
 }

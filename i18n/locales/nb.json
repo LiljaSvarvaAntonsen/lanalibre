@@ -58,6 +58,7 @@
     "notifPermissionDenied": "Aktiver varsler i telefoninnstillingene dine.",
     "notifTitle": "LanaLibre",
     "notifBody": "Ikke glem å sjekke prosjektene dine som er i gang 🧶",
+    "notifDevToast": "Påminnelse aktivert — varsler vil fungere i den publiserte versjonen av appen",
     "datosPrivacidad": "Data og personvern",
     "exportarDatos": "Eksporter dataene mine",
     "exportando": "Forbereder eksport…",

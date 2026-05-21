@@ -6,24 +6,30 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { spacing } from '../../constants/spacing';
 import { fonts, fontSizes } from '../../constants/typography';
 
-const MIN_SIZE = 60;
+const MIN_SIZE = 50;
 const HANDLE = 14;
 
 // ── CornerHandle ──────────────────────────────────────────────────────────────
 
 function CornerHandle({ corner, element, onResize, styles }) {
   const start = useRef({});
+  // Refs so the PanResponder (created once) always sees the latest props
+  const elementRef = useRef(element);
+  elementRef.current = element;
+  const onResizeRef = useRef(onResize);
+  onResizeRef.current = onResize;
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onStartShouldSetPanResponderCapture: () => true,
       onPanResponderGrant: () => {
+        const el = elementRef.current;
         start.current = {
-          x: element.x,
-          y: element.y,
-          width: element.width,
-          height: element.height,
+          x: el.x,
+          y: el.y,
+          width: el.width,
+          height: el.height,
         };
       },
       onPanResponderMove: (_, gs) => {
@@ -49,7 +55,7 @@ function CornerHandle({ corner, element, onResize, styles }) {
           height = Math.max(MIN_SIZE, sh + dy);
         }
 
-        onResize(element.id, { x, y, width, height });
+        onResizeRef.current(elementRef.current.id, { x, y, width, height });
       },
     }),
   ).current;
@@ -92,7 +98,7 @@ export default function ImageWidget({ element, onResize, selected, onPress }) {
         <Image
           source={{ uri: element.url }}
           style={{ width: element.width, height: element.height, borderRadius: radii.small }}
-          resizeMode="cover"
+          resizeMode="contain"
         />
       )}
 
