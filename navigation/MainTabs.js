@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator, CardStyleInterpolators } from '@react-navigation/stack';
 import { Home, Calculator, Pencil, BookOpen, User } from 'lucide-react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { fonts, fontSizes } from '../constants/typography';
@@ -19,9 +19,18 @@ import DiarioDetalleScreen from '../screens/DiarioDetalleScreen';
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
+function stackScreenOptions(colors) {
+  return {
+    headerShown: false,
+    cardStyle: { backgroundColor: colors.background },
+    sceneContainerStyle: { backgroundColor: colors.background },
+  };
+}
+
 function InicioStack() {
+  const { theme: colors } = useTheme();
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={stackScreenOptions(colors)}>
       <Stack.Screen name="InicioRoot" component={InicioScreen} />
       <Stack.Screen name="ProyectosScreen" component={ProyectosScreen} />
       <Stack.Screen name="ProyectoFormScreen" component={ProyectoFormScreen} />
@@ -35,24 +44,27 @@ function InicioStack() {
 }
 
 function CalculadoraStack() {
+  const { theme: colors } = useTheme();
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={stackScreenOptions(colors)}>
       <Stack.Screen name="CalculadoraRoot" component={CalculadoraScreen} />
     </Stack.Navigator>
   );
 }
 
 function VistaPreviaStack() {
+  const { theme: colors } = useTheme();
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={stackScreenOptions(colors)}>
       <Stack.Screen name="VistaPreviaRoot" component={VistaPreviaScreen} />
     </Stack.Navigator>
   );
 }
 
 function DiarioStack() {
+  const { theme: colors } = useTheme();
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={stackScreenOptions(colors)}>
       <Stack.Screen name="DiarioRoot" component={DiarioScreen} />
       <Stack.Screen name="DiarioDetalleScreen" component={DiarioDetalleScreen} />
       <Stack.Screen name="EntradaDiarioScreen" component={EntradaDiarioScreen} />
@@ -61,8 +73,9 @@ function DiarioStack() {
 }
 
 function PerfilStack() {
+  const { theme: colors } = useTheme();
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={stackScreenOptions(colors)}>
       <Stack.Screen name="PerfilRoot" component={PerfilScreen} />
     </Stack.Navigator>
   );
@@ -75,6 +88,7 @@ export default function MainTabs() {
 
   return (
     <Tab.Navigator
+      sceneContainerStyle={{ backgroundColor: colors.background }}
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: colors.primary.dark,

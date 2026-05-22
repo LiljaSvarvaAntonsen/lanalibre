@@ -1,10 +1,36 @@
 import { useState, useCallback, useMemo } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Modal, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  Image,
+  Alert,
+  Modal,
+  Dimensions,
+  TextInput,
+  Keyboard,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Pencil, Calculator, Eye, BookOpen, ChevronRight } from 'lucide-react-native';
-import ResultSummaryCard from '../components/ResultSummaryCard';
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
+import * as Sharing from 'expo-sharing';
+import * as WebBrowser from 'expo-web-browser';
+import {
+  ArrowLeft,
+  Pencil,
+  Calculator,
+  Eye,
+  BookOpen,
+  ChevronRight,
+  FileText,
+  Plus,
+  CalendarDays,
+  Check,
+} from 'lucide-react-native';
 import { radii } from '../constants/colors';
 import { useTheme } from '../contexts/ThemeContext';
 import { spacing } from '../constants/spacing';
@@ -12,56 +38,61 @@ import { fonts, fontSizes } from '../constants/typography';
 import { useAuth } from '../hooks/useAuth';
 import {
   getProject,
-  getDiarioByProyecto,
-  getDiarios,
+  getDiariosByProyecto,
   createDiario,
   updateDiario,
+  addArchivoProyecto,
+  getArchivosProyecto,
+  deleteArchivoProyecto,
 } from '../services/firestore';
-
-function getTagStyle(tag, colors) {
-  return colors.tags[tag] || { bg: colors.primary.light, text: colors.primary.dark, border: colors.primary.DEFAULT };
-}
+import { uploadArchivoProyecto, deleteFile } from '../services/storage';
 import LoadingOverlay from '../components/LoadingOverlay';
+import ConfirmationModal from '../components/ConfirmationModal';
+import Toast from '../components/Toast';
 
-function formatDate(timestamp) {
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+const COPPER = '#CE702B';
+
+function formatDateShort(timestamp) {
+  if (!timestamp) return null;
+  const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+  return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function formatDateLong(timestamp) {
   if (!timestamp) return null;
   const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
   return d.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-function getResultSummary(project, tool, linkedDiario) {
-  if (tool === 'calculadora') {
-    const r = project.resultadoCalculadora;
-    return r?.gramosTotales != null ? `~${Math.round(r.gramosTotales)} g` : null;
-  }
-  if (tool === 'previsualizacion') {
-    const r = project.resultadoPrevisualización;
-    return r?.tipoProyecto ?? null;
-  }
-  if (tool === 'diario') {
-    if (!linkedDiario) return null;
-    if (linkedDiario.textoLibre) return linkedDiario.textoLibre.slice(0, 60).trim();
-    if (linkedDiario.contadorFilas > 0) return `${linkedDiario.contadorFilas} filas`;
-    return linkedDiario.nombre ?? null;
-  }
-  return null;
+function SectionHeader({ label, styles }) {
+  return <Text style={styles.sectionHeader}>{label}</Text>;
 }
 
-function ToolCard({ icon: Icon, label, summary, noResultText, iconColor, iconBg, onPress, styles, colors }) {
+function ToolRow({ icon: Icon, toolName, hasResult, resultValue, resultDate, noResultText, iconColor, iconBg, accentColor, onPress, styles, colors }) {
   return (
-    <TouchableOpacity style={styles.toolCard} onPress={onPress} activeOpacity={0.8}>
-      <View style={styles.toolLeft}>
-        <View style={[styles.toolIconWrap, { backgroundColor: iconBg }]}>
-          <Icon size={20} color={iconColor} strokeWidth={1.8} />
-        </View>
-        <View style={styles.toolText}>
-          <Text style={styles.toolLabel}>{label}</Text>
-          <Text style={styles.toolSummary} numberOfLines={1}>
-            {summary ?? noResultText}
-          </Text>
-        </View>
+    <TouchableOpacity style={styles.toolRow} onPress={onPress} activeOpacity={0.8}>
+      {/* Left accent bar */}
+      <View style={[styles.toolAccentBar, { backgroundColor: accentColor }]} />
+      <View style={[styles.toolIconWrap, { backgroundColor: iconBg }]}>
+        <Icon size={20} color={iconColor} strokeWidth={1.8} />
       </View>
-      <ChevronRight size={20} color={colors.text.tertiary} strokeWidth={1.5} />
+      <View style={styles.toolText}>
+        {hasResult ? (
+          <>
+            <Text style={styles.toolResultValue}>{resultValue}</Text>
+            <Text style={styles.toolNameLabel}>{toolName}</Text>
+            {resultDate ? <Text style={styles.toolSummary}>{resultDate}</Text> : null}
+          </>
+        ) : (
+          <>
+            <Text style={styles.toolNameLabel}>{toolName}</Text>
+            <Text style={[styles.toolSummary, styles.toolSummaryEmpty]}>{noResultText}</Text>
+          </>
+        )}
+      </View>
+      <ChevronRight size={18} color={colors.text.tertiary} strokeWidth={1.5} />
     </TouchableOpacity>
   );
 }
@@ -72,57 +103,164 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { projectId } = route.params;
-  const [project, setProject] = useState(null);
-  const [linkedDiario, setLinkedDiario] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [showDiarioSheet, setShowDiarioSheet] = useState(false);
-  const [standaloneDiarios, setStandaloneDiarios] = useState([]);
-  const [showPicker, setShowPicker] = useState(false);
-  const [linking, setLinking] = useState(false);
 
-  const fetchProject = useCallback(async () => {
+  const [project, setProject] = useState(null);
+  const [linkedDiarios, setLinkedDiarios] = useState([]);
+  const [archivos, setArchivos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [fullscreenImage, setFullscreenImage] = useState(null);
+  const [editingDiarioId, setEditingDiarioId] = useState(null);
+  const [editingDiarioName, setEditingDiarioName] = useState('');
+
+  function showToast(message, type = 'success') {
+    setToast({ visible: true, message, type });
+  }
+
+  const fetchAll = useCallback(async () => {
+    console.log('[ProyectoDetalle] fetchAll start — projectId:', projectId);
+    console.log('[detail] getArchivosProyecto called with projectId:', projectId);
     setLoading(true);
-    const [data, diario] = await Promise.all([
-      getProject(projectId),
-      getDiarioByProyecto(projectId),
-    ]);
-    setProject(data);
-    setLinkedDiario(diario);
-    setLoading(false);
+    try {
+      const [data, diarios, files] = await Promise.all([
+        getProject(projectId),
+        getDiariosByProyecto(projectId),
+        getArchivosProyecto(projectId),
+      ]);
+      console.log('[detail] archivos returned:', files);
+      console.log('[ProyectoDetalle] fetchAll ok — project:', data?.nombre, 'diarios:', diarios.length, 'archivos:', files.length);
+      setProject(data);
+      setLinkedDiarios(diarios);
+      setArchivos(files);
+    } catch (err) {
+      console.error('[ProyectoDetalle] fetchAll error:', err?.message ?? err);
+    } finally {
+      setLoading(false);
+    }
   }, [projectId]);
 
-  useFocusEffect(useCallback(() => { fetchProject(); }, [fetchProject]));
+  useFocusEffect(useCallback(() => { fetchAll(); }, [fetchAll]));
 
   async function handleNuevoDiario() {
     if (!project || !user?.uid) return;
-    setShowDiarioSheet(false);
     const { id } = await createDiario(user.uid, project.nombre, projectId, project.nombre);
     navigation.navigate('DiarioDetalleScreen', { diarioId: id });
   }
 
-  async function openVincularPicker() {
-    if (!user?.uid) return;
-    const all = await getDiarios(user.uid);
-    setStandaloneDiarios(all.filter((d) => !d.proyectoId));
-    setShowPicker(true);
+  async function saveDiarioName(diarioId, newName) {
+    const trimmed = newName.trim();
+    setEditingDiarioId(null);
+    if (!trimmed) return;
+    try {
+      await updateDiario(diarioId, { nombre: trimmed });
+      setLinkedDiarios((prev) => prev.map((d) => d.id === diarioId ? { ...d, nombre: trimmed } : d));
+    } catch {
+      showToast(t('common.error'), 'error');
+    }
   }
 
-  async function handleVincular(diarioId) {
-    if (!project) return;
-    setLinking(true);
-    await updateDiario(diarioId, { proyectoId: projectId, proyectoNombre: project.nombre });
-    const updated = await getDiarioByProyecto(projectId);
-    setLinkedDiario(updated);
-    setLinking(false);
-    setShowPicker(false);
-    setShowDiarioSheet(false);
+  function promptUpload() {
+    Alert.alert(t('projects.subirArchivo'), '', [
+      {
+        text: t('projects.tipoImagen'),
+        onPress: async () => {
+          const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: 'images',
+            quality: 0.8,
+            allowsEditing: false,
+          });
+          if (!result.canceled && result.assets?.length > 0) {
+            const asset = result.assets[0];
+            const name = asset.fileName ?? `imagen_${Date.now()}.jpg`;
+            uploadFile({ uri: asset.uri, name, isPdf: false });
+          }
+        },
+      },
+      {
+        text: t('projects.tipoPDF'),
+        onPress: async () => {
+          const result = await DocumentPicker.getDocumentAsync({
+            type: 'application/pdf',
+            copyToCacheDirectory: true,
+          });
+          if (!result.canceled && result.assets?.length > 0) {
+            const asset = result.assets[0];
+            uploadFile({ uri: asset.uri, name: asset.name, isPdf: true });
+          }
+        },
+      },
+      { text: t('common.cancel'), style: 'cancel' },
+    ]);
   }
 
-  const dateLabel = project
-    ? project.fechaModificacion
-      ? t('projectDetail.modifiedOn', { date: formatDate(project.fechaModificacion) })
-      : t('projectDetail.createdOn', { date: formatDate(project.fechaCreacion) })
+  async function uploadFile(file) {
+    const uid = user?.uid;
+    if (!uid) return;
+    setUploading(true);
+    try {
+      if (uid === 'dev-user') {
+        // dev-user: skip Storage, save local URI directly so file appears in dashboard
+        await addArchivoProyecto(projectId, { url: file.uri, storagePath: null, name: file.name, isPdf: file.isPdf });
+      } else {
+        const { url, storagePath } = await uploadArchivoProyecto(uid, projectId, file);
+        await addArchivoProyecto(projectId, { url, storagePath, name: file.name, isPdf: file.isPdf });
+      }
+      const files = await getArchivosProyecto(projectId);
+      setArchivos(files);
+    } catch {
+      showToast(t('common.error'), 'error');
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function confirmDeleteArchivo() {
+    if (!deleteTarget) return;
+    try {
+      await deleteArchivoProyecto(projectId, deleteTarget.id);
+      if (deleteTarget.storagePath) {
+        await deleteFile(deleteTarget.storagePath).catch(() => {});
+      }
+      setArchivos((prev) => prev.filter((a) => a.id !== deleteTarget.id));
+    } catch {
+      showToast(t('common.error'), 'error');
+    } finally {
+      setDeleteTarget(null);
+      setShowDeleteModal(false);
+    }
+  }
+
+  async function openPdf(url) {
+    try {
+      if (url.startsWith('http')) {
+        await WebBrowser.openBrowserAsync(url);
+      } else {
+        const available = await Sharing.isAvailableAsync();
+        if (available) {
+          await Sharing.shareAsync(url, { mimeType: 'application/pdf' });
+        }
+      }
+    } catch {
+      showToast(t('common.error'), 'error');
+    }
+  }
+
+  const calcHasResult = !!project?.resultadoCalculadora;
+  const calcResultValue = calcHasResult ? `~${Math.round(project.resultadoCalculadora.resultadoFinal)} g` : '';
+  const calcResultDate = calcHasResult
+    ? t('projectDetail.guardadoEl', { date: formatDateLong(project.resultadoCalculadora.fechaGuardado) })
+    : null;
+
+  const prevHasResult = !!project?.resultadoPrevisualización;
+  const prevResultValue = prevHasResult
+    ? t(`vistaPrevia.tipos.${project.resultadoPrevisualización.tipoProyecto}`)
     : '';
+  const prevResultDate = prevHasResult
+    ? t('projectDetail.guardadoEl', { date: formatDateLong(project.resultadoPrevisualización.fechaGuardado) })
+    : null;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -134,130 +272,243 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
         >
           <ArrowLeft size={22} color={colors.primary.dark} strokeWidth={1.8} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          {project?.nombre ?? ''}
-        </Text>
-        <TouchableOpacity
-          onPress={() => project && navigation.navigate('ProyectoFormScreen', { project })}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          accessibilityRole="button"
-        >
-          <Pencil size={20} color={colors.text.tertiary} strokeWidth={1.8} />
-        </TouchableOpacity>
+        <View style={{ width: 22 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
-        <View style={styles.meta}>
-          {project?.etiqueta ? (() => {
-            const ts = getTagStyle(project.etiqueta, colors);
-            return (
-              <View style={[styles.badge, { backgroundColor: ts.bg, borderColor: ts.border }]}>
-                <Text style={[styles.badgeText, { color: ts.text }]}>{project.etiqueta}</Text>
+
+        {/* ── Header card ─────────────────────────────────────────────────────── */}
+        <View style={styles.headerCard}>
+          {/* Copper left accent bar */}
+          <View style={styles.headerCardAccent} />
+          <View style={styles.headerCardContent}>
+            <View style={styles.headerCardTop}>
+              <Text style={styles.projectName} numberOfLines={3}>{project?.nombre ?? ''}</Text>
+              <TouchableOpacity
+                onPress={() => project && navigation.navigate('ProyectoFormScreen', { project })}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+              >
+                <Pencil size={20} color={colors.text.tertiary} strokeWidth={1.8} />
+              </TouchableOpacity>
+            </View>
+
+            {project?.etiqueta && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{project.etiqueta}</Text>
               </View>
-            );
-          })() : null}
-          <Text style={styles.date}>{dateLabel}</Text>
-        </View>
+            )}
 
-        <View style={styles.cards}>
-          {project?.resultadoCalculadora ? (
-            <ResultSummaryCard
-              icon={Calculator}
-              label={t('projectDetail.calculadora')}
-              keyValue={`~${Math.round(project.resultadoCalculadora.resultadoFinal)} g`}
-              savedDate={project.resultadoCalculadora.fechaGuardado}
-              iconColor={colors.secondary.cinnamon}
-              iconBg="#FDE8D8"
-              onPress={() => navigation.navigate('CalculadoraScreen', { projectId })}
-            />
-          ) : (
-            <ToolCard
-              icon={Calculator}
-              label={t('projectDetail.calculadora')}
-              summary={null}
-              noResultText={t('projectDetail.noResult')}
-              iconColor={colors.secondary.cinnamon}
-              iconBg="#FDE8D8"
-              onPress={() => navigation.navigate('CalculadoraScreen', { projectId })}
-              styles={styles}
-              colors={colors}
-            />
-          )}
-          {project?.resultadoPrevisualización ? (
-            <ResultSummaryCard
-              icon={Eye}
-              label={t('projectDetail.previsualizacion')}
-              keyValue={project.resultadoPrevisualización.tipoProyecto}
-              savedDate={project.resultadoPrevisualización.fechaGuardado}
-              iconColor={colors.primary.dark}
-              iconBg="#EDE5F8"
-              onPress={() => navigation.navigate('VistaPreviaScreen', { projectId })}
-            />
-          ) : (
-            <ToolCard
-              icon={Eye}
-              label={t('projectDetail.previsualizacion')}
-              summary={null}
-              noResultText={t('projectDetail.noResult')}
-              iconColor={colors.primary.dark}
-              iconBg="#EDE5F8"
-              onPress={() => navigation.navigate('VistaPreviaScreen', { projectId })}
-              styles={styles}
-              colors={colors}
-            />
-          )}
-          <ToolCard
-            icon={BookOpen}
-            label={t('projectDetail.diario')}
-            summary={project ? getResultSummary(project, 'diario', linkedDiario) : null}
-            noResultText={t('diario.sinDiario')}
-            iconColor={colors.secondary.teal}
-            iconBg="#D5EEF0"
-            styles={styles}
-            colors={colors}
-            onPress={() => {
-              if (linkedDiario) {
-                navigation.navigate('DiarioDetalleScreen', { diarioId: linkedDiario.id });
-              } else {
-                setShowDiarioSheet(true);
-              }
-            }}
-          />
-        </View>
-      </ScrollView>
+            {project?.fechaCreacion ? (
+              <View style={styles.dateRow}>
+                <CalendarDays size={13} color={colors.text.tertiary} strokeWidth={1.5} />
+                <Text style={styles.metaDate}>
+                  {t('projectDetail.createdOn', { date: formatDateShort(project.fechaCreacion) })}
+                </Text>
+              </View>
+            ) : null}
 
-      <LoadingOverlay visible={loading || linking} />
+            <View style={styles.descDivider} />
 
-      {/* Diario link / create sheet */}
-      <Modal visible={showDiarioSheet} transparent animationType="slide" onRequestClose={() => setShowDiarioSheet(false)}>
-        <TouchableOpacity style={styles.sheetOverlay} activeOpacity={1} onPress={() => setShowDiarioSheet(false)}>
-          <View style={styles.sheet}>
-            <Text style={styles.sheetTitle}>{t('diario.vinculoTitle')}</Text>
-            <TouchableOpacity style={styles.sheetBtn} onPress={handleNuevoDiario} activeOpacity={0.8}>
-              <Text style={styles.sheetBtnLabel}>{t('diario.vinculoNuevo')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.sheetBtn, styles.sheetBtnOutline]} onPress={openVincularPicker} activeOpacity={0.8}>
-              <Text style={styles.sheetBtnLabelOutline}>{t('diario.vinculoExistente')}</Text>
-            </TouchableOpacity>
+            <Text style={[styles.description, !project?.descripcion && styles.descriptionEmpty]}>
+              {project?.descripcion || t('projectDetail.sinDescripcion')}
+            </Text>
           </View>
-        </TouchableOpacity>
-      </Modal>
+        </View>
 
-      {/* Diario picker (link existing) */}
-      <Modal visible={showPicker} transparent animationType="slide" onRequestClose={() => setShowPicker(false)}>
-        <TouchableOpacity style={styles.sheetOverlay} activeOpacity={1} onPress={() => setShowPicker(false)}>
-          <View style={styles.sheet}>
-            <Text style={styles.sheetTitle}>{t('diario.vinculoExistente')}</Text>
-            {standaloneDiarios.length === 0 ? (
-              <Text style={styles.pickerEmpty}>{t('diario.emptyState')}</Text>
+        {/* ── Herramientas ─────────────────────────────────────────────────────── */}
+        <View style={styles.section}>
+          <SectionHeader label={t('projectDetail.herramientas')} styles={styles} />
+          <View style={styles.cardGroup}>
+            <ToolRow
+              icon={Calculator}
+              toolName={t('projectDetail.calculadora')}
+              hasResult={calcHasResult}
+              resultValue={calcResultValue}
+              resultDate={calcResultDate}
+              noResultText={t('projectDetail.noResult')}
+              iconColor={colors.secondary.cinnamon}
+              iconBg="#FDE8D8"
+              accentColor={colors.primary.dark}
+              onPress={() => navigation.navigate('CalculadoraScreen', { projectId })}
+              styles={styles}
+              colors={colors}
+            />
+            <View style={styles.divider} />
+            <ToolRow
+              icon={Eye}
+              toolName={t('projectDetail.previsualizacion')}
+              hasResult={prevHasResult}
+              resultValue={prevResultValue}
+              resultDate={prevResultDate}
+              noResultText={t('projectDetail.noResult')}
+              iconColor={colors.primary.dark}
+              iconBg="#EDE5F8"
+              accentColor={colors.secondary.amberDark}
+              onPress={() => navigation.navigate('VistaPreviaScreen', { projectId })}
+              styles={styles}
+              colors={colors}
+            />
+          </View>
+        </View>
+
+        {/* ── Diarios vinculados ───────────────────────────────────────────────── */}
+        <View style={styles.section}>
+          <SectionHeader label={t('projectDetail.diariosVinculados')} styles={styles} />
+          <View style={styles.cardGroup}>
+            {linkedDiarios.length === 0 ? (
+              <Text style={styles.emptyText}>{t('projectDetail.sinDiarios')}</Text>
             ) : (
-              standaloneDiarios.map((d) => (
-                <TouchableOpacity key={d.id} style={styles.pickerItem} onPress={() => handleVincular(d.id)} activeOpacity={0.8}>
-                  <Text style={styles.pickerItemLabel}>{d.nombre}</Text>
-                </TouchableOpacity>
+              linkedDiarios.map((d, idx) => (
+                <View key={d.id}>
+                  {idx > 0 && <View style={styles.divider} />}
+                  {editingDiarioId === d.id ? (
+                    <View style={[styles.diarioRow, styles.diarioRowEdit]}>
+                      {/* Olive accent bar */}
+                      <View style={[styles.toolAccentBar, { backgroundColor: colors.secondary.olive }]} />
+                      <View style={[styles.toolIconWrap, { backgroundColor: '#D5EEF0' }]}>
+                        <BookOpen size={18} color={colors.secondary.teal} strokeWidth={1.8} />
+                      </View>
+                      <TextInput
+                        style={styles.diarioNameInput}
+                        value={editingDiarioName}
+                        onChangeText={setEditingDiarioName}
+                        onBlur={() => saveDiarioName(d.id, editingDiarioName)}
+                        onSubmitEditing={() => Keyboard.dismiss()}
+                        autoFocus
+                        returnKeyType="done"
+                        maxLength={80}
+                        placeholderTextColor={colors.text.tertiary}
+                      />
+                      <TouchableOpacity
+                        onPress={() => Keyboard.dismiss()}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      >
+                        <Check size={18} color={colors.secondary.teal} strokeWidth={2} />
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <View style={styles.diarioRow}>
+                      {/* Olive accent bar */}
+                      <View style={[styles.toolAccentBar, { backgroundColor: colors.secondary.olive }]} />
+                      <TouchableOpacity
+                        style={styles.diarioRowNav}
+                        onPress={() => navigation.navigate('DiarioDetalleScreen', { diarioId: d.id })}
+                        activeOpacity={0.8}
+                      >
+                        <View style={[styles.toolIconWrap, { backgroundColor: '#D5EEF0' }]}>
+                          <BookOpen size={18} color={colors.secondary.teal} strokeWidth={1.8} />
+                        </View>
+                        <View style={styles.toolText}>
+                          <Text style={styles.toolLabel}>{d.nombre}</Text>
+                          {d.fechaActualizacion ? (
+                            <Text style={styles.toolSummary}>{formatDateLong(d.fechaActualizacion)}</Text>
+                          ) : null}
+                        </View>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.diarioPencilBtn}
+                        onPress={() => { setEditingDiarioId(d.id); setEditingDiarioName(d.nombre); }}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      >
+                        <Pencil size={16} color={colors.text.tertiary} strokeWidth={1.8} />
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
               ))
             )}
           </View>
+          <TouchableOpacity style={styles.outlineBtn} onPress={handleNuevoDiario} activeOpacity={0.8}>
+            <Plus size={16} color={colors.primary.dark} strokeWidth={2} />
+            <Text style={styles.outlineBtnText}>{t('projectDetail.nuevoDiario')}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* ── Archivos ─────────────────────────────────────────────────────────── */}
+        <View style={styles.section}>
+          <SectionHeader label={t('projectDetail.archivos')} styles={styles} />
+          {archivos.length === 0 ? (
+            <Text style={[styles.emptyText, { marginBottom: spacing.xs }]}>{t('projectDetail.sinArchivos')}</Text>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.archivosRow}
+            >
+              {archivos.map((archivo) => (
+                <TouchableOpacity
+                  key={archivo.id}
+                  style={styles.archivoThumb}
+                  onPress={() => {
+                    if (archivo.isPdf) openPdf(archivo.url);
+                    else setFullscreenImage(archivo.url);
+                  }}
+                  onLongPress={() => { setDeleteTarget(archivo); setShowDeleteModal(true); }}
+                  activeOpacity={0.85}
+                >
+                  {archivo.isPdf ? (
+                    <View style={styles.pdfThumb}>
+                      <FileText size={28} color={COPPER} strokeWidth={1.5} />
+                      <Text style={styles.pdfName} numberOfLines={2}>{archivo.name}</Text>
+                    </View>
+                  ) : (
+                    <Image
+                      source={{ uri: archivo.url }}
+                      style={styles.imageThumb}
+                      resizeMode="cover"
+                    />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
+          <TouchableOpacity style={styles.uploadBtn} onPress={promptUpload} activeOpacity={0.8}>
+            <Plus size={16} color={COPPER} strokeWidth={2} />
+            <Text style={styles.uploadBtnText}>{t('projectDetail.subirArchivo')}</Text>
+          </TouchableOpacity>
+        </View>
+
+      </ScrollView>
+
+      <LoadingOverlay visible={loading || uploading} />
+
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={() => setToast((s) => ({ ...s, visible: false }))}
+      />
+
+      <ConfirmationModal
+        visible={showDeleteModal}
+        title={t('projectDetail.eliminarArchivo')}
+        message={t('projectDetail.eliminarArchivoMsg')}
+        confirmLabel={t('perfil.eliminarConfirm')}
+        cancelLabel={t('common.cancel')}
+        destructive
+        onConfirm={confirmDeleteArchivo}
+        onCancel={() => { setShowDeleteModal(false); setDeleteTarget(null); }}
+      />
+
+      <Modal
+        visible={!!fullscreenImage}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setFullscreenImage(null)}
+      >
+        <TouchableOpacity
+          style={styles.imageModal}
+          activeOpacity={1}
+          onPress={() => setFullscreenImage(null)}
+        >
+          {fullscreenImage && (
+            <Image
+              source={{ uri: fullscreenImage }}
+              style={{ width: SCREEN_WIDTH, height: SCREEN_WIDTH }}
+              resizeMode="contain"
+            />
+          )}
         </TouchableOpacity>
       </Modal>
     </SafeAreaView>
@@ -272,55 +523,127 @@ function makeStyles(colors) { return StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
-    gap: spacing.sm,
-  },
-  headerTitle: {
-    flex: 1,
-    fontFamily: fonts.extraBold,
-    fontSize: fontSizes.xl,
-    color: colors.text.primary,
-    textAlign: 'center',
+    paddingBottom: spacing.xs,
   },
   body: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xl,
-    gap: spacing.lg,
+    paddingBottom: spacing.xl * 2,
+    gap: spacing.xl,
   },
-  meta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginTop: spacing.xs,
-  },
-  badge: {
-    borderWidth: 1,
-    borderRadius: radii.small,
-    paddingHorizontal: spacing.xs,
-    paddingVertical: 3,
-  },
-  badgeText: {
-    fontFamily: fonts.semiBold,
-    fontSize: fontSizes.xs,
-  },
-  date: {
-    fontFamily: fonts.regular,
-    fontSize: fontSizes.xs,
-    color: colors.text.tertiary,
-  },
-  cards: {
-    gap: spacing.sm,
-  },
-  toolCard: {
+
+  // Header card — copper left accent + spacious content
+  headerCard: {
     backgroundColor: colors.card,
     borderRadius: radii.card,
     borderWidth: 1,
     borderColor: colors.neutral.greige,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
+    overflow: 'hidden',
+    flexDirection: 'row',
+  },
+  headerCardAccent: {
+    width: 4,
+    backgroundColor: COPPER,
+  },
+  headerCardContent: {
+    flex: 1,
+    padding: spacing.lg,
+    gap: spacing.md,
+  },
+  headerCardTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  projectName: {
+    flex: 1,
+    fontFamily: fonts.extraBold,
+    fontSize: fontSizes.xxl,
+    color: colors.text.primary,
+    lineHeight: fontSizes.xxl * 1.25,
+  },
+  badge: {
+    alignSelf: 'flex-start',
+    borderRadius: radii.small,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    backgroundColor: COPPER,
+  },
+  badgeText: {
+    fontFamily: fonts.semiBold,
+    fontSize: fontSizes.xs,
+    color: '#FFFFFF',
+  },
+  dateRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 6,
+  },
+  metaDate: {
+    fontFamily: fonts.regular,
+    fontSize: fontSizes.xs,
+    color: colors.text.tertiary,
+  },
+  descDivider: {
+    height: 1,
+    backgroundColor: colors.neutral.greige,
+  },
+  description: {
+    fontFamily: fonts.regular,
+    fontSize: fontSizes.sm,
+    color: colors.text.secondary,
+    lineHeight: fontSizes.sm * 1.5,
+  },
+  descriptionEmpty: {
+    color: colors.text.tertiary,
+    fontStyle: 'italic',
+  },
+
+  // Sections
+  section: {
+    gap: spacing.sm,
+  },
+  sectionHeader: {
+    fontFamily: fonts.semiBold,
+    fontSize: fontSizes.xs,
+    color: COPPER,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  cardGroup: {
+    backgroundColor: colors.card,
+    borderRadius: radii.card,
+    borderWidth: 1,
+    borderColor: colors.neutral.greige,
+    overflow: 'hidden',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.neutral.greige,
+    marginHorizontal: spacing.md,
+  },
+  emptyText: {
+    fontFamily: fonts.regular,
+    fontSize: fontSizes.sm,
+    color: colors.text.tertiary,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+
+  // Tool rows — result is the hero, left accent bar via absolute position
+  toolRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
+  },
+  toolAccentBar: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 3,
   },
   toolIconWrap: {
     width: 40,
@@ -329,81 +652,136 @@ function makeStyles(colors) { return StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  toolLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    flex: 1,
-  },
   toolText: {
     flex: 1,
     gap: 2,
   },
-  toolLabel: {
-    fontFamily: fonts.semiBold,
-    fontSize: fontSizes.md,
+  toolResultValue: {
+    fontFamily: fonts.extraBold,
+    fontSize: fontSizes.xl,
     color: colors.text.primary,
+  },
+  toolNameLabel: {
+    fontFamily: fonts.regular,
+    fontSize: fontSizes.xs,
+    color: colors.text.secondary,
   },
   toolSummary: {
     fontFamily: fonts.regular,
     fontSize: fontSizes.xs,
     color: colors.text.tertiary,
   },
-  // Diario link sheet
-  sheetOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
+  toolSummaryEmpty: {
+    fontStyle: 'italic',
   },
-  sheet: {
-    backgroundColor: colors.card,
-    borderTopLeftRadius: radii.modal,
-    borderTopRightRadius: radii.modal,
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  sheetTitle: {
-    fontFamily: fonts.bold,
-    fontSize: fontSizes.lg,
-    color: colors.text.primary,
-    marginBottom: spacing.xs,
-  },
-  sheetBtn: {
-    backgroundColor: colors.secondary.cinnamon,
-    borderRadius: radii.card,
-    paddingVertical: spacing.sm,
+
+  // Diario rows
+  diarioRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: spacing.md,
   },
-  sheetBtnLabel: {
-    fontFamily: fonts.semiBold,
-    fontSize: fontSizes.md,
-    color: colors.card,
-  },
-  sheetBtnOutline: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.neutral.greige,
-  },
-  sheetBtnLabelOutline: {
-    fontFamily: fonts.semiBold,
-    fontSize: fontSizes.md,
-    color: colors.text.secondary,
-  },
-  pickerEmpty: {
-    fontFamily: fonts.regular,
-    fontSize: fontSizes.sm,
-    color: colors.text.tertiary,
-    textAlign: 'center',
+  diarioRowEdit: {
+    gap: spacing.sm,
     paddingVertical: spacing.md,
   },
-  pickerItem: {
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.neutral.greige,
+  diarioRowNav: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    gap: spacing.sm,
   },
-  pickerItemLabel: {
-    fontFamily: fonts.regular,
-    fontSize: fontSizes.md,
+  diarioPencilBtn: {
+    paddingLeft: spacing.xs,
+  },
+  toolLabel: {
+    fontFamily: fonts.semiBold,
+    fontSize: fontSizes.sm,
     color: colors.text.primary,
+  },
+  diarioNameInput: {
+    flex: 1,
+    fontFamily: fonts.semiBold,
+    fontSize: fontSizes.sm,
+    color: colors.text.primary,
+    borderBottomWidth: 1.5,
+    borderBottomColor: colors.primary.DEFAULT,
+    paddingVertical: 2,
+    paddingHorizontal: 0,
+  },
+
+  // Outline button ("Nuevo diario")
+  outlineBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    borderWidth: 1,
+    borderColor: colors.primary.dark,
+    borderRadius: radii.card,
+    paddingVertical: spacing.sm,
+  },
+  outlineBtnText: {
+    fontFamily: fonts.semiBold,
+    fontSize: fontSizes.sm,
+    color: colors.primary.dark,
+  },
+
+  // Archivos
+  archivosRow: {
+    gap: spacing.sm,
+    paddingRight: spacing.xs,
+  },
+  archivoThumb: {
+    width: 88,
+    height: 88,
+    borderRadius: radii.card,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: COPPER,
+  },
+  imageThumb: {
+    width: '100%',
+    height: '100%',
+  },
+  pdfThumb: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xs,
+    gap: 4,
+  },
+  pdfName: {
+    fontFamily: fonts.regular,
+    fontSize: 9,
+    color: colors.text.tertiary,
+    textAlign: 'center',
+  },
+  uploadBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    borderWidth: 1.5,
+    borderColor: COPPER,
+    borderStyle: 'dashed',
+    borderRadius: radii.card,
+    paddingVertical: spacing.sm,
+  },
+  uploadBtnText: {
+    fontFamily: fonts.semiBold,
+    fontSize: fontSizes.sm,
+    color: COPPER,
+  },
+
+  // Fullscreen image modal
+  imageModal: {
+    flex: 1,
+    backgroundColor: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 }); }

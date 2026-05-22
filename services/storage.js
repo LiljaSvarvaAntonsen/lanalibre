@@ -49,6 +49,16 @@ export async function uploadProfilePhoto(uid, uri) {
   return getDownloadURL(storageRef);
 }
 
+export async function uploadArchivoProyecto(uid, projectId, { uri, name }) {
+  const path = `proyectos/${uid}/${projectId}/referencias/${Date.now()}_${name}`;
+  const storageRef = ref(storage, path);
+  const response = await fetch(uri);
+  const blob = await response.blob();
+  await uploadBytes(storageRef, blob);
+  const url = await getDownloadURL(storageRef);
+  return { url, storagePath: path };
+}
+
 export async function uploadEntradaFile(uid, diarioId, { uri, name }) {
   const path = `inspiracion/${uid}/${diarioId}/${Date.now()}_${name}`;
   const storageRef = ref(storage, path);
