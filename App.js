@@ -1,7 +1,7 @@
 import './i18n';
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import {
   useFonts,
@@ -22,6 +22,28 @@ import { colors as lightColors } from './constants/colors';
 
 const Stack = createStackNavigator();
 
+// Wraps NavigationContainer with the app theme so React Navigation uses the
+// correct background colour during screen transitions (eliminates dark flash).
+// Spreads DefaultTheme/DarkTheme first so required properties like `fonts`
+// (added in React Navigation 7) are always present, preventing 'medium' crash.
+function ThemedNavigationContainer({ children }) {
+  const { theme: colors, isDark } = useTheme();
+  const baseTheme = isDark ? DarkTheme : DefaultTheme;
+  const navTheme = {
+    ...baseTheme,
+    colors: {
+      ...baseTheme.colors,
+      primary: colors.primary.dark,
+      background: colors.background,
+      card: colors.card,
+      text: colors.text.primary,
+      border: colors.neutral.greige,
+      notification: colors.secondary.copper,
+    },
+  };
+  return <NavigationContainer theme={navTheme}>{children}</NavigationContainer>;
+}
+
 function AuthRouter() {
   const { theme: colors } = useTheme();
   const { user, loading, error, signInWithGoogle, signInWithApple, devSignIn } = useAuth();
@@ -30,8 +52,14 @@ function AuthRouter() {
     return <View style={[styles.loading, { backgroundColor: colors.background }]} />;
   }
 
+  const screenOptions = {
+    headerShown: false,
+    cardStyle: { backgroundColor: colors.background },
+    sceneContainerStyle: { backgroundColor: colors.background },
+  };
+
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={screenOptions}>
       {user ? (
         <Stack.Screen name="Main" component={MainTabs} />
       ) : (
@@ -68,10 +96,10 @@ export default function App() {
     <SafeAreaProvider>
       <AuthProvider>
         <ThemeProvider>
-          <NavigationContainer>
+          <ThemedNavigationContainer>
             <StatusBar style="auto" />
             <AuthRouter />
-          </NavigationContainer>
+          </ThemedNavigationContainer>
         </ThemeProvider>
       </AuthProvider>
     </SafeAreaProvider>

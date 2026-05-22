@@ -322,6 +322,7 @@ Tasks are ordered by development slice. Complete each slice fully (services → 
 ---
 
 ## UI Polish (post-slice, before release)
+- [x] ProyectoFormScreen redesigned as single-page planning screen with inline collapsible Calculadora, Previsualización, and Diario creation (2026-05-22)
 - [ ] Eraser/delete tool should remove brush stroke paths drawn with the colour painting tool (currently only removes canvas elements, not freeStrokes/gridFills)
 - [x] Uploaded images: working corner drag-to-resize handles (live-ref PanResponder fix, resizeMode="contain", proportional scaling via scaleToFit, MIN_SIZE=50)
 - [ ] Uploaded images: rotation gesture

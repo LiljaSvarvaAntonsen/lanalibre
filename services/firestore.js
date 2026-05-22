@@ -34,17 +34,18 @@ export async function getUserDocument(uid) {
 
 const PAGE_SIZE = 20;
 
-export async function createProject(uid, { nombre, etiqueta }) {
+export async function createProject(uid, { nombre, etiqueta, descripcion = '' }) {
   console.log('[firestore] createProject uid:', uid, 'nombre:', nombre);
   const ref = await addDoc(collection(db, 'projects'), {
     uId: uid,
     nombre,
     etiqueta,
+    descripcion,
     fechaCreacion: serverTimestamp(),
     deletedAt: null,
   });
   console.log('[firestore] createProject success, id:', ref.id);
-  return { id: ref.id, uId: uid, nombre, etiqueta, deletedAt: null };
+  return { id: ref.id, uId: uid, nombre, etiqueta, descripcion, deletedAt: null };
 }
 
 export async function getActiveProjects(uid, lastVisible = null) {
@@ -167,6 +168,50 @@ export async function getDiarioByProyecto(proyectoId) {
     query(collection(db, 'diarios'), where('proyectoId', '==', proyectoId), limit(1)),
   );
   return snap.docs.length > 0 ? { id: snap.docs[0].id, ...snap.docs[0].data() } : null;
+}
+
+export async function getDiariosByProyecto(proyectoId) {
+  // No orderBy here — where+orderBy requires a composite index that may not be deployed.
+  // Sort client-side instead.
+  const snap = await getDocs(
+    query(collection(db, 'diarios'), where('proyectoId', '==', proyectoId)),
+  );
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .sort((a, b) => (b.fechaCreacion?.toMillis?.() ?? 0) - (a.fechaCreacion?.toMillis?.() ?? 0));
+}
+
+// ── Archivos de proyecto ──────────────────────────────────────────────────────
+
+export async function addArchivoProyecto(projectId, { url, storagePath, name, isPdf }) {
+  console.log('[firestore] addArchivoProyecto projectId:', projectId, 'name:', name);
+  console.log('[firestore] addArchivoProyecto path:', `projects/${projectId}/referencias`);
+  const ref = await addDoc(collection(db, 'projects', projectId, 'referencias'), {
+    url,
+    storagePath,
+    name,
+    isPdf,
+    fechaSubida: serverTimestamp(),
+  });
+  console.log('[firestore] addArchivoProyecto saved, id:', ref.id);
+  return ref.id;
+}
+
+export async function getArchivosProyecto(projectId) {
+  console.log('[firestore] getArchivosProyecto projectId:', projectId);
+  console.log('[firestore] getArchivosProyecto path:', `projects/${projectId}/referencias`);
+  // No orderBy — subcollection single-field orderBy may require a Firestore index.
+  // Sort client-side instead.
+  const snap = await getDocs(collection(db, 'projects', projectId, 'referencias'));
+  const archivos = snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .sort((a, b) => (b.fechaSubida?.toMillis?.() ?? 0) - (a.fechaSubida?.toMillis?.() ?? 0));
+  console.log('[firestore] getArchivosProyecto returned', archivos.length, 'files');
+  return archivos;
+}
+
+export async function deleteArchivoProyecto(projectId, archivoId) {
+  await deleteDoc(doc(db, 'projects', projectId, 'referencias', archivoId));
 }
 
 // ── Colores ───────────────────────────────────────────────────────────────────
