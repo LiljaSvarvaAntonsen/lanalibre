@@ -1129,7 +1129,7 @@ export default function EntradaDiarioScreen({ navigation, route }) {
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 function makeStyles(colors) { return StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+  safe: { flex: 1, backgroundColor: colors.background },
 
   topBar: {
     flexDirection: 'row',

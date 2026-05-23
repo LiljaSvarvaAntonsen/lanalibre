@@ -318,6 +318,7 @@ Tasks are ordered by development slice. Complete each slice fully (services → 
 - [ ] Submit to Apple App Store (TestFlight first)
 - [ ] Verify Firebase plan is on Blaze (pay-as-you-go) for production Storage usage
 - [ ] Final smoke test on physical iOS and Android devices
+- [ ] PDF fullscreen viewing requires EAS build — implement with expo-intent-launcher in Slice 14
 
 ---
 

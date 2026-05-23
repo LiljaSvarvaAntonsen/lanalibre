@@ -92,7 +92,9 @@
     "sinArchivos": "No files yet",
     "subirArchivo": "Upload file",
     "eliminarArchivo": "Delete file",
-    "eliminarArchivoMsg": "This action cannot be undone."
+    "eliminarArchivoMsg": "This action cannot be undone.",
+    "pdfExpoGoMessage": "PDFs can be opened in the published version of the app. During development, use the share option.",
+    "pdfShare": "Share"
   },
   "calculadora": {
     "title": "Yarn Calculator",
