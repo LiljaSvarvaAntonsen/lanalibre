@@ -24,6 +24,7 @@ function stackScreenOptions(colors) {
     headerShown: false,
     cardStyle: { backgroundColor: colors.background },
     sceneContainerStyle: { backgroundColor: colors.background },
+    animationEnabled: false,
   };
 }
 

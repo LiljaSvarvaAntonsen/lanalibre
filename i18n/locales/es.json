@@ -92,7 +92,9 @@
     "sinArchivos": "Sin archivos",
     "subirArchivo": "Subir archivo",
     "eliminarArchivo": "Eliminar archivo",
-    "eliminarArchivoMsg": "Esta acción no se puede deshacer."
+    "eliminarArchivoMsg": "Esta acción no se puede deshacer.",
+    "pdfExpoGoMessage": "Los PDF se pueden abrir en la versión publicada de la aplicación. Durante el desarrollo usa la opción de compartir.",
+    "pdfShare": "Compartir"
   },
   "calculadora": {
     "title": "Calculadora de Lana",

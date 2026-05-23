@@ -30,3 +30,5 @@ The goal: each rule prevents the same mistake from happening again.
 > **Rule:** Any Expo SDK module used via `import * as X from 'expo-x'` must be listed as a direct dependency in `package.json`. Transitive dependency availability is unreliable across SDK versions.
 
 > **[2026-05-21] Lesson:** `expo-notifications` push notifications are not supported in Expo Go SDK 53+. Use a dev client or EAS build for real notifications. During development use a mock implementation with a Toast message explaining that notifications will work in the published version of the app. Real push notification scheduling will be implemented in Slice 14 during deployment.
+
+> **[2026-05-23] Lesson:** The navigation background flash between screens in Expo Go is a known limitation of React Navigation with Expo Go on Android. It may not be present in a production EAS build. Do not spend more time on this — move on and test in the EAS build in Slice 14.

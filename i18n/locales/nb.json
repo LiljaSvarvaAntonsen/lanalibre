@@ -92,7 +92,9 @@
     "sinArchivos": "Ingen filer ennå",
     "subirArchivo": "Last opp fil",
     "eliminarArchivo": "Slett fil",
-    "eliminarArchivoMsg": "Denne handlingen kan ikke angres."
+    "eliminarArchivoMsg": "Denne handlingen kan ikke angres.",
+    "pdfExpoGoMessage": "PDF-er kan åpnes i den publiserte versjonen av appen. Under utvikling, bruk delingsalternativet.",
+    "pdfShare": "Del"
   },
   "calculadora": {
     "title": "Garenkalkulator",

@@ -237,12 +237,27 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
     try {
       if (url.startsWith('http')) {
         await WebBrowser.openBrowserAsync(url);
-      } else {
-        const available = await Sharing.isAvailableAsync();
-        if (available) {
-          await Sharing.shareAsync(url, { mimeType: 'application/pdf' });
-        }
+        return;
       }
+      // Local URI in Expo Go — native PDF viewers require an EAS build.
+      // Inform the user and offer the share sheet as an alternative.
+      Alert.alert(
+        '',
+        t('projectDetail.pdfExpoGoMessage'),
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          {
+            text: t('projectDetail.pdfShare'),
+            onPress: async () => {
+              try {
+                await Sharing.shareAsync(url, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' });
+              } catch {
+                showToast(t('common.error'), 'error');
+              }
+            },
+          },
+        ]
+      );
     } catch {
       showToast(t('common.error'), 'error');
     }
@@ -496,6 +511,7 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
         transparent
         animationType="fade"
         onRequestClose={() => setFullscreenImage(null)}
+        style={{ backgroundColor: colors.background }}
       >
         <TouchableOpacity
           style={styles.imageModal}
@@ -511,6 +527,7 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
           )}
         </TouchableOpacity>
       </Modal>
+
     </SafeAreaView>
   );
 }
@@ -780,7 +797,7 @@ function makeStyles(colors) { return StyleSheet.create({
   // Fullscreen image modal
   imageModal: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
