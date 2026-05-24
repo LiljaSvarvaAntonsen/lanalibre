@@ -298,16 +298,16 @@ Tasks are ordered by development slice. Complete each slice fully (services → 
 ---
 
 ## Slice 13 — Testing (Sprint 6)
-- [ ] Unit tests: all `calculadora.js` functions (see Slice 6 for specifics)
-- [ ] Unit tests: `softDeleteProject` and `hardDeleteProject` logic
-- [ ] Unit tests: auth service `createUserDocument` (new vs existing user)
-- [ ] Component tests: project list renders correctly with mocked data
-- [ ] Component tests: calculator form validation messages appear on submit with empty fields
-- [ ] Component tests: journal row counter
-- [ ] Integration test: full auth flow (mock Firebase Auth)
-- [ ] Integration test: create project → open calculator → save result → result appears on project detail
-- [ ] Functional test: delete project → appears in deleted list → restore → reappears in active list
-- [ ] Document any bugs found and fixed in `tasks/lessons.md`
+- [x] Unit tests: all `calculadora.js` functions (see Slice 6 for specifics)
+- [x] Unit tests: `softDeleteProject` and `hardDeleteProject` logic
+- [x] Unit tests: auth service `createUserDocument` (new vs existing user)
+- [x] Component tests: project list renders correctly with mocked data
+- [x] Component tests: calculator form validation messages appear on submit with empty fields
+- [x] Component tests: journal row counter
+- [x] Integration test: full auth flow (mock Firebase Auth)
+- [x] Integration test: create project → open calculator → save result → result appears on project detail
+- [x] Functional test: delete project → appears in deleted list → restore → reappears in active list
+- [x] Document any bugs found and fixed in `tasks/lessons.md`
 
 ---
 
