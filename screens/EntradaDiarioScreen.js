@@ -505,19 +505,11 @@ export default function EntradaDiarioScreen({ navigation, route }) {
         initial = [makeTextBox(40, 40, t('diario.resultadoCalculadora', { gramos })), ...initial];
       }
       if (previewImageUri && user?.uid) {
-        let placed = false;
-        if (user.uid === 'dev-user') {
-          // Dev bypass has no real auth token — use local URI directly without uploading to Storage
-          initial = [{ id: makeId(), type: 'image', x: 40, y: 40, width: 240, height: 180, url: previewImageUri, storagePath: null, isPdf: false }, ...initial];
-          placed = true;
-        } else {
-          try {
-            const { url, storagePath } = await uploadEntradaFile(user.uid, diarioId, { uri: previewImageUri, name: 'vista-previa.png' });
-            initial = [{ id: makeId(), type: 'image', x: 40, y: 40, width: 240, height: 180, url, storagePath, isPdf: false }, ...initial];
-            placed = true;
-          } catch { /* skip if upload fails — non-fatal */ }
-        }
-        if (placed) setPreviewPlaced(true);
+        try {
+          const { url, storagePath } = await uploadEntradaFile(user.uid, diarioId, { uri: previewImageUri, name: 'vista-previa.png' });
+          initial = [{ id: makeId(), type: 'image', x: 40, y: 40, width: 240, height: 180, url, storagePath, isPdf: false }, ...initial];
+          setPreviewPlaced(true);
+        } catch { /* skip if upload fails — non-fatal */ }
       }
 
       setEntradaNombre(data?.nombre ?? '');
@@ -848,15 +840,7 @@ export default function EntradaDiarioScreen({ navigation, route }) {
     if (!user?.uid) return;
     setUploading(true);
     try {
-      let url, storagePath;
-      if (user.uid === 'dev-user') {
-        url = uri;
-        storagePath = null;
-      } else {
-        const result = await uploadEntradaFile(user.uid, diarioId, { uri, name });
-        url = result.url;
-        storagePath = result.storagePath;
-      }
+      const { url, storagePath } = await uploadEntradaFile(user.uid, diarioId, { uri, name });
       const { width, height } = isPdf
         ? { width: 200, height: 200 }
         : scaleToFit(srcWidth, srcHeight);

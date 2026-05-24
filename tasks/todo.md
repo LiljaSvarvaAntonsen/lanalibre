@@ -278,21 +278,22 @@ Tasks are ordered by development slice. Complete each slice fully (services → 
 ## Slice 11 — Performance & accessibility (RNF-01, RNF-02, RNF-03, RNF-07)
 - [x] Lazy load all images throughout the app — `components/LazyImage.js` wraps network images in PerfilScreen, ProyectoDetalleScreen, ImageWidget
 - [x] Paginate project list at 20 items with "load more" or infinite scroll — already implemented (PAGE_SIZE=20, onEndReached wired)
-- [ ] Verify app cold start < 3 s on a mid-range Android emulator
-- [ ] Verify all user actions respond < 3 s
 - [x] Check colour contrast ratios for all text/background combinations against WCAG 2.1 AA — fixed text.tertiary (#A8A9A6→#666664), sectionHeader+uploadBtnText (COPPER→text.secondary), tag badge (COPPER/white→colors.tags system)
 - [x] Test with system font size set to largest — added maxFontSizeMultiplier={1.3} to badge/tab/chip text; maxFontSizeMultiplier={1.5} to row counter
-- [ ] Test on tablet viewport — verify layout adapts correctly (RNF-03)
-- [ ] Limit session data transfer to ~5 MB typical use (verify with Firebase emulator)
+- [x] Add `accessibilityLabel` to back and edit buttons — `common.back` + `common.edit` i18n keys added to all three locale files; applied to ArrowLeft back buttons (ProyectoDetalleScreen, ProyectoFormScreen) and Pencil edit buttons (ProyectoDetalleScreen, PerfilScreen)
+- NOTE: manual verification pending — cold start < 3 s on mid-range Android emulator (not formally tested)
+- NOTE: manual verification pending — all user actions < 3 s response time (not formally tested)
+- NOTE: manual verification pending — tablet viewport layout (RNF-03, not formally tested)
+- NOTE: manual verification pending — session data < 5 MB typical use (verify with Firebase emulator)
 
 ---
 
 ## Slice 12 — Security hardening (RNF-04)
-- [ ] Write and deploy Firestore security rules: `allow read, write: if request.auth.uid == resource.data.uId`
-- [ ] Write and deploy Firebase Storage rules: `allow read, write: if request.auth.uid == <uid from path>`
-- [ ] Verify rules in Firebase emulator: user A cannot read user B's projects
-- [ ] Verify unauthenticated requests are rejected
-- [ ] Remove all `console.log` statements that could expose user data before release
+- [x] Write and deploy Firestore security rules: `allow read, write: if request.auth.uid == resource.data.uId`
+- [x] Write and deploy Firebase Storage rules: `allow read, write: if request.auth.uid == <uid from path>`
+- [x] Verify rules in Firebase emulator: user A cannot read user B's projects
+- [x] Verify unauthenticated requests are rejected
+- [x] Remove all `console.log` statements that could expose user data before release
 
 ---
 
@@ -324,6 +325,10 @@ Tasks are ordered by development slice. Complete each slice fully (services → 
 ---
 
 ## UX Polish — post Slice 12
+- [x] Tab navigation guards — `contexts/NavigationGuardContext.js` + `MainTabs.js` intercepts tab presses; CalculadoraScreen and VistaPreviaScreen register a guard when they have unsaved form data; shows a ConfirmationModal (discard / save-first) before allowing the tab switch
+- [x] DiarioDetalleScreen loop fix — `diarioId` stored in a stable `useRef` so `useCallback` and `Promise.all` loads don't re-trigger on every render; `pendingToast` passed via route params for post-navigation feedback
+- [x] ProyectoFormScreen field reset on leave — all form fields reset via `useFocusEffect` cleanup so the form is blank when re-entered from a different flow
+- [x] Recent projects now shows projects from the last 1 day (dev default; `RECENT_PROJECTS_DAYS` must be restored to 14 before deployment — see task below)
 - [ ] T&C and privacy policy content must be available in Spanish, English and Norwegian
 - [ ] Recent projects list should show projects accessed or created in the last 2 weeks, distinct from the full all projects list
 - [ ] Review and add missing confirmation messages across the app

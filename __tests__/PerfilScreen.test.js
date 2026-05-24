@@ -5,12 +5,15 @@ jest.mock('expo-localization', () => ({
 jest.mock('../firebase', () => ({}));
 
 const mockToggleTheme = jest.fn();
+const mockSetNotifEnabled = jest.fn();
 
 jest.mock('../contexts/ThemeContext', () => ({
   useTheme: () => ({
     theme: require('../constants/colors').colors,
     isDark: false,
     toggleTheme: mockToggleTheme,
+    notifEnabled: false,
+    setNotifEnabled: mockSetNotifEnabled,
   }),
 }));
 
@@ -80,6 +83,7 @@ beforeAll(async () => {
 afterEach(() => {
   jest.clearAllMocks();
   mockToggleTheme.mockClear();
+  mockSetNotifEnabled.mockClear();
   mockDeleteAccount.mockClear();
   mockExportUserData.mockClear();
   mockRequestPermission.mockClear();

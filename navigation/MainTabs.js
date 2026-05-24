@@ -111,7 +111,9 @@ export default function MainTabs() {
       })}
       screenListeners={({ navigation, route }) => ({
         tabPress: (e) => {
-          const guarded = triggerTabGuardIfAny(route.name, () => {
+          const state = navigation.getState();
+          const currentTabName = state?.routes?.[state.index]?.name;
+          const guarded = triggerTabGuardIfAny(route.name, currentTabName, () => {
             navigation.navigate(route.name);
           });
           if (guarded) {

@@ -4,7 +4,6 @@ import {
   Text,
   Image,
   TouchableOpacity,
-  Modal,
   ScrollView,
   StyleSheet,
   Platform,
@@ -16,37 +15,13 @@ import { radii } from '../constants/colors';
 import { useTheme } from '../contexts/ThemeContext';
 import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
-
-function TermsModal({ visible, title, onClose }) {
-  const { theme: colors } = useTheme();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
-  const { t } = useTranslation();
-  const isTerms = title === 'terms';
-  return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalCard}>
-          <Text style={styles.modalTitle}>
-            {isTerms ? t('legal.termsTitle') : t('legal.privacyTitle')}
-          </Text>
-          <ScrollView style={styles.modalScroll}>
-            <Text style={styles.modalBody}>
-              {isTerms ? t('legal.termsContent') : t('legal.privacyContent')}
-            </Text>
-          </ScrollView>
-          <TouchableOpacity style={styles.modalClose} onPress={onClose}>
-            <Text style={styles.modalCloseText}>{t('common.close')}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
-  );
-}
+import DocViewerModal from '../components/DocViewerModal';
+import { getLegalContent } from '../constants/legalContent';
 
 export default function LoginScreen({ signInWithGoogle, signInWithApple, error, devSignIn }) {
   const { theme: colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [busy, setBusy] = useState(false);
   const [modal, setModal] = useState(null);
 
@@ -136,7 +111,12 @@ export default function LoginScreen({ signInWithGoogle, signInWithApple, error, 
         </View>
       </ScrollView>
 
-      <TermsModal visible={modal !== null} title={modal} onClose={() => setModal(null)} />
+      <DocViewerModal
+        visible={modal !== null}
+        onClose={() => setModal(null)}
+        title={modal === 'terms' ? t('legal.termsTitle') : t('legal.privacyTitle')}
+        content={modal !== null ? getLegalContent(modal, i18n.language) : ''}
+      />
     </SafeAreaView>
   );
 }
@@ -257,43 +237,5 @@ function makeStyles(colors) { return StyleSheet.create({
     fontSize: fontSizes.xs,
     color: colors.primary.dark,
     textDecorationLine: 'underline',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
-  },
-  modalCard: {
-    backgroundColor: colors.card,
-    borderTopLeftRadius: radii.modal,
-    borderTopRightRadius: radii.modal,
-    padding: spacing.lg,
-    maxHeight: '70%',
-  },
-  modalTitle: {
-    fontFamily: fonts.bold,
-    fontSize: fontSizes.lg,
-    color: colors.text.primary,
-    marginBottom: spacing.md,
-  },
-  modalScroll: {
-    marginBottom: spacing.md,
-  },
-  modalBody: {
-    fontFamily: fonts.regular,
-    fontSize: fontSizes.sm,
-    color: colors.text.secondary,
-    lineHeight: 22,
-  },
-  modalClose: {
-    backgroundColor: colors.button.primary,
-    borderRadius: radii.small,
-    paddingVertical: spacing.sm,
-    alignItems: 'center',
-  },
-  modalCloseText: {
-    fontFamily: fonts.semiBold,
-    fontSize: fontSizes.md,
-    color: colors.card,
   },
 }); }

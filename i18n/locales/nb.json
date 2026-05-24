@@ -73,7 +73,11 @@
     "acercaDe": "Om appen",
     "version": "Versjon",
     "terminos": "Vilkår og betingelser",
-    "politica": "Personvernerklæring"
+    "politica": "Personvernerklæring",
+    "cerrarSesion": "Logg ut",
+    "cerrarSesionTitle": "Logg ut?",
+    "cerrarSesionMessage": "Du vil bli logget ut på denne enheten.",
+    "cerrarSesionConfirm": "Logg ut"
   },
   "placeholder": {
     "comingSoon": "Kommer snart"

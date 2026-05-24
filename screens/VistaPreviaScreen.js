@@ -174,7 +174,6 @@ export default function VistaPreviaScreen({ navigation, route }) {
     const unsub = navigation.addListener('beforeRemove', (e) => {
       const resultNotSaved = showResultRef.current && savedParamsRef.current === null;
       if (!resultNotSaved) return;
-      console.log('[prev] guard triggered, showResult:', showResultRef.current, 'savedParams:', savedParamsRef.current);
       e.preventDefault();
       pendingBackActionRef.current = e.data.action;
       setShowBackGuard(true);
