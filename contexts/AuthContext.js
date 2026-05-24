@@ -7,6 +7,7 @@ import {
   signInWithApple as authSignInWithApple,
   signOut as authSignOut,
   onAuthChange,
+  signInAnonymously as authSignInAnonymously,
 } from '../services/auth';
 import { createUserDocument } from '../services/firestore';
 
@@ -85,8 +86,14 @@ export function AuthProvider({ children }) {
     }
   }
 
-  function devSignIn() {
-    setUser({ uid: 'dev-user', displayName: 'Dev User', email: 'dev@localhost', photoURL: null });
+  async function devSignIn() {
+    setError(null);
+    try {
+      const result = await authSignInAnonymously();
+      await createUserDocument(result.user.uid, { nombre: '', fotoPerfil: null });
+    } catch (e) {
+      setError(e.message);
+    }
   }
 
   return (

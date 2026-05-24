@@ -8,12 +8,17 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "test:rules": "jest --testPathPattern=security.rules --testEnvironment=node"
   },
   "jest": {
     "preset": "jest-expo",
     "transformIgnorePatterns": [
       "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|lucide-react-native)"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "security\\.rules\\.test\\.js"
     ],
     "moduleNameMapper": {
       "^react-native-color-picker$": "<rootDir>/__mocks__/react-native-color-picker.js"
@@ -52,6 +57,7 @@
   },
   "private": true,
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^4.0.1",
     "@testing-library/react-native": "^13.3.3",
     "jest": "^29.7.0",
     "jest-expo": "~54.0.0",

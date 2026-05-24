@@ -3,6 +3,7 @@ import {
   GoogleAuthProvider,
   OAuthProvider,
   signInWithCredential,
+  signInAnonymously as firebaseSignInAnonymously,
   signOut as firebaseSignOut,
   onAuthStateChanged,
   deleteUser,
@@ -31,6 +32,10 @@ export async function signInWithApple() {
     idToken: appleCredential.identityToken,
   });
   return signInWithCredential(auth, firebaseCredential);
+}
+
+export async function signInAnonymously() {
+  return firebaseSignInAnonymously(auth);
 }
 
 export async function signOut() {

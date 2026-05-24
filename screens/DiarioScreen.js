@@ -81,7 +81,6 @@ export default function DiarioScreen({ navigation, route }) {
       const data = await getDiarios(user.uid);
       setDiarios(data);
     } catch (err) {
-      console.log('[DiarioScreen] getDiarios error:', err);
       setLoadError(err?.message ?? 'Error al cargar los diarios');
     } finally {
       setLoading(false);
@@ -125,7 +124,6 @@ export default function DiarioScreen({ navigation, route }) {
       setShowModal(false);
       openDetalle(id);
     } catch (err) {
-      console.log('[DiarioScreen] createDiario error:', err);
       setCreateError(err?.message ?? 'Error al crear el diario');
     } finally {
       setCreating(false);

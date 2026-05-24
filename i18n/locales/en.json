@@ -73,7 +73,11 @@
     "acercaDe": "About",
     "version": "Version",
     "terminos": "Terms & conditions",
-    "politica": "Privacy policy"
+    "politica": "Privacy policy",
+    "cerrarSesion": "Sign out",
+    "cerrarSesionTitle": "Sign out?",
+    "cerrarSesionMessage": "You will be signed out on this device.",
+    "cerrarSesionConfirm": "Sign out"
   },
   "placeholder": {
     "comingSoon": "Coming soon"

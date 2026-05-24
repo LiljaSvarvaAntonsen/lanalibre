@@ -159,18 +159,16 @@ export async function deleteDiario(diarioId) {
   await deleteDoc(doc(db, 'diarios', diarioId));
 }
 
-export async function getDiarioByProyecto(proyectoId) {
+export async function getDiarioByProyecto(proyectoId, uid) {
   const snap = await getDocs(
-    query(collection(db, 'diarios'), where('proyectoId', '==', proyectoId), limit(1)),
+    query(collection(db, 'diarios'), where('proyectoId', '==', proyectoId), where('uId', '==', uid), limit(1)),
   );
   return snap.docs.length > 0 ? { id: snap.docs[0].id, ...snap.docs[0].data() } : null;
 }
 
-export async function getDiariosByProyecto(proyectoId) {
-  // No orderBy here — where+orderBy requires a composite index that may not be deployed.
-  // Sort client-side instead.
+export async function getDiariosByProyecto(proyectoId, uid) {
   const snap = await getDocs(
-    query(collection(db, 'diarios'), where('proyectoId', '==', proyectoId)),
+    query(collection(db, 'diarios'), where('proyectoId', '==', proyectoId), where('uId', '==', uid)),
   );
   return snap.docs
     .map((d) => ({ id: d.id, ...d.data() }))

@@ -29,86 +29,7 @@ import ConfirmationModal from '../components/ConfirmationModal';
 import LoadingOverlay from '../components/LoadingOverlay';
 import Toast from '../components/Toast';
 import DocViewerModal from '../components/DocViewerModal';
-
-// ── Doc content (bundled as strings to avoid Metro .md transforms) ────────────
-
-const TERMS_CONTENT = `# Términos y condiciones de uso — LanaLibre
-Última actualización: mayo 2026
-Desarrolladora: Lilja Svarva Antonsen
-Contacto: contacto@lanalibre.es (placeholder)
-
-1. Aceptación de los términos
-Al usar LanaLibre aceptas estos términos. Si no estás de acuerdo, por favor no uses la aplicación.
-2. Descripción del servicio
-LanaLibre es una aplicación móvil gratuita para planificar y gestionar proyectos de crochet. Incluye una calculadora de lana, una herramienta de previsualización de diseños y un diario interactivo.
-3. Cuenta de usuario
-Necesitas una cuenta de Google o Apple para usar LanaLibre
-Eres responsable de mantener tu cuenta segura
-Debes tener al menos 16 años para usar la aplicación (requisito mínimo RGPD)
-4. Contenido del usuario
-Tus proyectos, diarios y patrones son tuyos — LanaLibre no reclama ningún derecho sobre tu contenido
-Al subir contenido otorgas a LanaLibre el permiso necesario para almacenarlo y mostrártelo
-No subas contenido que infrinja derechos de autor de terceros
-5. Estimaciones de la calculadora
-Los resultados de la calculadora de lana son estimaciones orientativas y no garantías. El consumo real puede variar según tu tensión personal, el tipo de fibra y el acabado del proyecto. LanaLibre no se hace responsable de compras de material basadas en estas estimaciones.
-6. Eliminación de datos
-Los proyectos eliminados se conservan durante 30 días y pueden recuperarse durante ese período
-Transcurridos 30 días la eliminación es permanente e irreversible
-Puedes eliminar tu cuenta en cualquier momento desde tu perfil
-7. Limitación de responsabilidad
-LanaLibre se proporciona tal como está, sin garantías de disponibilidad continua. Al tratarse de un proyecto académico en desarrollo, pueden producirse interrupciones del servicio.
-8. Cambios en los términos
-Si los términos cambian de forma significativa se te notificará dentro de la app. El uso continuado implica la aceptación de los nuevos términos.
-9. Contacto
-Para cualquier consulta sobre estos términos: contacto@lanalibre.es (placeholder)`;
-
-const PRIVACY_CONTENT = `# Política de privacidad — LanaLibre
-Última actualización: mayo 2026
-Responsable del tratamiento: Lilja Svarva Antonsen
-Contacto: contacto@lanalibre.es (placeholder)
-
-1. Qué datos recogemos
-LanaLibre recoge únicamente los datos necesarios para que la aplicación funcione:
-Datos de cuenta (gestionados por Google o Apple):
-Nombre de usuario
-Dirección de correo electrónico
-Foto de perfil (si está disponible)
-Datos de uso generados por ti:
-Proyectos de crochet que creas (nombre, etiqueta, herramientas usadas)
-Entradas de diario, notas y paletas de color
-Archivos que subes (patrones en PDF, imágenes de inspiración)
-Resultados de la calculadora y parámetros de previsualización
-Datos técnicos mínimos:
-Fecha de registro
-Preferencias de idioma y tema visual
-2. Para qué usamos tus datos
-Tus datos se usan exclusivamente para:
-Permitirte acceder a tu cuenta y tus proyectos
-Sincronizar tu contenido entre dispositivos
-Mostrarte tus proyectos, diarios y resultados guardados
-Enviarte notificaciones locales si las has activado (solo en tu dispositivo)
-LanaLibre no vende tus datos, no los comparte con terceros y no los usa para publicidad.
-3. Dónde se almacenan tus datos
-Tus datos se almacenan en Google Firebase (Cloud Firestore y Firebase Storage), con servidores ubicados en Europa (región EUR3). Google Firebase cumple con el RGPD.
-4. Durante cuánto tiempo conservamos tus datos
-Proyectos activos: mientras tengas cuenta activa
-Proyectos eliminados: 30 días, luego se borran permanentemente
-Cuenta eliminada: todos tus datos se eliminan de Firestore y Storage en el momento de la eliminación
-5. Tus derechos (RGPD)
-Como usuario tienes derecho a:
-Acceso — saber qué datos tenemos sobre ti
-Rectificación — corregir datos incorrectos
-Eliminación — borrar tu cuenta y todos tus datos
-Portabilidad — exportar tus datos en formato descargable
-Para ejercer cualquiera de estos derechos contacta con: contacto@lanalibre.es (placeholder)
-6. Seguridad
-La autenticación se gestiona íntegramente por Google o Apple — LanaLibre nunca ve ni almacena tu contraseña
-Cada usuario solo puede acceder a sus propios datos (reglas de seguridad de Firestore)
-Toda la comunicación con Firebase se realiza sobre HTTPS
-7. Menores de edad
-LanaLibre no está dirigida a menores de 16 años.
-8. Contacto
-Para cualquier consulta sobre privacidad: contacto@lanalibre.es (placeholder)`;
+import { getLegalContent } from '../constants/legalContent';
 
 const LANGUAGES = [
   { code: 'es', label: 'Español' },
@@ -121,22 +42,21 @@ const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
 // ── PerfilScreen ──────────────────────────────────────────────────────────────
 
 export default function PerfilScreen({ navigation }) {
-  const { theme: colors, isDark, toggleTheme } = useTheme();
+  const { theme: colors, isDark, toggleTheme, notifEnabled, setNotifEnabled } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t, i18n } = useTranslation();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const uid = user?.uid;
 
   const [nombre, setNombre] = useState('');
   const [fotoPerfil, setFotoPerfil] = useState(null);
   const [fechaRegistro, setFechaRegistro] = useState(null);
-  const [notifEnabled, setNotifEnabled] = useState(false);
-
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState('');
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [signOutModalVisible, setSignOutModalVisible] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
 
   const [termsVisible, setTermsVisible] = useState(false);
@@ -155,7 +75,6 @@ export default function PerfilScreen({ navigation }) {
         if (doc.nombre) setNombre(doc.nombre);
         if (doc.fotoPerfil) setFotoPerfil(doc.fotoPerfil);
         if (doc.fechaRegistro) setFechaRegistro(doc.fechaRegistro);
-        if (typeof doc.notifWIP === 'boolean') setNotifEnabled(doc.notifWIP);
       })
       .catch(() => {});
   }, [uid]);
@@ -171,13 +90,9 @@ export default function PerfilScreen({ navigation }) {
     const uri = result.assets[0].uri;
     setUploadingPhoto(true);
     try {
-      if (uid === 'dev-user') {
-        setFotoPerfil(uri);
-      } else {
-        const url = await uploadProfilePhoto(uid, uri);
-        await updateUserDocument(uid, { fotoPerfil: url });
-        setFotoPerfil(url);
-      }
+      const url = await uploadProfilePhoto(uid, uri);
+      await updateUserDocument(uid, { fotoPerfil: url });
+      setFotoPerfil(url);
     } catch (e) {
       console.error('[PerfilScreen] handleAvatarEdit error:', e);
       showToast(t('common.error'), 'error');
@@ -198,9 +113,7 @@ export default function PerfilScreen({ navigation }) {
       return;
     }
     try {
-      if (uid !== 'dev-user') {
-        await updateUserDocument(uid, { nombre: trimmed });
-      }
+      await updateUserDocument(uid, { nombre: trimmed });
       setNombre(trimmed);
     } catch (e) {
       console.error('[PerfilScreen] saveName error:', e);
@@ -247,9 +160,21 @@ export default function PerfilScreen({ navigation }) {
     }
   }
 
+  async function handleSignOut() {
+    setSignOutModalVisible(false);
+    try {
+      await signOut();
+    } catch {
+      showToast(t('common.error'), 'error');
+    }
+  }
+
   const initial = nombre?.trim()?.[0]?.toUpperCase() ?? '?';
   const currentLang = i18n.language;
   const dateStr = formatShortDate(fechaRegistro);
+
+  const termsContent = getLegalContent('terms', currentLang);
+  const privacyContent = getLegalContent('privacy', currentLang);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -423,6 +348,19 @@ export default function PerfilScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
+        {/* ── Cerrar sesión ── */}
+        <View style={styles.card}>
+          <TouchableOpacity
+            style={styles.row}
+            onPress={() => setSignOutModalVisible(true)}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.rowLabel, { color: colors.status.errorText }]}>
+              {t('perfil.cerrarSesion')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.bottomPad} />
       </ScrollView>
 
@@ -439,18 +377,28 @@ export default function PerfilScreen({ navigation }) {
         destructive
       />
 
+      <ConfirmationModal
+        visible={signOutModalVisible}
+        title={t('perfil.cerrarSesionTitle')}
+        message={t('perfil.cerrarSesionMessage')}
+        confirmLabel={t('perfil.cerrarSesionConfirm')}
+        cancelLabel={t('common.cancel')}
+        onConfirm={handleSignOut}
+        onCancel={() => setSignOutModalVisible(false)}
+      />
+
       <DocViewerModal
         visible={termsVisible}
         onClose={() => setTermsVisible(false)}
         title={t('perfil.terminos')}
-        content={TERMS_CONTENT}
+        content={termsContent}
       />
 
       <DocViewerModal
         visible={privacyVisible}
         onClose={() => setPrivacyVisible(false)}
         title={t('perfil.politica')}
-        content={PRIVACY_CONTENT}
+        content={privacyContent}
       />
 
       <Toast

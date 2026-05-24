@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    match /projects/{projectId} {
+      allow read, update, delete: if request.auth != null
+                                   && resource.data.uId == request.auth.uid;
+      allow create: if request.auth != null
+                    && request.resource.data.uId == request.auth.uid;
+
+      match /referencias/{refId} {
+        allow read, write: if request.auth != null
+          && get(/databases/$(database)/documents/projects/$(projectId)).data.uId
+             == request.auth.uid;
+      }
+    }
+
+    match /diarios/{diarioId} {
+      allow read, update, delete: if request.auth != null
+                                   && resource.data.uId == request.auth.uid;
+      allow create: if request.auth != null
+                    && request.resource.data.uId == request.auth.uid;
+
+      match /colores/{docId} {
+        allow read, write: if request.auth != null
+          && get(/databases/$(database)/documents/diarios/$(diarioId)).data.uId
+             == request.auth.uid;
+      }
+      match /archivosPatron/{docId} {
+        allow read, write: if request.auth != null
+          && get(/databases/$(database)/documents/diarios/$(diarioId)).data.uId
+             == request.auth.uid;
+      }
+      match /archivosInspiracion/{docId} {
+        allow read, write: if request.auth != null
+          && get(/databases/$(database)/documents/diarios/$(diarioId)).data.uId
+             == request.auth.uid;
+      }
+      match /entradas/{docId} {
+        allow read, write: if request.auth != null
+          && get(/databases/$(database)/documents/diarios/$(diarioId)).data.uId
+             == request.auth.uid;
+      }
+    }
+  }
+}

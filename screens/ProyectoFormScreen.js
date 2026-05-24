@@ -213,6 +213,7 @@ export default function ProyectoFormScreen({ route, navigation }) {
   const [showExitGuard, setShowExitGuard] = useState(false);
   const [pendingRemoveAction, setPendingRemoveAction] = useState(null);
   const pendingTabRouteRef = useRef(null);
+  const isSavingRef = useRef(false);
 
   const isDirty = useMemo(() => !isEdit && (
     nombre.trim() !== '' ||
@@ -227,7 +228,7 @@ export default function ProyectoFormScreen({ route, navigation }) {
   // Block back / stack-pop navigation
   useEffect(() => {
     const unsub = navigation.addListener('beforeRemove', (e) => {
-      if (!isDirty) return;
+      if (!isDirty || isSavingRef.current) return;
       e.preventDefault();
       setPendingRemoveAction(e.data.action);
       setShowExitGuard(true);
@@ -398,6 +399,7 @@ export default function ProyectoFormScreen({ route, navigation }) {
     }
     setNombreError('');
     setLoading(true);
+    isSavingRef.current = true;
     const uid = user?.uid;
     try {
       let targetId = projectId;
@@ -410,12 +412,9 @@ export default function ProyectoFormScreen({ route, navigation }) {
 
       await Promise.all([
         pendingFile && uid
-          ? uid === 'dev-user'
-            // dev-user: skip Storage, save local URI so file appears in dashboard
-            ? addArchivoProyecto(targetId, { url: pendingFile.uri, storagePath: null, name: pendingFile.name, isPdf: pendingFile.isPdf })
-            : uploadArchivoProyecto(uid, targetId, pendingFile).then(({ url, storagePath }) =>
-                addArchivoProyecto(targetId, { url, storagePath, name: pendingFile.name, isPdf: pendingFile.isPdf }),
-              )
+          ? uploadArchivoProyecto(uid, targetId, pendingFile).then(({ url, storagePath }) =>
+              addArchivoProyecto(targetId, { url, storagePath, name: pendingFile.name, isPdf: pendingFile.isPdf }),
+            )
           : null,
         calcResult ? saveResultadoCalculadora(targetId, buildCalcData()) : null,
         prevParams ? saveResultadoPrevisualización(targetId, prevParams) : null,
@@ -431,6 +430,7 @@ export default function ProyectoFormScreen({ route, navigation }) {
         navigation.replace('ProyectoDetalleScreen', { projectId: targetId });
       }
     } catch {
+      isSavingRef.current = false;
       showToast(t('errors.googleToken', { defaultValue: 'Algo salió mal. Intenta de nuevo.' }), 'error');
       setLoading(false);
     }

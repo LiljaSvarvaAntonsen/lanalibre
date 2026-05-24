@@ -73,7 +73,11 @@
     "acercaDe": "Acerca de",
     "version": "Versión",
     "terminos": "Términos y condiciones",
-    "politica": "Política de privacidad"
+    "politica": "Política de privacidad",
+    "cerrarSesion": "Cerrar sesión",
+    "cerrarSesionTitle": "¿Cerrar sesión?",
+    "cerrarSesionMessage": "Se cerrará tu sesión en este dispositivo.",
+    "cerrarSesionConfirm": "Cerrar sesión"
   },
   "placeholder": {
     "comingSoon": "Próximamente"

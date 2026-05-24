@@ -128,7 +128,7 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
     try {
       const [data, diarios, files] = await Promise.all([
         getProject(projectId),
-        getDiariosByProyecto(projectId),
+        getDiariosByProyecto(projectId, user?.uid),
         getArchivosProyecto(projectId),
       ]);
       setProject(data);
@@ -200,13 +200,8 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
     if (!uid) return;
     setUploading(true);
     try {
-      if (uid === 'dev-user') {
-        // dev-user: skip Storage, save local URI directly so file appears in dashboard
-        await addArchivoProyecto(projectId, { url: file.uri, storagePath: null, name: file.name, isPdf: file.isPdf });
-      } else {
-        const { url, storagePath } = await uploadArchivoProyecto(uid, projectId, file);
-        await addArchivoProyecto(projectId, { url, storagePath, name: file.name, isPdf: file.isPdf });
-      }
+      const { url, storagePath } = await uploadArchivoProyecto(uid, projectId, file);
+      await addArchivoProyecto(projectId, { url, storagePath, name: file.name, isPdf: file.isPdf });
       const files = await getArchivosProyecto(projectId);
       setArchivos(files);
     } catch {

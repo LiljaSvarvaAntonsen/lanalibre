@@ -13,10 +13,11 @@ export function NavigationGuardProvider({ children }) {
   function setTabGuard(config) { tabGuardRef.current = config; }
   function clearTabGuard() { tabGuardRef.current = null; }
 
-  function triggerTabGuardIfAny(destinationTabName, proceedFn) {
+  function triggerTabGuardIfAny(destinationTabName, currentTabName, proceedFn) {
     const config = tabGuardRef.current;
     if (!config) return false;
     if (destinationTabName === config.guardingTabName) return false;
+    if (currentTabName !== config.guardingTabName) return false;
     if (!config.isActive()) return false;
     setGuardConfig({
       title: config.title,
