@@ -1,8 +1,9 @@
 import { useRef, useMemo } from 'react';
-import { View, Image, Text, TouchableOpacity, PanResponder, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, PanResponder, StyleSheet } from 'react-native';
 import { FileText } from 'lucide-react-native';
 import { radii } from '../../constants/colors';
 import { useTheme } from '../../contexts/ThemeContext';
+import LazyImage from '../LazyImage';
 import { spacing } from '../../constants/spacing';
 import { fonts, fontSizes } from '../../constants/typography';
 
@@ -95,7 +96,7 @@ export default function ImageWidget({ element, onResize, selected, onPress }) {
           <Text style={s.pdfName} numberOfLines={2}>{element.fileName}</Text>
         </View>
       ) : (
-        <Image
+        <LazyImage
           source={{ uri: element.url }}
           style={{ width: element.width, height: element.height, borderRadius: radii.small }}
           resizeMode="contain"

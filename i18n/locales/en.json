@@ -3,7 +3,9 @@
     "close": "Close",
     "appName": "LanaLibre",
     "cancel": "Cancel",
-    "error": "Something went wrong."
+    "error": "Something went wrong.",
+    "back": "Back",
+    "edit": "Edit"
   },
   "projectPicker": {
     "title": "Save to project",
@@ -63,6 +65,7 @@
     "exportarDatos": "Export my data",
     "exportando": "Preparing export…",
     "exportError": "Could not export. Please try again.",
+    "exportUnavailableInExpoGo": "Full export will be available in the published app. During development the data is logged to console.",
     "eliminarCuenta": "Delete account",
     "eliminarTitle": "Are you sure?",
     "eliminarMessage": "This action cannot be undone. All your projects and journal entries will be deleted.",
@@ -131,7 +134,19 @@
       "required": "All fields are required.",
       "positiveNumber": "Enter a number greater than zero."
     },
-    "freeMode": "Free calculator (no project)"
+    "freeMode": "Free calculator (no project)",
+    "exitGuard": {
+      "title": "Leave?",
+      "message": "Your result won't be saved if you leave now.",
+      "save": "Save result",
+      "discard": "Leave without saving"
+    },
+    "backGuard": {
+      "title": "Leave?",
+      "message": "Your result won't be saved if you leave now.",
+      "keep": "Keep calculating",
+      "discard": "Leave without saving"
+    }
   },
   "vistaPrevia": {
     "title": "Project Preview",
@@ -165,6 +180,18 @@
       "confirm": "Exit",
       "cancel": "Cancel"
     },
+    "exitGuard": {
+      "title": "Leave?",
+      "message": "Your preview won't be saved if you leave now.",
+      "save": "Save preview",
+      "discard": "Leave without saving"
+    },
+    "backGuard": {
+      "title": "Leave?",
+      "message": "Your preview won't be saved if you leave now.",
+      "keep": "Keep previewing",
+      "discard": "Leave without saving"
+    },
     "errorNoTemplate": "This project type doesn't have a template yet.",
     "freeMode": "Free preview (no project)",
     "tipos": {
@@ -186,6 +213,8 @@
   "projects": {
     "tabActive": "Active",
     "tabDeleted": "Deleted",
+    "tabRecent": "Recent",
+    "deleteConfirm": "Delete project",
     "searchPlaceholder": "Search projects...",
     "emptyActive": "No projects yet. Start a new one!",
     "emptyDeleted": "No deleted projects.",
@@ -202,8 +231,11 @@
     "cancel": "Cancel",
     "deleteTitle": "Delete project?",
     "deleteMessage": "The project will go to the trash. You can recover it for 30 days.",
+    "deleteSuccessToast": "Project moved to trash! You have 30 days to recover it.",
     "restoreTitle": "Restore project?",
+    "restoreConfirm": "Restore",
     "restoreMessage": "The project will be moved back to your active list.",
+    "restoreSuccessToast": "Project recovered! Welcome back 🧶",
     "daysRemaining_one": "{{count}} day remaining",
     "daysRemaining_other": "{{count}} days remaining",
     "descripcion": "Description",
@@ -225,6 +257,10 @@
     "quitarArchivo": "Remove",
     "tipoImagen": "Image",
     "tipoPDF": "PDF document",
+    "exitGuardTitle": "Leave?",
+    "exitGuardMessage": "Your project won't be saved if you leave now.",
+    "exitGuardSave": "Save project",
+    "exitGuardDiscard": "Leave without saving",
     "tagLegendTitle": "Project Tags",
     "tagLegendSubtitle": "Terms from the crochet community.",
     "tags": {
@@ -315,6 +351,8 @@
       "subiendo": "Uploading...",
       "errorToast": "Upload failed. Please try again."
     },
-    "previewAddedToast": "Preview added to journal ✓"
+    "previewAddedToast": "Preview added to journal ✓",
+    "savedToast": "Entry saved! 📓",
+    "discardedToast": "You left without saving changes."
   }
 }

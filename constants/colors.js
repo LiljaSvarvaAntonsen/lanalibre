@@ -14,7 +14,7 @@ export const colors = {
   },
   neutral: {
     greige: '#D4CFC7',
-    tertiary: '#A8A9A6',
+    tertiary: '#666664',
   },
   background: '#F7F5F0',
   card: '#FFFFFF',
@@ -63,7 +63,7 @@ export const darkColors = {
   },
   neutral: {
     greige: '#3A3835',
-    tertiary: '#6B6B68',
+    tertiary: '#909090',
   },
   background: '#1A1917',
   card: '#252320',

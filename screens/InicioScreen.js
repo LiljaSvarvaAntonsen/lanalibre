@@ -53,7 +53,7 @@ export default function InicioScreen({ navigation }) {
             bg={colors.primary.light}
             iconColor={colors.primary.dark}
             textColor={colors.text.primary}
-            onPress={() => navigation.navigate('ProyectosScreen')}
+            onPress={() => navigation.navigate('ProyectosScreen', { filter: 'recent' })}
           />
           <ShortcutCard
             styles={styles}

@@ -35,7 +35,6 @@ export async function getUserDocument(uid) {
 const PAGE_SIZE = 20;
 
 export async function createProject(uid, { nombre, etiqueta, descripcion = '' }) {
-  console.log('[firestore] createProject uid:', uid, 'nombre:', nombre);
   const ref = await addDoc(collection(db, 'projects'), {
     uId: uid,
     nombre,
@@ -44,12 +43,10 @@ export async function createProject(uid, { nombre, etiqueta, descripcion = '' })
     fechaCreacion: serverTimestamp(),
     deletedAt: null,
   });
-  console.log('[firestore] createProject success, id:', ref.id);
   return { id: ref.id, uId: uid, nombre, etiqueta, descripcion, deletedAt: null };
 }
 
 export async function getActiveProjects(uid, lastVisible = null) {
-  console.log('[firestore] getActiveProjects uid:', uid, 'lastVisible:', lastVisible ? 'set' : 'null');
   const constraints = [
     where('uId', '==', uid),
     where('deletedAt', '==', null),
@@ -60,11 +57,10 @@ export async function getActiveProjects(uid, lastVisible = null) {
   try {
     const snap = await getDocs(query(collection(db, 'projects'), ...constraints));
     const projects = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    console.log('[firestore] getActiveProjects returned', projects.length, 'projects');
     const lastDoc = snap.docs[snap.docs.length - 1] ?? null;
     return { projects, lastVisible: lastDoc, hasMore: snap.docs.length === PAGE_SIZE };
   } catch (err) {
-    console.log('[firestore] getActiveProjects ERROR:', err.code, err.message);
+    console.error('[firestore] getActiveProjects error:', err.code, err.message);
     throw err;
   }
 }
@@ -91,11 +87,11 @@ export async function updateProject(id, data) {
 }
 
 export async function softDeleteProject(id) {
-  await updateDoc(doc(db, 'projects', id), { deletedAt: serverTimestamp() });
+  await setDoc(doc(db, 'projects', id), { deletedAt: serverTimestamp() }, { merge: true });
 }
 
 export async function restoreProject(id) {
-  await updateDoc(doc(db, 'projects', id), { deletedAt: null });
+  await setDoc(doc(db, 'projects', id), { deletedAt: null }, { merge: true });
 }
 
 export async function hardDeleteProject(id) {
@@ -184,8 +180,6 @@ export async function getDiariosByProyecto(proyectoId) {
 // ── Archivos de proyecto ──────────────────────────────────────────────────────
 
 export async function addArchivoProyecto(projectId, { url, storagePath, name, isPdf }) {
-  console.log('[firestore] addArchivoProyecto projectId:', projectId, 'name:', name);
-  console.log('[firestore] addArchivoProyecto path:', `projects/${projectId}/referencias`);
   const ref = await addDoc(collection(db, 'projects', projectId, 'referencias'), {
     url,
     storagePath,
@@ -193,21 +187,16 @@ export async function addArchivoProyecto(projectId, { url, storagePath, name, is
     isPdf,
     fechaSubida: serverTimestamp(),
   });
-  console.log('[firestore] addArchivoProyecto saved, id:', ref.id);
   return ref.id;
 }
 
 export async function getArchivosProyecto(projectId) {
-  console.log('[firestore] getArchivosProyecto projectId:', projectId);
-  console.log('[firestore] getArchivosProyecto path:', `projects/${projectId}/referencias`);
   // No orderBy — subcollection single-field orderBy may require a Firestore index.
   // Sort client-side instead.
   const snap = await getDocs(collection(db, 'projects', projectId, 'referencias'));
-  const archivos = snap.docs
+  return snap.docs
     .map((d) => ({ id: d.id, ...d.data() }))
     .sort((a, b) => (b.fechaSubida?.toMillis?.() ?? 0) - (a.fechaSubida?.toMillis?.() ?? 0));
-  console.log('[firestore] getArchivosProyecto returned', archivos.length, 'files');
-  return archivos;
 }
 
 export async function deleteArchivoProyecto(projectId, archivoId) {

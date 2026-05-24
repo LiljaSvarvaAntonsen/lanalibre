@@ -3,7 +3,9 @@
     "close": "Lukk",
     "appName": "LanaLibre",
     "cancel": "Avbryt",
-    "error": "Noe gikk galt."
+    "error": "Noe gikk galt.",
+    "back": "Tilbake",
+    "edit": "Rediger"
   },
   "projectPicker": {
     "title": "Lagre i prosjekt",
@@ -63,6 +65,7 @@
     "exportarDatos": "Eksporter dataene mine",
     "exportando": "Forbereder eksport…",
     "exportError": "Kunne ikke eksportere. Prøv igjen.",
+    "exportUnavailableInExpoGo": "Full eksport blir tilgjengelig i den publiserte appen. Under utvikling vises dataene i konsollen.",
     "eliminarCuenta": "Slett konto",
     "eliminarTitle": "Er du sikker?",
     "eliminarMessage": "Denne handlingen kan ikke angres. Alle prosjekter og dagbokoppføringer slettes.",
@@ -131,7 +134,19 @@
       "required": "Alle felt er obligatoriske.",
       "positiveNumber": "Skriv inn et tall større enn null."
     },
-    "freeMode": "Fri kalkulator (uten prosjekt)"
+    "freeMode": "Fri kalkulator (uten prosjekt)",
+    "exitGuard": {
+      "title": "Vil du forlate?",
+      "message": "Resultatet lagres ikke hvis du forlater nå.",
+      "save": "Lagre resultatet",
+      "discard": "Forlat uten å lagre"
+    },
+    "backGuard": {
+      "title": "Vil du forlate?",
+      "message": "Resultatet lagres ikke hvis du forlater nå.",
+      "keep": "Fortsett å beregne",
+      "discard": "Forlat uten å lagre"
+    }
   },
   "vistaPrevia": {
     "title": "Prosjektforhåndsvisning",
@@ -165,6 +180,18 @@
       "confirm": "Avslutt",
       "cancel": "Avbryt"
     },
+    "exitGuard": {
+      "title": "Vil du forlate?",
+      "message": "Forhåndsvisningen lagres ikke hvis du forlater nå.",
+      "save": "Lagre forhåndsvisning",
+      "discard": "Forlat uten å lagre"
+    },
+    "backGuard": {
+      "title": "Vil du forlate?",
+      "message": "Forhåndsvisningen lagres ikke hvis du forlater nå.",
+      "keep": "Fortsett å forhåndsvise",
+      "discard": "Forlat uten å lagre"
+    },
     "errorNoTemplate": "Denne prosjekttypen har ikke en mal ennå.",
     "freeMode": "Fri forhåndsvisning (uten prosjekt)",
     "tipos": {
@@ -186,6 +213,8 @@
   "projects": {
     "tabActive": "Aktive",
     "tabDeleted": "Slettede",
+    "tabRecent": "Nylige",
+    "deleteConfirm": "Slett prosjekt",
     "searchPlaceholder": "Søk etter prosjekter...",
     "emptyActive": "Ingen prosjekter ennå. Start et nytt!",
     "emptyDeleted": "Ingen slettede prosjekter.",
@@ -202,8 +231,11 @@
     "cancel": "Avbryt",
     "deleteTitle": "Slette prosjekt?",
     "deleteMessage": "Prosjektet flyttes til papirkurven. Du kan gjenopprette det i 30 dager.",
+    "deleteSuccessToast": "Prosjekt sendt til papirkurven! Du har 30 dager på å gjenopprette det.",
     "restoreTitle": "Gjenopprette prosjekt?",
+    "restoreConfirm": "Gjenopprett",
     "restoreMessage": "Prosjektet flyttes tilbake til den aktive listen.",
+    "restoreSuccessToast": "Prosjekt gjenopprettet! Velkommen tilbake 🧶",
     "daysRemaining_one": "{{count}} dag igjen",
     "daysRemaining_other": "{{count}} dager igjen",
     "descripcion": "Beskrivelse",
@@ -225,6 +257,10 @@
     "quitarArchivo": "Fjern",
     "tipoImagen": "Bilde",
     "tipoPDF": "PDF-dokument",
+    "exitGuardTitle": "Vil du forlate?",
+    "exitGuardMessage": "Prosjektet lagres ikke hvis du forlater nå.",
+    "exitGuardSave": "Lagre prosjekt",
+    "exitGuardDiscard": "Forlat uten å lagre",
     "tagLegendTitle": "Prosjektmerkelapper",
     "tagLegendSubtitle": "Begreper fra heklesamfunnet.",
     "tags": {
@@ -315,6 +351,8 @@
       "subiendo": "Laster opp...",
       "errorToast": "Opplasting mislyktes. Prøv igjen."
     },
-    "previewAddedToast": "Forhåndsvisning lagt til i dagboken ✓"
+    "previewAddedToast": "Forhåndsvisning lagt til i dagboken ✓",
+    "savedToast": "Oppføring lagret! 📓",
+    "discardedToast": "Du forlot uten å lagre endringer."
   }
 }

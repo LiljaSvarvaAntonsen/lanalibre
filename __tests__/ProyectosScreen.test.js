@@ -49,7 +49,7 @@ function Wrapper({ children }) {
   return <NavigationContainer>{children}</NavigationContainer>;
 }
 
-const mockNavigation = { navigate: jest.fn() };
+const mockNavigation = { navigate: jest.fn(), setParams: jest.fn(), goBack: jest.fn() };
 
 beforeAll(async () => {
   await i18n.changeLanguage('es');

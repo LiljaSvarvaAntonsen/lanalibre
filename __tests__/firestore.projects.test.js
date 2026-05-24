@@ -1,4 +1,5 @@
 const mockUpdateDoc = jest.fn(() => Promise.resolve());
+const mockSetDoc = jest.fn(() => Promise.resolve());
 const mockDeleteDoc = jest.fn(() => Promise.resolve());
 const mockAddDoc = jest.fn(() => Promise.resolve({ id: 'new-id' }));
 const mockGetDocs = jest.fn(() => Promise.resolve({ docs: [] }));
@@ -14,7 +15,7 @@ const mockDoc = jest.fn();
 jest.mock('firebase/firestore', () => ({
   getFirestore: jest.fn(() => ({})),
   doc: (...args) => mockDoc(...args),
-  setDoc: jest.fn(() => Promise.resolve()),
+  setDoc: (...args) => mockSetDoc(...args),
   getDoc: jest.fn(() => Promise.resolve({ exists: () => false })),
   addDoc: (...args) => mockAddDoc(...args),
   updateDoc: (...args) => mockUpdateDoc(...args),
@@ -42,19 +43,19 @@ import {
 afterEach(() => jest.clearAllMocks());
 
 describe('softDeleteProject', () => {
-  test('calls updateDoc with a deletedAt field', async () => {
+  test('calls setDoc with a deletedAt field', async () => {
     await softDeleteProject('proj-1');
-    expect(mockUpdateDoc).toHaveBeenCalledTimes(1);
-    const [, data] = mockUpdateDoc.mock.calls[0];
+    expect(mockSetDoc).toHaveBeenCalledTimes(1);
+    const [, data] = mockSetDoc.mock.calls[0];
     expect(data).toHaveProperty('deletedAt');
   });
 });
 
 describe('restoreProject', () => {
-  test('calls updateDoc with deletedAt: null', async () => {
+  test('calls setDoc with deletedAt: null', async () => {
     await restoreProject('proj-1');
-    expect(mockUpdateDoc).toHaveBeenCalledTimes(1);
-    const [, data] = mockUpdateDoc.mock.calls[0];
+    expect(mockSetDoc).toHaveBeenCalledTimes(1);
+    const [, data] = mockSetDoc.mock.calls[0];
     expect(data).toEqual({ deletedAt: null });
   });
 });

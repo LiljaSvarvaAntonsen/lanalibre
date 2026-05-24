@@ -37,7 +37,7 @@ export default function ProjectCard({ project, onDelete, onRestore, isDeleted, o
     >
       <View style={styles.top}>
         <View style={[styles.badge, { backgroundColor: tagStyle.bg, borderColor: tagStyle.border }]}>
-          <Text style={[styles.badgeText, { color: tagStyle.text }]}>{project.etiqueta}</Text>
+          <Text style={[styles.badgeText, { color: tagStyle.text }]} maxFontSizeMultiplier={1.3}>{project.etiqueta}</Text>
         </View>
         {!isDeleted && (
           <TouchableOpacity
@@ -63,7 +63,7 @@ export default function ProjectCard({ project, onDelete, onRestore, isDeleted, o
             </Text>
           </View>
           <TouchableOpacity onPress={onRestore} activeOpacity={0.7}>
-            <Text style={styles.restoreBtn}>{t('projects.restoreTitle').replace('?', '')}</Text>
+            <Text style={styles.restoreBtn}>{t('projects.restoreConfirm')}</Text>
           </TouchableOpacity>
         </View>
       )}

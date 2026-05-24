@@ -3,9 +3,7 @@
 // These are no-op mocks for development.
 
 export async function scheduleWIPReminder(title, body) {
-  console.log('[notifications] scheduleWIPReminder (mock):', title, body);
 }
 
 export async function cancelWIPReminder() {
-  console.log('[notifications] cancelWIPReminder (mock)');
 }

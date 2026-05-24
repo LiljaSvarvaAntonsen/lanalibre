@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   createProject as fsCreateProject,
   getActiveProjects,
@@ -10,6 +10,14 @@ import {
 } from '../services/firestore';
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+const RECENT_PROJECTS_DAYS = 14;
+
+function getProjectDate(fechaCreacion) {
+  if (!fechaCreacion) return null;
+  if (typeof fechaCreacion.toDate === 'function') return fechaCreacion.toDate();
+  if (fechaCreacion.seconds) return new Date(fechaCreacion.seconds * 1000);
+  return new Date(fechaCreacion);
+}
 
 function isExpired(deletedAt) {
   if (!deletedAt) return false;
@@ -43,7 +51,7 @@ export function useProjects(uid) {
       setDeletedProjects(live);
       await Promise.all(expired.map((p) => fsHardDelete(p.id)));
     } catch (err) {
-      console.log('[useProjects] load error:', err.code, err.message, err);
+      console.error('[useProjects] load error:', err.code, err.message, err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -105,8 +113,18 @@ export function useProjects(uid) {
     setDeletedProjects((prev) => prev.filter((p) => p.id !== id));
   }
 
+  const recentProjects = useMemo(() => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - RECENT_PROJECTS_DAYS);
+    return activeProjects.filter((p) => {
+      const date = getProjectDate(p.fechaCreacion);
+      return date && date >= cutoff;
+    });
+  }, [activeProjects]);
+
   return {
     activeProjects,
+    recentProjects,
     deletedProjects,
     loading,
     error,
