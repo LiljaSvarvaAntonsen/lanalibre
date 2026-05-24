@@ -15,6 +15,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import { NavigationGuardProvider } from './contexts/NavigationGuardContext';
 import { useAuth } from './hooks/useAuth';
 import LoginScreen from './screens/LoginScreen';
 import MainTabs from './navigation/MainTabs';
@@ -96,10 +97,12 @@ export default function App() {
     <SafeAreaProvider>
       <AuthProvider>
         <ThemeProvider>
-          <ThemedNavigationContainer>
-            <StatusBar style="auto" />
-            <AuthRouter />
-          </ThemedNavigationContainer>
+          <NavigationGuardProvider>
+            <ThemedNavigationContainer>
+              <StatusBar style="auto" />
+              <AuthRouter />
+            </ThemedNavigationContainer>
+          </NavigationGuardProvider>
         </ThemeProvider>
       </AuthProvider>
     </SafeAreaProvider>

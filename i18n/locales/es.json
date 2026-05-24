@@ -3,7 +3,9 @@
     "close": "Cerrar",
     "appName": "LanaLibre",
     "cancel": "Cancelar",
-    "error": "Algo salió mal."
+    "error": "Algo salió mal.",
+    "back": "Volver",
+    "edit": "Editar"
   },
   "projectPicker": {
     "title": "Guardar en proyecto",
@@ -37,7 +39,7 @@
     "perfil": "Perfil"
   },
   "inicio": {
-    "greeting": "Hola! 👋",
+    "greeting": "¡Hola! 👋",
     "subtitle": "¿Qué quieres crear hoy?",
     "newProject": "Empezar nuevo proyecto",
     "recentProjects": "Proyectos recientes",
@@ -63,6 +65,7 @@
     "exportarDatos": "Exportar mis datos",
     "exportando": "Preparando exportación…",
     "exportError": "No se pudo exportar. Inténtalo de nuevo.",
+    "exportUnavailableInExpoGo": "La exportación completa estará disponible en la versión publicada. Durante el desarrollo los datos se muestran en consola.",
     "eliminarCuenta": "Eliminar cuenta",
     "eliminarTitle": "¿Estás seguro?",
     "eliminarMessage": "Esta acción no se puede deshacer. Se eliminarán todos tus proyectos y entradas de diario.",
@@ -131,7 +134,19 @@
       "required": "Todos los campos son obligatorios.",
       "positiveNumber": "Introduce un número mayor que cero."
     },
-    "freeMode": "Calculadora libre (sin proyecto)"
+    "freeMode": "Calculadora libre (sin proyecto)",
+    "exitGuard": {
+      "title": "¿Quieres salir?",
+      "message": "El resultado no se guardará si sales ahora.",
+      "save": "Guardar resultado",
+      "discard": "Salir sin guardar"
+    },
+    "backGuard": {
+      "title": "¿Quieres salir?",
+      "message": "El resultado no se guardará si sales ahora.",
+      "keep": "Seguir calculando",
+      "discard": "Salir sin guardar"
+    }
   },
   "vistaPrevia": {
     "title": "Vista previa del proyecto",
@@ -165,6 +180,18 @@
       "confirm": "Salir",
       "cancel": "Cancelar"
     },
+    "exitGuard": {
+      "title": "¿Quieres salir?",
+      "message": "La vista previa no se guardará si sales ahora.",
+      "save": "Guardar vista previa",
+      "discard": "Salir sin guardar"
+    },
+    "backGuard": {
+      "title": "¿Quieres salir?",
+      "message": "La vista previa no se guardará si sales ahora.",
+      "keep": "Seguir previsualizando",
+      "discard": "Salir sin guardar"
+    },
     "errorNoTemplate": "Este tipo de proyecto aún no tiene plantilla disponible.",
     "freeMode": "Vista previa libre (sin proyecto)",
     "tipos": {
@@ -186,6 +213,8 @@
   "projects": {
     "tabActive": "Activos",
     "tabDeleted": "Eliminados",
+    "tabRecent": "Recientes",
+    "deleteConfirm": "Eliminar proyecto",
     "searchPlaceholder": "Buscar proyectos...",
     "emptyActive": "Aún no tienes proyectos. ¡Empieza uno nuevo!",
     "emptyDeleted": "No tienes proyectos eliminados.",
@@ -202,8 +231,11 @@
     "cancel": "Cancelar",
     "deleteTitle": "¿Eliminar proyecto?",
     "deleteMessage": "El proyecto irá a la papelera. Podrás recuperarlo durante 30 días.",
+    "deleteSuccessToast": "¡Proyecto enviado a la papelera! Tienes 30 días para recuperarlo.",
     "restoreTitle": "¿Restaurar proyecto?",
+    "restoreConfirm": "Restaurar",
     "restoreMessage": "El proyecto volverá a tu lista de activos.",
+    "restoreSuccessToast": "¡Proyecto recuperado! Bienvenido de vuelta 🧶",
     "daysRemaining_one": "{{count}} día restante",
     "daysRemaining_other": "{{count}} días restantes",
     "descripcion": "Descripción",
@@ -225,6 +257,10 @@
     "quitarArchivo": "Quitar",
     "tipoImagen": "Imagen",
     "tipoPDF": "Documento PDF",
+    "exitGuardTitle": "¿Quieres salir?",
+    "exitGuardMessage": "El proyecto no se guardará si sales ahora.",
+    "exitGuardSave": "Guardar proyecto",
+    "exitGuardDiscard": "Salir sin guardar",
     "tagLegendTitle": "Etiquetas de proyecto",
     "tagLegendSubtitle": "Términos de la comunidad crochetera.",
     "tags": {
@@ -315,6 +351,8 @@
       "subiendo": "Subiendo...",
       "errorToast": "Error al subir. Inténtalo de nuevo."
     },
-    "previewAddedToast": "Vista previa añadida al diario ✓"
+    "previewAddedToast": "Vista previa añadida al diario ✓",
+    "savedToast": "¡Entrada guardada! 📓",
+    "discardedToast": "Saliste sin guardar los cambios."
   }
 }

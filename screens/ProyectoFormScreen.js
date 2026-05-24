@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -53,6 +53,7 @@ import { uploadArchivoProyecto } from '../services/storage';
 import { useAuth } from '../hooks/useAuth';
 import PreviewCanvas from '../components/PreviewCanvas';
 import LoadingOverlay from '../components/LoadingOverlay';
+import ConfirmationModal from '../components/ConfirmationModal';
 import Toast from '../components/Toast';
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -208,6 +209,67 @@ export default function ProyectoFormScreen({ route, navigation }) {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
 
+  // ── Unsaved-changes guard (new project mode only) ────────────────────────────
+  const [showExitGuard, setShowExitGuard] = useState(false);
+  const [pendingRemoveAction, setPendingRemoveAction] = useState(null);
+  const pendingTabRouteRef = useRef(null);
+
+  const isDirty = useMemo(() => !isEdit && (
+    nombre.trim() !== '' ||
+    etiqueta !== 'WIP' ||
+    descripcion.trim() !== '' ||
+    pendingFile !== null ||
+    calcResult !== null ||
+    prevParams !== null ||
+    diarioPending
+  ), [isEdit, nombre, etiqueta, descripcion, pendingFile, calcResult, prevParams, diarioPending]);
+
+  // Block back / stack-pop navigation
+  useEffect(() => {
+    const unsub = navigation.addListener('beforeRemove', (e) => {
+      if (!isDirty) return;
+      e.preventDefault();
+      setPendingRemoveAction(e.data.action);
+      setShowExitGuard(true);
+    });
+    return unsub;
+  }, [navigation, isDirty]);
+
+  // Block bottom-tab switches while dirty
+  useEffect(() => {
+    const parent = navigation.getParent();
+    if (!parent) return;
+    const unsub = parent.addListener('tabPress', (e) => {
+      if (!isDirty) return;
+      e.preventDefault();
+      const state = parent.getState();
+      const pressed = state.routes.find((r) => r.key === e.target);
+      if (pressed) pendingTabRouteRef.current = pressed.name;
+      setShowExitGuard(true);
+    });
+    return unsub;
+  }, [navigation, isDirty]);
+
+  function handleExitWithoutSaving() {
+    setShowExitGuard(false);
+    if (pendingRemoveAction) {
+      const action = pendingRemoveAction;
+      setPendingRemoveAction(null);
+      navigation.dispatch(action);
+    } else if (pendingTabRouteRef.current) {
+      const route = pendingTabRouteRef.current;
+      pendingTabRouteRef.current = null;
+      navigation.navigate(route);
+    }
+  }
+
+  function handleSaveFromGuard() {
+    setShowExitGuard(false);
+    setPendingRemoveAction(null);
+    pendingTabRouteRef.current = null;
+    handleSave();
+  }
+
   function showToast(message, type = 'success') {
     setToast({ visible: true, message, type });
   }
@@ -346,20 +408,14 @@ export default function ProyectoFormScreen({ route, navigation }) {
         targetId = project.id;
       }
 
-      console.log('[form] pendingFile:', pendingFile);
-      console.log('[form] uid:', uid, 'targetId:', targetId);
-
       await Promise.all([
         pendingFile && uid
           ? uid === 'dev-user'
             // dev-user: skip Storage, save local URI so file appears in dashboard
-            ? (console.log('[form] dev-user — saving local URI directly'),
-               addArchivoProyecto(targetId, { url: pendingFile.uri, storagePath: null, name: pendingFile.name, isPdf: pendingFile.isPdf }))
-            : (console.log('[form] uploadArchivoProyecto called with uid:', uid, 'projectId:', targetId),
-               uploadArchivoProyecto(uid, targetId, pendingFile).then(({ url, storagePath }) => {
-                 console.log('[form] addArchivoProyecto called with:', { url, storagePath, name: pendingFile.name, isPdf: pendingFile.isPdf });
-                 return addArchivoProyecto(targetId, { url, storagePath, name: pendingFile.name, isPdf: pendingFile.isPdf });
-               }))
+            ? addArchivoProyecto(targetId, { url: pendingFile.uri, storagePath: null, name: pendingFile.name, isPdf: pendingFile.isPdf })
+            : uploadArchivoProyecto(uid, targetId, pendingFile).then(({ url, storagePath }) =>
+                addArchivoProyecto(targetId, { url, storagePath, name: pendingFile.name, isPdf: pendingFile.isPdf }),
+              )
           : null,
         calcResult ? saveResultadoCalculadora(targetId, buildCalcData()) : null,
         prevParams ? saveResultadoPrevisualización(targetId, prevParams) : null,
@@ -391,7 +447,7 @@ export default function ProyectoFormScreen({ route, navigation }) {
       >
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityRole="button" accessibilityLabel={t('common.back')}>
             <ArrowLeft size={22} color={colors.primary.dark} strokeWidth={1.8} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
@@ -437,7 +493,7 @@ export default function ProyectoFormScreen({ route, navigation }) {
                     accessibilityRole="radio"
                     accessibilityState={{ selected }}
                   >
-                    <Text style={[styles.tagChipText, { color: selected ? ts.text : colors.text.tertiary }]}>{tag}</Text>
+                    <Text style={[styles.tagChipText, { color: selected ? ts.text : colors.text.tertiary }]} maxFontSizeMultiplier={1.3}>{tag}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -759,6 +815,16 @@ export default function ProyectoFormScreen({ route, navigation }) {
         message={toast.message}
         type={toast.type}
         onHide={() => setToast((s) => ({ ...s, visible: false }))}
+      />
+
+      <ConfirmationModal
+        visible={showExitGuard}
+        title={t('projects.exitGuardTitle')}
+        message={t('projects.exitGuardMessage')}
+        confirmLabel={t('projects.exitGuardSave')}
+        cancelLabel={t('projects.exitGuardDiscard')}
+        onConfirm={handleSaveFromGuard}
+        onCancel={handleExitWithoutSaving}
       />
     </SafeAreaView>
   );

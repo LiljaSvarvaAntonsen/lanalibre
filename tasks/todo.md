@@ -276,12 +276,12 @@ Tasks are ordered by development slice. Complete each slice fully (services → 
 ---
 
 ## Slice 11 — Performance & accessibility (RNF-01, RNF-02, RNF-03, RNF-07)
-- [ ] Lazy load all images throughout the app (`<Image>` with placeholder)
-- [ ] Paginate project list at 20 items with "load more" or infinite scroll
+- [x] Lazy load all images throughout the app — `components/LazyImage.js` wraps network images in PerfilScreen, ProyectoDetalleScreen, ImageWidget
+- [x] Paginate project list at 20 items with "load more" or infinite scroll — already implemented (PAGE_SIZE=20, onEndReached wired)
 - [ ] Verify app cold start < 3 s on a mid-range Android emulator
 - [ ] Verify all user actions respond < 3 s
-- [ ] Check colour contrast ratios for all text/background combinations against WCAG 2.1 AA (4.5:1 minimum)
-- [ ] Test with system font size set to largest — ensure no text truncates or overflows
+- [x] Check colour contrast ratios for all text/background combinations against WCAG 2.1 AA — fixed text.tertiary (#A8A9A6→#666664), sectionHeader+uploadBtnText (COPPER→text.secondary), tag badge (COPPER/white→colors.tags system)
+- [x] Test with system font size set to largest — added maxFontSizeMultiplier={1.3} to badge/tab/chip text; maxFontSizeMultiplier={1.5} to row counter
 - [ ] Test on tablet viewport — verify layout adapts correctly (RNF-03)
 - [ ] Limit session data transfer to ~5 MB typical use (verify with Firebase emulator)
 
@@ -319,6 +319,16 @@ Tasks are ordered by development slice. Complete each slice fully (services → 
 - [ ] Verify Firebase plan is on Blaze (pay-as-you-go) for production Storage usage
 - [ ] Final smoke test on physical iOS and Android devices
 - [ ] PDF fullscreen viewing requires EAS build — implement with expo-intent-launcher in Slice 14
+- [ ] Verify data export works correctly in EAS production build — expo-file-system directories unavailable in Expo Go
+
+---
+
+## UX Polish — post Slice 12
+- [ ] T&C and privacy policy content must be available in Spanish, English and Norwegian
+- [ ] Recent projects list should show projects accessed or created in the last 2 weeks, distinct from the full all projects list
+- [ ] Review and add missing confirmation messages across the app
+- [ ] Fix export toast message — remove the inaccurate reference to data being visible on screen
+- [ ] Change recent projects parameter back to 14 days before deployment (currently set to 1 day in hooks/useProjects.js RECENT_PROJECTS_DAYS)
 
 ---
 

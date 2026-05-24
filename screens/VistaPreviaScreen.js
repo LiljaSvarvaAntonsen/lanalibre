@@ -9,7 +9,6 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  BackHandler,
   useWindowDimensions,
   Keyboard,
 } from 'react-native';
@@ -37,6 +36,7 @@ import PreviewCanvas from '../components/PreviewCanvas';
 import LoadingOverlay from '../components/LoadingOverlay';
 import ProjectPickerModal from '../components/ProjectPickerModal';
 import Toast from '../components/Toast';
+import { useNavigationGuard } from '../contexts/NavigationGuardContext';
 
 const PRESET_PALETTE = [
   '#C17B4E', '#D4868A', '#7A9E7E', '#E8C9A0',
@@ -71,6 +71,7 @@ export default function VistaPreviaScreen({ navigation, route }) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { setTabGuard, clearTabGuard } = useNavigationGuard();
   const { width: screenWidth } = useWindowDimensions();
   const projectId = route?.params?.projectId ?? null;
   const isProjectMode = !!projectId;
@@ -83,13 +84,75 @@ export default function VistaPreviaScreen({ navigation, route }) {
   const [loading, setLoading] = useState(false);
   const [showOverwriteModal, setShowOverwriteModal] = useState(false);
   const [showSavedModal, setShowSavedModal] = useState(false);
-  const [showExitModal, setShowExitModal] = useState(false);
   const [showTypePicker, setShowTypePicker] = useState(false);
   const [showProjectPicker, setShowProjectPicker] = useState(false);
   const [savedToastVisible, setSavedToastVisible] = useState(false);
   const [savedToastMessage, setSavedToastMessage] = useState('');
+  const [showBackGuard, setShowBackGuard] = useState(false);
   const pickedProjectName = useRef('');
+  const pendingBackActionRef = useRef(null);
   const canvasRef = useRef(null);
+
+  const showResultRef = useRef(showResult);
+  useEffect(() => { showResultRef.current = showResult; }, [showResult]);
+
+  const savedParamsRef = useRef(savedParams);
+  useEffect(() => { savedParamsRef.current = savedParams; }, [savedParams]);
+
+  const pendingNavigationRef = useRef(null);
+  const doSaveRef = useRef(null);
+  useEffect(() => { doSaveRef.current = doSave; });
+
+  const shouldResetOnFocusRef = useRef(false);
+  const navigateAfterSaveRef = useRef(false);
+
+  const isDirtyForTabGuard = isProjectMode && showResult && savedParams === null;
+
+  useEffect(() => {
+    const unsub = navigation.addListener('focus', () => {
+      if (shouldResetOnFocusRef.current) {
+        setFields(EMPTY_FIELDS);
+        setErrors({});
+        setParams(null);
+        setShowResult(false);
+        setSavedParams(null);
+        shouldResetOnFocusRef.current = false;
+      }
+    });
+    return unsub;
+  }, [navigation]);
+
+  useEffect(() => {
+    const unsub = navigation.addListener('blur', () => {
+      shouldResetOnFocusRef.current = true;
+    });
+    return unsub;
+  }, [navigation]);
+
+  useEffect(() => {
+    if (showResult && savedParams === null) {
+      setTabGuard({
+        guardingTabName: 'VistaPrevia',
+        isActive: () => navigation.isFocused(),
+        title: t('vistaPrevia.exitGuard.title'),
+        message: t('vistaPrevia.exitGuard.message'),
+        confirmLabel: t('vistaPrevia.exitGuard.discard'),
+        cancelLabel: t('vistaPrevia.exitGuard.save'),
+        destructive: true,
+        onSave: (destinationTab) => {
+          pendingNavigationRef.current = destinationTab;
+          navigateAfterSaveRef.current = true;
+          if (isProjectMode) {
+            doSaveRef.current?.();
+          } else {
+            setShowProjectPicker(true);
+          }
+        },
+      });
+    } else {
+      clearTabGuard();
+    }
+  }, [showResult, savedParams]);
 
   useEffect(() => {
     if (!isProjectMode) return;
@@ -107,15 +170,17 @@ export default function VistaPreviaScreen({ navigation, route }) {
     return () => { cancelled = true; };
   }, [projectId, isProjectMode]);
 
-  // Intercept Android back when on result view in project mode
   useEffect(() => {
-    if (!showResult || !isProjectMode) return;
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      setShowExitModal(true);
-      return true;
+    const unsub = navigation.addListener('beforeRemove', (e) => {
+      const resultNotSaved = showResultRef.current && savedParamsRef.current === null;
+      if (!resultNotSaved) return;
+      console.log('[prev] guard triggered, showResult:', showResultRef.current, 'savedParams:', savedParamsRef.current);
+      e.preventDefault();
+      pendingBackActionRef.current = e.data.action;
+      setShowBackGuard(true);
     });
-    return () => sub.remove();
-  }, [showResult, isProjectMode]);
+    return unsub;
+  }, [navigation]);
 
   function setField(key, value) {
     setFields((prev) => ({ ...prev, [key]: value }));
@@ -175,32 +240,54 @@ export default function VistaPreviaScreen({ navigation, route }) {
     try {
       await saveResultadoPrevisualización(targetProjectId, params);
       setSavedParams(params);
-      if (isProjectMode) {
+      if (navigateAfterSaveRef.current) {
+        navigateAfterSaveRef.current = false;
+        if (pendingNavigationRef.current) {
+          navigation.navigate(pendingNavigationRef.current);
+          pendingNavigationRef.current = null;
+        }
+      } else if (isProjectMode) {
         setShowSavedModal(true);
       } else {
         setSavedToastMessage(t('projectPicker.savedToast', { nombre: pickedProjectName.current }));
         setSavedToastVisible(true);
       }
     } catch {
-      // leave in result view; user can retry
+      // error handled silently
     } finally {
       setLoading(false);
     }
   }
 
   function handleBack() {
-    if (showResult && isProjectMode) {
-      setShowExitModal(true);
-    } else if (showResult) {
-      setShowResult(false);
-    } else if (navigation.canGoBack()) {
+    if (showResult) {
+      if (isDirtyForTabGuard) {
+        setShowBackGuard(true);
+      } else {
+        setShowResult(false);
+      }
+    } else {
       navigation.goBack();
     }
   }
 
-  function handleConfirmExit() {
-    setShowExitModal(false);
-    navigation.goBack();
+  function handleBackGuardKeep() {
+    pendingBackActionRef.current = null;
+    setShowBackGuard(false);
+  }
+
+  function handleBackGuardDiscard() {
+    setShowBackGuard(false);
+    setFields(EMPTY_FIELDS);
+    setErrors({});
+    setParams(null);
+    setShowResult(false);
+    if (pendingBackActionRef.current) {
+      navigation.dispatch(pendingBackActionRef.current);
+      pendingBackActionRef.current = null;
+    } else {
+      navigation.goBack();
+    }
   }
 
   function handleVerProyecto() {
@@ -218,23 +305,20 @@ export default function VistaPreviaScreen({ navigation, route }) {
 
   async function handleAddToJournal() {
     setLoading(true);
-    console.log('[preview] canvasRef.current:', canvasRef.current);
     try {
       const previewImageUri = await new Promise((resolve, reject) => {
         if (!canvasRef.current?.toDataURL) { reject(new Error('no toDataURL')); return; }
         canvasRef.current.toDataURL((data) => {
-          console.log('[preview] toDataURL result:', data ? 'got data' : 'null/undefined');
           if (data) resolve('data:image/png;base64,' + data);
           else reject(new Error('empty'));
         });
       });
-      console.log('[preview] navigating with previewImageUri:', previewImageUri ? 'yes' : 'no');
       navigation.navigate('Diario', {
         screen: 'DiarioRoot',
         params: { previewImageUri, projectId },
       });
     } catch (err) {
-      console.log('[preview] capture failed:', err?.message);
+      console.error('[preview] capture failed:', err?.message);
       navigation.navigate('Diario', {
         screen: 'DiarioRoot',
         params: { projectId },
@@ -504,16 +588,6 @@ export default function VistaPreviaScreen({ navigation, route }) {
         destructive={false}
       />
 
-      <ConfirmationModal
-        visible={showExitModal}
-        title={t('vistaPrevia.exit.title')}
-        confirmLabel={t('vistaPrevia.exit.confirm')}
-        cancelLabel={t('vistaPrevia.exit.cancel')}
-        onConfirm={handleConfirmExit}
-        onCancel={() => setShowExitModal(false)}
-        destructive={false}
-      />
-
       <Modal visible={showSavedModal} transparent animationType="fade" statusBarTranslucent>
         <View style={styles.savedOverlay}>
           <View style={styles.savedSheet}>
@@ -544,7 +618,7 @@ export default function VistaPreviaScreen({ navigation, route }) {
       <ProjectPickerModal
         visible={showProjectPicker}
         uid={user?.uid}
-        onClose={() => setShowProjectPicker(false)}
+        onClose={() => { navigateAfterSaveRef.current = false; setShowProjectPicker(false); }}
         onSelect={handlePickProject}
         onCreateProject={() => {
           setShowProjectPicker(false);
@@ -557,6 +631,16 @@ export default function VistaPreviaScreen({ navigation, route }) {
         message={savedToastMessage}
         type="success"
         onHide={() => setSavedToastVisible(false)}
+      />
+
+      <ConfirmationModal
+        visible={showBackGuard}
+        title={t('vistaPrevia.backGuard.title')}
+        message={t('vistaPrevia.backGuard.message')}
+        confirmLabel={t('vistaPrevia.backGuard.keep')}
+        cancelLabel={t('vistaPrevia.backGuard.discard')}
+        onConfirm={handleBackGuardKeep}
+        onCancel={handleBackGuardDiscard}
       />
 
       <LoadingOverlay visible={loading} />

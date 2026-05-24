@@ -7,9 +7,9 @@ import {
   ScrollView,
   Switch,
   TextInput,
-  Image,
   ActivityIndicator,
 } from 'react-native';
+import LazyImage from '../components/LazyImage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
@@ -23,7 +23,7 @@ import { useAuth } from '../hooks/useAuth';
 import { getUserDocument, saveUserSettings, updateUserDocument } from '../services/firestore';
 import { deleteAccount } from '../services/auth';
 import { uploadProfilePhoto } from '../services/storage';
-import { exportUserData } from '../services/exportData';
+import { exportUserData, EXPORT_UNAVAILABLE_IN_EXPO_GO } from '../services/exportData';
 import { formatShortDate } from '../utils/dates';
 import ConfirmationModal from '../components/ConfirmationModal';
 import LoadingOverlay from '../components/LoadingOverlay';
@@ -223,13 +223,16 @@ export default function PerfilScreen({ navigation }) {
   }
 
   async function handleExport() {
-    console.log('[export] handleExport triggered, uid:', uid);
     setExportLoading(true);
     try {
       await exportUserData(uid);
     } catch (e) {
       console.error('[export] handleExport error:', e);
-      showToast(t('perfil.exportError'), 'error');
+      if (e.code === EXPORT_UNAVAILABLE_IN_EXPO_GO) {
+        showToast(t('perfil.exportUnavailableInExpoGo'));
+      } else {
+        showToast(t('perfil.exportError'), 'error');
+      }
     } finally {
       setExportLoading(false);
     }
@@ -267,7 +270,7 @@ export default function PerfilScreen({ navigation }) {
             disabled={uploadingPhoto}
           >
             {fotoPerfil ? (
-              <Image source={{ uri: fotoPerfil }} style={styles.avatar} />
+              <LazyImage source={{ uri: fotoPerfil }} style={styles.avatar} resizeMode="cover" />
             ) : (
               <View style={styles.avatarPlaceholder}>
                 {uploadingPhoto ? (
@@ -301,7 +304,7 @@ export default function PerfilScreen({ navigation }) {
             ) : (
               <>
                 <Text style={styles.nombre}>{nombre || t('perfil.title')}</Text>
-                <TouchableOpacity onPress={startEditName} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <TouchableOpacity onPress={startEditName} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityRole="button" accessibilityLabel={t('common.edit')}>
                   <Pencil size={16} color={colors.text.tertiary} strokeWidth={1.8} />
                 </TouchableOpacity>
               </>

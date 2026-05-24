@@ -26,6 +26,7 @@ import ConfirmationModal from '../components/ConfirmationModal';
 import LoadingOverlay from '../components/LoadingOverlay';
 import ProjectPickerModal from '../components/ProjectPickerModal';
 import Toast from '../components/Toast';
+import { useNavigationGuard } from '../contexts/NavigationGuardContext';
 
 const STITCH_TYPES = Object.keys(MULTIPLICADORES);
 
@@ -55,6 +56,7 @@ export default function CalculadoraScreen({ navigation, route }) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { setTabGuard, clearTabGuard } = useNavigationGuard();
   const projectId = route?.params?.projectId ?? null;
   const isProjectMode = !!projectId;
 
@@ -69,7 +71,81 @@ export default function CalculadoraScreen({ navigation, route }) {
   const [showProjectPicker, setShowProjectPicker] = useState(false);
   const [savedToastVisible, setSavedToastVisible] = useState(false);
   const [savedToastMessage, setSavedToastMessage] = useState('');
+  const [showBackGuard, setShowBackGuard] = useState(false);
   const pickedProjectName = useRef('');
+  const pendingBackActionRef = useRef(null);
+
+  const showResultRef = useRef(showResult);
+  useEffect(() => { showResultRef.current = showResult; }, [showResult]);
+
+  const savedResultRef = useRef(savedResult);
+  useEffect(() => { savedResultRef.current = savedResult; }, [savedResult]);
+
+  const pendingNavigationRef = useRef(null);
+  const doSaveRef = useRef(null);
+  useEffect(() => { doSaveRef.current = doSave; });
+
+  const shouldResetOnFocusRef = useRef(false);
+  const navigateAfterSaveRef = useRef(false);
+
+  const isDirtyForTabGuard = isProjectMode && showResult && savedResult === null;
+
+  useEffect(() => {
+    const unsub = navigation.addListener('focus', () => {
+      if (shouldResetOnFocusRef.current) {
+        setFields(EMPTY_FIELDS);
+        setErrors({});
+        setResult(null);
+        setShowResult(false);
+        setSavedResult(null);
+        shouldResetOnFocusRef.current = false;
+      }
+    });
+    return unsub;
+  }, [navigation]);
+
+  useEffect(() => {
+    const unsub = navigation.addListener('blur', () => {
+      shouldResetOnFocusRef.current = true;
+    });
+    return unsub;
+  }, [navigation]);
+
+  useEffect(() => {
+    if (showResult && savedResult === null) {
+      setTabGuard({
+        guardingTabName: 'Calculadora',
+        isActive: () => navigation.isFocused(),
+        title: t('calculadora.exitGuard.title'),
+        message: t('calculadora.exitGuard.message'),
+        confirmLabel: t('calculadora.exitGuard.discard'),
+        cancelLabel: t('calculadora.exitGuard.save'),
+        destructive: true,
+        onSave: (destinationTab) => {
+          pendingNavigationRef.current = destinationTab;
+          navigateAfterSaveRef.current = true;
+          if (isProjectMode) {
+            doSaveRef.current?.();
+          } else {
+            setShowProjectPicker(true);
+          }
+        },
+      });
+    } else {
+      clearTabGuard();
+    }
+  }, [showResult, savedResult]);
+
+  useEffect(() => {
+    const unsub = navigation.addListener('beforeRemove', (e) => {
+      const resultNotSaved = showResultRef.current && savedResultRef.current === null;
+      if (!resultNotSaved) return;
+      e.preventDefault();
+      pendingBackActionRef.current = e.data.action;
+      setShowBackGuard(true);
+    });
+    return unsub;
+  }, [navigation]);
 
   useEffect(() => {
     if (!isProjectMode) return;
@@ -161,14 +237,20 @@ export default function CalculadoraScreen({ navigation, route }) {
     try {
       await saveResultadoCalculadora(targetProjectId, data);
       setSavedResult(data);
-      if (isProjectMode) {
+      if (navigateAfterSaveRef.current) {
+        navigateAfterSaveRef.current = false;
+        if (pendingNavigationRef.current) {
+          navigation.navigate(pendingNavigationRef.current);
+          pendingNavigationRef.current = null;
+        }
+      } else if (isProjectMode) {
         setShowSavedModal(true);
       } else {
         setSavedToastMessage(t('projectPicker.savedToast', { nombre: pickedProjectName.current }));
         setSavedToastVisible(true);
       }
     } catch {
-      // leave in result view; user can retry
+      // error handled silently
     } finally {
       setLoading(false);
     }
@@ -198,6 +280,37 @@ export default function CalculadoraScreen({ navigation, route }) {
     handleCalcularOtro();
   }
 
+  function handleBack() {
+    if (showResult) {
+      if (isDirtyForTabGuard) {
+        setShowBackGuard(true);
+      } else {
+        setShowResult(false);
+      }
+    } else {
+      navigation.goBack();
+    }
+  }
+
+  function handleBackGuardKeep() {
+    pendingBackActionRef.current = null;
+    setShowBackGuard(false);
+  }
+
+  function handleBackGuardDiscard() {
+    setShowBackGuard(false);
+    setFields(EMPTY_FIELDS);
+    setErrors({});
+    setResult(null);
+    setShowResult(false);
+    if (pendingBackActionRef.current) {
+      navigation.dispatch(pendingBackActionRef.current);
+      pendingBackActionRef.current = null;
+    } else {
+      navigation.goBack();
+    }
+  }
+
   const canGoBack = navigation.canGoBack();
 
   return (
@@ -207,17 +320,9 @@ export default function CalculadoraScreen({ navigation, route }) {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.header}>
-          {canGoBack ? (
+          {(canGoBack || showResult) ? (
             <TouchableOpacity
-              onPress={showResult ? () => setShowResult(false) : () => navigation.goBack()}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              accessibilityRole="button"
-            >
-              <ArrowLeft size={22} color={colors.primary.dark} strokeWidth={1.8} />
-            </TouchableOpacity>
-          ) : showResult ? (
-            <TouchableOpacity
-              onPress={() => setShowResult(false)}
+              onPress={handleBack}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               accessibilityRole="button"
             >
@@ -421,7 +526,7 @@ export default function CalculadoraScreen({ navigation, route }) {
       <ProjectPickerModal
         visible={showProjectPicker}
         uid={user?.uid}
-        onClose={() => setShowProjectPicker(false)}
+        onClose={() => { navigateAfterSaveRef.current = false; setShowProjectPicker(false); }}
         onSelect={handlePickProject}
         onCreateProject={() => {
           setShowProjectPicker(false);
@@ -434,6 +539,16 @@ export default function CalculadoraScreen({ navigation, route }) {
         message={savedToastMessage}
         type="success"
         onHide={() => setSavedToastVisible(false)}
+      />
+
+      <ConfirmationModal
+        visible={showBackGuard}
+        title={t('calculadora.backGuard.title')}
+        message={t('calculadora.backGuard.message')}
+        confirmLabel={t('calculadora.backGuard.keep')}
+        cancelLabel={t('calculadora.backGuard.discard')}
+        onConfirm={handleBackGuardKeep}
+        onCancel={handleBackGuardDiscard}
       />
 
       <LoadingOverlay visible={loading} />

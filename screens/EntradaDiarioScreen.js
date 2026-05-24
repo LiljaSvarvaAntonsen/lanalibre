@@ -219,7 +219,7 @@ function DraggableElement({ element, selected, isEditing, eraserMode, onErase, o
 function RowCounterWidget({ count, onIncrement, onReset, styles, colors }) {
   return (
     <View style={styles.rowCard}>
-      <Text style={styles.rowCount}>{count}</Text>
+      <Text style={styles.rowCount} maxFontSizeMultiplier={1.5}>{count}</Text>
       <View style={styles.rowBtns}>
         <TouchableOpacity onPress={onIncrement} style={styles.rowBtn} activeOpacity={0.7}>
           <Text style={styles.rowBtnLabel}>+1</Text>
@@ -455,6 +455,7 @@ export default function EntradaDiarioScreen({ navigation, route }) {
   const [recentColors, setRecentColors] = useState([]);
   const strokesUrlRef = useRef(null);
   const currentStrokeId = useRef(null);
+  const isExitingRef = useRef(false);
   // Refs so PanResponder (created once) sees live paint state
   const paintModeRef = useRef(false);
   paintModeRef.current = paintMode;
@@ -636,6 +637,8 @@ export default function EntradaDiarioScreen({ navigation, route }) {
   gridFillsRef.current = gridFills;
 
   async function handleSaveAndExit() {
+    if (isExitingRef.current) return;
+    isExitingRef.current = true;
     await handleSave();
     navigation.goBack();
   }
@@ -812,7 +815,6 @@ export default function EntradaDiarioScreen({ navigation, route }) {
   // ── Upload handlers ─────────────────────────────────────────────────────────
 
   function handleUploadPress() {
-    console.log('[upload] handleUploadPress triggered');
     Alert.alert(
       t('entrada.subir.titulo'),
       null,
@@ -844,7 +846,6 @@ export default function EntradaDiarioScreen({ navigation, route }) {
 
   async function runUpload(uri, name, isPdf, srcWidth, srcHeight) {
     if (!user?.uid) return;
-    console.log('[upload] runUpload', { uid: user.uid, name, isPdf, srcWidth, srcHeight });
     setUploading(true);
     try {
       let url, storagePath;

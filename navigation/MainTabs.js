@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator, CardStyleInterpolators } from '@react-navigation/stack';
 import { Home, Calculator, Pencil, BookOpen, User } from 'lucide-react-native';
 import { useTheme } from '../contexts/ThemeContext';
+import { useNavigationGuard } from '../contexts/NavigationGuardContext';
 import { fonts, fontSizes } from '../constants/typography';
 import InicioScreen from '../screens/InicioScreen';
 import CalculadoraScreen from '../screens/CalculadoraScreen';
@@ -86,6 +87,7 @@ export default function MainTabs() {
   const { theme: colors } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { triggerTabGuardIfAny } = useNavigationGuard();
 
   return (
     <Tab.Navigator
@@ -105,6 +107,18 @@ export default function MainTabs() {
         tabBarLabelStyle: {
           fontFamily: fonts.semiBold,
           fontSize: 10,
+        },
+      })}
+      screenListeners={({ navigation, route }) => ({
+        tabPress: (e) => {
+          const guarded = triggerTabGuardIfAny(route.name, () => {
+            navigation.navigate(route.name);
+          });
+          if (guarded) {
+            e.preventDefault();
+          } else {
+            navigation.navigate(route.name);
+          }
         },
       })}
     >

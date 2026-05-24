@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
 import { getDiario, getEntradas, createEntrada } from '../services/firestore';
 import LoadingOverlay from '../components/LoadingOverlay';
+import Toast from '../components/Toast';
 
 function formatDate(timestamp) {
   if (!timestamp) return '';
@@ -40,28 +41,39 @@ export default function DiarioDetalleScreen({ navigation, route }) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const { diarioId, resultadoCalculadora, resultadoVistaPrevia, previewImageUri } = route.params;
+  // Store diarioId in a ref so it is never lost if route.params is overwritten by a navigate call
+  const diarioIdRef = useRef(diarioId);
 
   const [diario, setDiario] = useState(null);
   const [entradas, setEntradas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
+
+  useEffect(() => {
+    if (route?.params?.pendingToast) {
+      const { message, type } = route.params.pendingToast;
+      setToast({ visible: true, message, type });
+      navigation.setParams?.({ pendingToast: undefined });
+    }
+  }, [route?.params?.pendingToast]);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [d, e] = await Promise.all([getDiario(diarioId), getEntradas(diarioId)]);
+      const [d, e] = await Promise.all([getDiario(diarioIdRef.current), getEntradas(diarioIdRef.current)]);
       setDiario(d);
       setEntradas(e);
     } finally {
       setLoading(false);
     }
-  }, [diarioId]);
+  }, []); // diarioIdRef is stable — no dependency needed
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
   function openEntrada(entradaId) {
     navigation.navigate('EntradaDiarioScreen', {
-      diarioId,
+      diarioId: diarioIdRef.current,
       entradaId,
       resultadoCalculadora,
       resultadoVistaPrevia,
@@ -74,7 +86,7 @@ export default function DiarioDetalleScreen({ navigation, route }) {
     setCreating(true);
     try {
       const nombre = `Entrada ${entradas.length + 1}`;
-      const { id } = await createEntrada(diarioId, nombre);
+      const { id } = await createEntrada(diarioIdRef.current, nombre);
       openEntrada(id);
     } finally {
       setCreating(false);
@@ -125,6 +137,13 @@ export default function DiarioDetalleScreen({ navigation, route }) {
       />
 
       <LoadingOverlay visible={loading || creating} />
+
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={() => setToast((s) => ({ ...s, visible: false }))}
+      />
     </SafeAreaView>
   );
 }

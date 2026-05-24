@@ -5,13 +5,13 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Image,
   Alert,
   Modal,
   Dimensions,
   TextInput,
   Keyboard,
 } from 'react-native';
+import LazyImage from '../components/LazyImage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
@@ -30,6 +30,7 @@ import {
   Plus,
   CalendarDays,
   Check,
+  Trash2,
 } from 'lucide-react-native';
 import { radii } from '../constants/colors';
 import { useTheme } from '../contexts/ThemeContext';
@@ -44,6 +45,7 @@ import {
   addArchivoProyecto,
   getArchivosProyecto,
   deleteArchivoProyecto,
+  softDeleteProject,
 } from '../services/firestore';
 import { uploadArchivoProyecto, deleteFile } from '../services/storage';
 import LoadingOverlay from '../components/LoadingOverlay';
@@ -112,6 +114,7 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
   const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showProjectDeleteModal, setShowProjectDeleteModal] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState(null);
   const [editingDiarioId, setEditingDiarioId] = useState(null);
   const [editingDiarioName, setEditingDiarioName] = useState('');
@@ -121,8 +124,6 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
   }
 
   const fetchAll = useCallback(async () => {
-    console.log('[ProyectoDetalle] fetchAll start — projectId:', projectId);
-    console.log('[detail] getArchivosProyecto called with projectId:', projectId);
     setLoading(true);
     try {
       const [data, diarios, files] = await Promise.all([
@@ -130,8 +131,6 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
         getDiariosByProyecto(projectId),
         getArchivosProyecto(projectId),
       ]);
-      console.log('[detail] archivos returned:', files);
-      console.log('[ProyectoDetalle] fetchAll ok — project:', data?.nombre, 'diarios:', diarios.length, 'archivos:', files.length);
       setProject(data);
       setLinkedDiarios(diarios);
       setArchivos(files);
@@ -233,6 +232,19 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
     }
   }
 
+  async function handleDeleteProject() {
+    setShowProjectDeleteModal(false);
+    try {
+      await softDeleteProject(projectId);
+      navigation.navigate('ProyectosScreen', {
+        pendingToast: { message: t('projects.deleteSuccessToast'), type: 'success' },
+      });
+    } catch (e) {
+      console.error('[ProyectoDetalle] softDeleteProject error:', e);
+      showToast(t('common.error'), 'error');
+    }
+  }
+
   async function openPdf(url) {
     try {
       if (url.startsWith('http')) {
@@ -277,6 +289,8 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
     ? t('projectDetail.guardadoEl', { date: formatDateLong(project.resultadoPrevisualización.fechaGuardado) })
     : null;
 
+  const tagColors = project?.etiqueta ? (colors.tags[project.etiqueta] ?? colors.tags.WIP) : colors.tags.WIP;
+
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
@@ -284,10 +298,18 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           accessibilityRole="button"
+          accessibilityLabel={t('common.back')}
         >
           <ArrowLeft size={22} color={colors.primary.dark} strokeWidth={1.8} />
         </TouchableOpacity>
-        <View style={{ width: 22 }} />
+        <TouchableOpacity
+          onPress={() => setShowProjectDeleteModal(true)}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel={t('projects.deleteTitle')}
+        >
+          <Trash2 size={20} color={colors.status.errorText} strokeWidth={1.8} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
@@ -303,14 +325,15 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
                 onPress={() => project && navigation.navigate('ProyectoFormScreen', { project })}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 accessibilityRole="button"
+                accessibilityLabel={t('common.edit')}
               >
                 <Pencil size={20} color={colors.text.tertiary} strokeWidth={1.8} />
               </TouchableOpacity>
             </View>
 
             {project?.etiqueta && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{project.etiqueta}</Text>
+              <View style={[styles.badge, { backgroundColor: tagColors.bg, borderWidth: 1, borderColor: tagColors.border }]}>
+                <Text style={[styles.badgeText, { color: tagColors.text }]} maxFontSizeMultiplier={1.3}>{project.etiqueta}</Text>
               </View>
             )}
 
@@ -425,6 +448,8 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
                         style={styles.diarioPencilBtn}
                         onPress={() => { setEditingDiarioId(d.id); setEditingDiarioName(d.nombre); }}
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('common.edit')}
                       >
                         <Pencil size={16} color={colors.text.tertiary} strokeWidth={1.8} />
                       </TouchableOpacity>
@@ -468,7 +493,7 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
                       <Text style={styles.pdfName} numberOfLines={2}>{archivo.name}</Text>
                     </View>
                   ) : (
-                    <Image
+                    <LazyImage
                       source={{ uri: archivo.url }}
                       style={styles.imageThumb}
                       resizeMode="cover"
@@ -519,7 +544,7 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
           onPress={() => setFullscreenImage(null)}
         >
           {fullscreenImage && (
-            <Image
+            <LazyImage
               source={{ uri: fullscreenImage }}
               style={{ width: SCREEN_WIDTH, height: SCREEN_WIDTH }}
               resizeMode="contain"
@@ -527,6 +552,17 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
           )}
         </TouchableOpacity>
       </Modal>
+
+      <ConfirmationModal
+        visible={showProjectDeleteModal}
+        title={t('projects.deleteTitle')}
+        message={t('projects.deleteMessage')}
+        confirmLabel={t('projects.deleteConfirm')}
+        cancelLabel={t('common.cancel')}
+        destructive
+        onConfirm={handleDeleteProject}
+        onCancel={() => setShowProjectDeleteModal(false)}
+      />
 
     </SafeAreaView>
   );
@@ -623,7 +659,7 @@ function makeStyles(colors) { return StyleSheet.create({
   sectionHeader: {
     fontFamily: fonts.semiBold,
     fontSize: fontSizes.xs,
-    color: COPPER,
+    color: colors.text.secondary,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
@@ -791,7 +827,7 @@ function makeStyles(colors) { return StyleSheet.create({
   uploadBtnText: {
     fontFamily: fonts.semiBold,
     fontSize: fontSizes.sm,
-    color: COPPER,
+    color: colors.text.secondary,
   },
 
   // Fullscreen image modal

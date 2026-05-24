@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, memo } from 'react';
+import { useState, useMemo, useCallback, useEffect, memo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
@@ -23,16 +23,25 @@ import TagLegendModal from '../components/TagLegendModal';
 import LoadingOverlay from '../components/LoadingOverlay';
 import Toast from '../components/Toast';
 
-export default function ProyectosScreen({ navigation }) {
+export default function ProyectosScreen({ navigation, route }) {
   const { theme: colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { activeProjects, deletedProjects, loading, hasMore, loadMore, refresh, softDelete, restore } =
+  const { activeProjects, recentProjects, deletedProjects, loading, hasMore, loadMore, refresh, softDelete, restore } =
     useProjects(user?.uid);
 
   useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
 
+  useEffect(() => {
+    if (route?.params?.pendingToast) {
+      const { message, type } = route.params.pendingToast;
+      setToast({ visible: true, message, type });
+      navigation.setParams?.({ pendingToast: undefined });
+    }
+  }, [route?.params?.pendingToast]);
+
+  const recentMode = route?.params?.filter === 'recent';
   const [activeTab, setActiveTab] = useState('active');
   const [searchQuery, setSearchQuery] = useState('');
   const [legendVisible, setLegendVisible] = useState(false);
@@ -40,7 +49,9 @@ export default function ProyectosScreen({ navigation }) {
   const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
   const [actionLoading, setActionLoading] = useState(false);
 
-  const source = activeTab === 'active' ? activeProjects : deletedProjects;
+  const source = activeTab === 'active'
+    ? (recentMode ? recentProjects : activeProjects)
+    : deletedProjects;
 
   const filteredList = useMemo(() => {
     if (!searchQuery.trim()) return source;
@@ -71,12 +82,13 @@ export default function ProyectosScreen({ navigation }) {
     try {
       if (type === 'delete') {
         await softDelete(projectId);
-        showToast(t('projects.deleteTitle').replace('?', ''));
+        showToast(t('projects.deleteSuccessToast'));
       } else {
         await restore(projectId);
-        showToast(t('projects.restoreTitle').replace('?', ''));
+        showToast(t('projects.restoreSuccessToast'));
       }
-    } catch {
+    } catch (e) {
+      console.error('[ProyectosScreen] handleConfirm error:', e);
       showToast(t('errors.googleToken', { defaultValue: 'Algo salió mal.' }), 'error');
     } finally {
       setActionLoading(false);
@@ -132,7 +144,9 @@ export default function ProyectosScreen({ navigation }) {
           <ArrowLeft size={22} color={colors.primary.dark} strokeWidth={1.8} />
         </TouchableOpacity>
         <Text style={styles.screenTitle}>
-          {activeTab === 'active' ? t('projects.tabActive') : t('projects.tabDeleted')}
+          {activeTab === 'active'
+            ? (recentMode ? t('projects.tabRecent') : t('projects.tabActive'))
+            : t('projects.tabDeleted')}
         </Text>
         <View style={styles.headerActions}>
           <TouchableOpacity
@@ -163,8 +177,10 @@ export default function ProyectosScreen({ navigation }) {
             onPress={() => { setActiveTab(tab); setSearchQuery(''); }}
             activeOpacity={0.8}
           >
-            <Text style={[styles.tabLabel, activeTab === tab && styles.tabLabelActive]}>
-              {t(tab === 'active' ? 'projects.tabActive' : 'projects.tabDeleted')}
+            <Text style={[styles.tabLabel, activeTab === tab && styles.tabLabelActive]} maxFontSizeMultiplier={1.3}>
+              {tab === 'active'
+                ? (recentMode ? t('projects.tabRecent') : t('projects.tabActive'))
+                : t('projects.tabDeleted')}
             </Text>
           </TouchableOpacity>
         ))}
@@ -221,7 +237,7 @@ export default function ProyectosScreen({ navigation }) {
         visible={confirm.visible}
         title={t(confirm.type === 'delete' ? 'projects.deleteTitle' : 'projects.restoreTitle')}
         message={t(confirm.type === 'delete' ? 'projects.deleteMessage' : 'projects.restoreMessage')}
-        confirmLabel={confirm.type === 'delete' ? t('projects.tabDeleted') : t('projects.restoreTitle').replace('?', '')}
+        confirmLabel={confirm.type === 'delete' ? t('projects.deleteConfirm') : t('projects.restoreConfirm')}
         cancelLabel={t('projects.cancel')}
         onConfirm={handleConfirm}
         onCancel={closeConfirm}
