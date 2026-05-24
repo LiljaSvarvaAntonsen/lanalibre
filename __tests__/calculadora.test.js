@@ -55,3 +55,41 @@ describe('calcularConsumo — validation', () => {
     expect(() => calcularConsumo({ ...BASE_INPUT, dimensiones: { ancho: 10, largo: -1 } })).toThrow('validation');
   });
 });
+
+describe('calcularConsumo — MULTIPLICADORES export', () => {
+  test('has exactly 3 keys with correct values', () => {
+    expect(Object.keys(MULTIPLICADORES)).toHaveLength(3);
+    expect(MULTIPLICADORES.punto_bajo).toBe(1.0);
+    expect(MULTIPLICADORES.punto_alto).toBe(0.7);
+    expect(MULTIPLICADORES.puntos_densos).toBe(1.3);
+  });
+});
+
+describe('calcularConsumo — validation edge cases', () => {
+  test('unknown tipoPunto throws validation', () => {
+    expect(() => calcularConsumo({ ...BASE_INPUT, tipoPunto: 'crochet_magico' })).toThrow('validation');
+  });
+
+  test('dimensiones: undefined throws validation', () => {
+    expect(() => calcularConsumo({ ...BASE_INPUT, dimensiones: undefined })).toThrow('validation');
+  });
+});
+
+// 50×80 cm, tension 15, punto_bajo, 300m/100g yarn
+// metrosPor100g=300, area=4000, densidad=(15/10)²=2.25
+// metrosTotales=4000×2.25×1.0/10=900, gramosTotales=900/300×100=300
+// resultadoFinal=300×1.1=330
+describe('calcularConsumo — formula verification with real-world values', () => {
+  test('scarf 50×80 cm yields 330 g with 300m/100g yarn at tension 15', () => {
+    const result = calcularConsumo({
+      metrosEtiqueta: 300,
+      gramosEtiqueta: 100,
+      tension: 15,
+      tipoPunto: 'punto_bajo',
+      dimensiones: { ancho: 50, largo: 80 },
+    });
+    expect(result.metrosTotales).toBeCloseTo(900);
+    expect(result.gramosTotales).toBeCloseTo(300);
+    expect(result.resultadoFinal).toBeCloseTo(330);
+  });
+});
