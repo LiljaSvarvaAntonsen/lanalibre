@@ -1,9 +1,8 @@
 import { forwardRef } from 'react';
 import { Svg, Rect } from 'react-native-svg';
-import { PATRONES_PUNTO } from '../services/previsualización';
+import { PATRONES_PUNTO, GRANNY_SQUARE_CM } from '../services/previsualización';
 
-const STRIPE_COUNT = 12;
-const GRANNY_GRID = 8;
+const MAX_GRID = 20;
 
 function rotateArray(arr, n) {
   const len = arr.length;
@@ -12,59 +11,52 @@ function rotateArray(arr, n) {
   return [...arr.slice(offset), ...arr.slice(0, offset)];
 }
 
-function getSquareColors(colors, row, col, squareSeed) {
+function getSquareColors(colors, row, col, squareSeed, colCount) {
   if (colors.length <= 5) return colors;
   const subsetSize = Math.min(colors.length, 5);
-  const offset = (squareSeed + row * GRANNY_GRID + col) % colors.length;
+  const offset = (squareSeed + row * colCount + col) % colors.length;
   return Array.from({ length: subsetSize }, (_, i) => colors[(offset + i) % colors.length]);
+}
+
+function computeGrid(medidas, colsProp, rowsProp) {
+  const ancho = medidas?.ancho ?? 120;
+  const largo = medidas?.largo ?? 120;
+  const cols = colsProp ?? Math.max(1, Math.min(MAX_GRID, Math.round(ancho / GRANNY_SQUARE_CM)));
+  const rows = rowsProp ?? Math.max(1, Math.min(MAX_GRID, Math.round(largo / GRANNY_SQUARE_CM)));
+  return { cols, rows };
 }
 
 // forwardRef exposes the Svg node so callers can call ref.current.toDataURL() for PNG capture.
 const PreviewCanvas = forwardRef(function PreviewCanvas(
-  { medidas, colores, patronPunto, width, squareSeed = 0 },
+  { medidas, colores, patronPunto, width, squareSeed = 0, cols: colsProp, rows: rowsProp },
   ref,
 ) {
   const canvasSize = width;
   const safeColors = colores && colores.length > 0 ? colores : ['#C8BBE8'];
+  const { cols, rows } = computeGrid(medidas, colsProp, rowsProp);
 
   function renderStripes() {
     const isVertical = patronPunto === PATRONES_PUNTO.rayasV;
-    const stripeSize = isVertical
-      ? canvasSize / STRIPE_COUNT
-      : canvasSize / STRIPE_COUNT;
-    const total = Math.ceil(canvasSize / stripeSize) + 1;
+    const stripeCount = isVertical ? cols : rows;
+    const stripeSize = canvasSize / stripeCount;
 
-    return Array.from({ length: total }, (_, i) => {
+    return Array.from({ length: stripeCount }, (_, i) => {
       const color = safeColors[i % safeColors.length];
       return isVertical ? (
-        <Rect
-          key={i}
-          x={i * stripeSize}
-          y={0}
-          width={stripeSize}
-          height={canvasSize}
-          fill={color}
-        />
+        <Rect key={i} x={i * stripeSize} y={0} width={stripeSize} height={canvasSize} fill={color} />
       ) : (
-        <Rect
-          key={i}
-          x={0}
-          y={i * stripeSize}
-          width={canvasSize}
-          height={stripeSize}
-          fill={color}
-        />
+        <Rect key={i} x={0} y={i * stripeSize} width={canvasSize} height={stripeSize} fill={color} />
       );
     });
   }
 
   function renderGrannySquares() {
-    const sq = canvasSize / GRANNY_GRID;
+    const sq = canvasSize / Math.max(cols, rows);
     const elements = [];
 
-    for (let row = 0; row < GRANNY_GRID; row++) {
-      for (let col = 0; col < GRANNY_GRID; col++) {
-        const seq = getSquareColors(safeColors, row, col, squareSeed);
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const seq = getSquareColors(safeColors, row, col, squareSeed, cols);
         const N = seq.length;
         const t = sq / (2 * N);
 

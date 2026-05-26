@@ -126,6 +126,7 @@ Tasks are ordered by development slice. Complete each slice fully (services → 
 - [x] "Añadir al diario" option (navigates to DiarioScreen with params)
 - [x] Show error if selected project type has no template yet (validation via buildCanvasParams)
 - [x] Component test: canvas renders without crashing given valid params (16 tests, all passing)
+- [x] Blanket visualizer: granny square grid calculated from blanket dimensions — each square = 15 cm × 15 cm, cols/rows capped at 20; stripe count also dimension-based; grannySquaresInfo text shown below canvas
 
 ---
 

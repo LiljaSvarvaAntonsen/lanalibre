@@ -206,6 +206,7 @@
       "keep": "Seguir previsualizando",
       "discard": "Salir sin guardar"
     },
+    "grannySquaresInfo": "Aproximadamente {{cols}} × {{rows}} granny squares de 15 cm",
     "errorNoTemplate": "Este tipo de proyecto aún no tiene plantilla disponible.",
     "freeMode": "Vista previa libre (sin proyecto)",
     "tipos": {
