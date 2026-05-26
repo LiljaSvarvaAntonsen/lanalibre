@@ -607,6 +607,8 @@ export default function VistaPreviaScreen({ navigation, route }) {
                 colores={colorOrder}
                 patronPunto={params.patronPunto}
                 squareSeed={squareSeed}
+                cols={params.cols}
+                rows={params.rows}
                 width={canvasWidth}
               />
             </View>
@@ -615,6 +617,11 @@ export default function VistaPreviaScreen({ navigation, route }) {
               <Text style={styles.resultDimensions}>
                 {params.medidas.ancho} × {params.medidas.largo} cm
               </Text>
+              {params.patronPunto === PATRONES_PUNTO.grannySquares && (
+                <Text style={styles.grannySquaresInfo}>
+                  {t('vistaPrevia.grannySquaresInfo', { cols: params.cols, rows: params.rows })}
+                </Text>
+              )}
             </View>
 
             {/* Action buttons */}
@@ -971,6 +978,13 @@ function makeStyles(colors) { return StyleSheet.create({
     fontFamily: fonts.semiBold,
     fontSize: fontSizes.sm,
     color: colors.primary.DEFAULT,
+  },
+  grannySquaresInfo: {
+    fontFamily: fonts.regular,
+    fontSize: fontSizes.xs,
+    color: colors.text.muted,
+    marginTop: spacing.xs,
+    textAlign: 'center',
   },
 
   actionButtons: {

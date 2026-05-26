@@ -206,6 +206,7 @@
       "keep": "Fortsett å forhåndsvise",
       "discard": "Forlat uten å lagre"
     },
+    "grannySquaresInfo": "Omtrent {{cols}} × {{rows}} granny squares på 15 cm",
     "errorNoTemplate": "Denne prosjekttypen har ikke en mal ennå.",
     "freeMode": "Fri forhåndsvisning (uten prosjekt)",
     "tipos": {

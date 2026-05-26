@@ -1,3 +1,6 @@
+export const GRANNY_SQUARE_CM = 15;
+const MAX_GRID = 20;
+
 export const TIPOS_PROYECTO = ['bufanda', 'manta', 'gorro', 'top'];
 
 export const PATRONES_PUNTO = {
@@ -39,11 +42,16 @@ export function buildCanvasParams({ dim1, dim2, colores, patronPunto, squareSeed
     throw err;
   }
 
+  const cols = Math.max(1, Math.min(MAX_GRID, Math.round(d1 / GRANNY_SQUARE_CM)));
+  const rows = Math.max(1, Math.min(MAX_GRID, Math.round(d2 / GRANNY_SQUARE_CM)));
+
   return {
     tipoProyecto: 'manta',
     medidas: { ancho: d1, largo: d2 },
     colores,
     patronPunto,
     squareSeed,
+    cols,
+    rows,
   };
 }

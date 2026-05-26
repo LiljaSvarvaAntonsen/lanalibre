@@ -820,6 +820,8 @@ export default function ProyectoFormScreen({ route, navigation }) {
                         colores={prevColorOrder}
                         patronPunto={prevParams.patronPunto}
                         squareSeed={prevSquareSeed}
+                        cols={prevParams.cols}
+                        rows={prevParams.rows}
                         width={canvasWidth}
                       />
                     </View>

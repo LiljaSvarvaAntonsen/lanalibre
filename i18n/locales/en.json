@@ -206,6 +206,7 @@
       "keep": "Keep previewing",
       "discard": "Leave without saving"
     },
+    "grannySquaresInfo": "Approximately {{cols}} × {{rows}} granny squares at 15 cm each",
     "errorNoTemplate": "This project type doesn't have a template yet.",
     "freeMode": "Free preview (no project)",
     "tipos": {
