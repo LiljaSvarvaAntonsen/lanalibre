@@ -54,7 +54,7 @@ export default function ProjectPickerModal({ visible, onClose, onSelect, uid, on
 
         {loading ? (
           <View style={s.center}>
-            <ActivityIndicator size="small" color={colors.primary.DEFAULT} />
+            <ActivityIndicator size="small" color='#CB6D51' />
             <Text style={s.emptyText}>{t('projectPicker.loading')}</Text>
           </View>
         ) : projects.length === 0 ? (

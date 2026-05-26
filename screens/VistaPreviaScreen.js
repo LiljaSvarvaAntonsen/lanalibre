@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Modal,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
@@ -14,15 +13,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Check, ChevronDown } from 'lucide-react-native';
+import { ArrowLeft, Check } from 'lucide-react-native';
+import { Svg, Rect } from 'react-native-svg';
 import { radii } from '../constants/colors';
 import { useTheme } from '../contexts/ThemeContext';
 import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
+import { PALETTE, isLight } from '../constants/palette';
 import {
-  TIPOS_PROYECTO,
   PATRONES_PUNTO,
-  DIMENSIONES_POR_TIPO,
   buildCanvasParams,
 } from '../services/previsualización';
 import {
@@ -38,36 +37,89 @@ import ProjectPickerModal from '../components/ProjectPickerModal';
 import Toast from '../components/Toast';
 import { useNavigationGuard } from '../contexts/NavigationGuardContext';
 
-const PRESET_PALETTE = [
-  '#C17B4E', '#D4868A', '#7A9E7E', '#E8C9A0',
-  '#8BB8A8', '#F5EEE0', '#8B6B5A', '#9AB89A',
+const COPPER = '#CB6D51';
+
+const PATTERN_OPTIONS = [
+  { key: 'rayasV',        value: PATRONES_PUNTO.rayasV },
+  { key: 'rayasH',        value: PATRONES_PUNTO.rayasH },
+  { key: 'grannySquares', value: PATRONES_PUNTO.grannySquares },
 ];
 
 const EMPTY_FIELDS = {
-  tipoProyecto: '',
   dim1: '',
   dim2: '',
   colores: [],
-  patronPunto: PATRONES_PUNTO.liso,
+  patronPunto: null,
 };
 
 function prefillFromSaved(saved) {
   if (!saved) return EMPTY_FIELDS;
-  const dimLabels = saved.tipoProyecto
-    ? DIMENSIONES_POR_TIPO[saved.tipoProyecto]
-    : { dim1: 'ancho', dim2: 'largo' };
   const medidas = saved.medidas ?? {};
+  const validPatron = saved.patronPunto && Object.values(PATRONES_PUNTO).includes(saved.patronPunto)
+    ? saved.patronPunto
+    : null;
   return {
-    tipoProyecto: saved.tipoProyecto ?? '',
-    dim1: medidas[dimLabels?.dim1] != null ? String(medidas[dimLabels.dim1]) : '',
-    dim2: medidas[dimLabels?.dim2] != null ? String(medidas[dimLabels.dim2]) : '',
+    dim1: medidas.ancho != null ? String(medidas.ancho) : '',
+    dim2: medidas.largo != null ? String(medidas.largo) : '',
     colores: saved.colores ?? [],
-    patronPunto: saved.patronPunto ?? PATRONES_PUNTO.liso,
+    patronPunto: validPatron,
   };
 }
 
+// Mini SVG thumbnail for pattern cards
+function PatternThumb({ type, size = 48 }) {
+  if (type === PATRONES_PUNTO.rayasV) {
+    const count = 4;
+    const w = size / count;
+    const colors = ['#C8BBE8', '#87AE77', '#FA8072', '#89CFF0'];
+    return (
+      <Svg width={size} height={size}>
+        {Array.from({ length: count }, (_, i) => (
+          <Rect key={i} x={i * w} y={0} width={w} height={size} fill={colors[i % colors.length]} />
+        ))}
+      </Svg>
+    );
+  }
+  if (type === PATRONES_PUNTO.rayasH) {
+    const count = 4;
+    const h = size / count;
+    const colors = ['#C8BBE8', '#87AE77', '#FA8072', '#89CFF0'];
+    return (
+      <Svg width={size} height={size}>
+        {Array.from({ length: count }, (_, i) => (
+          <Rect key={i} x={0} y={i * h} width={size} height={h} fill={colors[i % colors.length]} />
+        ))}
+      </Svg>
+    );
+  }
+  // grannySquares
+  const grid = 3;
+  const sq = size / grid;
+  const palettes = [
+    ['#C8BBE8', '#FA8072', '#89CFF0'],
+    ['#87AE77', '#FFD700', '#C8BBE8'],
+    ['#FA8072', '#89CFF0', '#87AE77'],
+  ];
+  const elements = [];
+  for (let r = 0; r < grid; r++) {
+    for (let c = 0; c < grid; c++) {
+      const cols = palettes[(r + c) % palettes.length];
+      const N = cols.length;
+      const t = sq / (2 * N);
+      for (let i = 0; i < N; i++) {
+        const inset = i * t;
+        const side = sq - 2 * inset;
+        elements.push(
+          <Rect key={`${r}-${c}-${i}`} x={c * sq + inset} y={r * sq + inset} width={side} height={side} fill={cols[i]} />,
+        );
+      }
+    }
+  }
+  return <Svg width={size} height={size}>{elements}</Svg>;
+}
+
 export default function VistaPreviaScreen({ navigation, route }) {
-  const { theme: colors } = useTheme();
+  const { theme: colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -84,29 +136,29 @@ export default function VistaPreviaScreen({ navigation, route }) {
   const [loading, setLoading] = useState(false);
   const [showOverwriteModal, setShowOverwriteModal] = useState(false);
   const [showSavedModal, setShowSavedModal] = useState(false);
-  const [showTypePicker, setShowTypePicker] = useState(false);
   const [showProjectPicker, setShowProjectPicker] = useState(false);
   const [savedToastVisible, setSavedToastVisible] = useState(false);
   const [savedToastMessage, setSavedToastMessage] = useState('');
   const [showBackGuard, setShowBackGuard] = useState(false);
+
+  // Result-phase colour order state
+  const [colorOrder, setColorOrder] = useState([]);
+  const [squareSeed, setSquareSeed] = useState(0);
+  const [originalColors, setOriginalColors] = useState([]);
+
   const pickedProjectName = useRef('');
   const pendingBackActionRef = useRef(null);
   const canvasRef = useRef(null);
-
   const showResultRef = useRef(showResult);
-  useEffect(() => { showResultRef.current = showResult; }, [showResult]);
-
   const savedParamsRef = useRef(savedParams);
-  useEffect(() => { savedParamsRef.current = savedParams; }, [savedParams]);
-
   const pendingNavigationRef = useRef(null);
   const doSaveRef = useRef(null);
-  useEffect(() => { doSaveRef.current = doSave; });
-
-  const shouldResetOnFocusRef = useRef(false);
   const navigateAfterSaveRef = useRef(false);
+  const shouldResetOnFocusRef = useRef(false);
 
-  const isDirtyForTabGuard = isProjectMode && showResult && savedParams === null;
+  useEffect(() => { showResultRef.current = showResult; }, [showResult]);
+  useEffect(() => { savedParamsRef.current = savedParams; }, [savedParams]);
+  useEffect(() => { doSaveRef.current = doSave; });
 
   useEffect(() => {
     const unsub = navigation.addListener('focus', () => {
@@ -181,17 +233,12 @@ export default function VistaPreviaScreen({ navigation, route }) {
     return unsub;
   }, [navigation]);
 
-  function setField(key, value) {
-    setFields((prev) => ({ ...prev, [key]: value }));
-    setErrors((prev) => ({ ...prev, [key]: undefined }));
-  }
-
   function toggleColor(hex) {
     setFields((prev) => {
       if (prev.colores.includes(hex)) {
         return { ...prev, colores: prev.colores.filter((c) => c !== hex) };
       }
-      if (prev.colores.length >= 4) return prev;
+      if (prev.colores.length >= 10) return prev;
       return { ...prev, colores: [...prev.colores, hex] };
     });
     setErrors((prev) => ({ ...prev, colores: undefined }));
@@ -199,14 +246,19 @@ export default function VistaPreviaScreen({ navigation, route }) {
 
   function handleGenerar() {
     try {
+      const seed = Math.floor(Math.random() * 100000);
+      const order = [...fields.colores];
       const p = buildCanvasParams({
-        tipoProyecto: fields.tipoProyecto,
         dim1: fields.dim1,
         dim2: fields.dim2,
-        colores: fields.colores,
+        colores: order,
         patronPunto: fields.patronPunto,
+        squareSeed: seed,
       });
       Keyboard.dismiss();
+      setColorOrder(order);
+      setOriginalColors(order);
+      setSquareSeed(seed);
       setParams(p);
       setErrors({});
       setShowResult(true);
@@ -215,6 +267,20 @@ export default function VistaPreviaScreen({ navigation, route }) {
         setErrors(err.fields ?? {});
       }
     }
+  }
+
+  function handleAleatorizar() {
+    const shuffled = [...colorOrder].sort(() => Math.random() - 0.5);
+    const seed = Math.floor(Math.random() * 100000);
+    setColorOrder(shuffled);
+    setSquareSeed(seed);
+    setParams((p) => ({ ...p, colores: shuffled, squareSeed: seed }));
+  }
+
+  function handleRestablecer() {
+    setColorOrder(originalColors);
+    setSquareSeed(0);
+    setParams((p) => ({ ...p, colores: originalColors, squareSeed: 0 }));
   }
 
   function handleGuardar() {
@@ -238,9 +304,12 @@ export default function VistaPreviaScreen({ navigation, route }) {
     setLoading(true);
     try {
       await saveResultadoPrevisualización(targetProjectId, params);
+      savedParamsRef.current = params;
       setSavedParams(params);
       if (navigateAfterSaveRef.current) {
         navigateAfterSaveRef.current = false;
+        showResultRef.current = false;
+        setShowResult(false);
         if (pendingNavigationRef.current) {
           navigation.navigate(pendingNavigationRef.current);
           pendingNavigationRef.current = null;
@@ -260,7 +329,8 @@ export default function VistaPreviaScreen({ navigation, route }) {
 
   function handleBack() {
     if (showResult) {
-      if (isDirtyForTabGuard) {
+      const isDirty = showResult && savedParams === null;
+      if (isDirty) {
         setShowBackGuard(true);
       } else {
         setShowResult(false);
@@ -328,14 +398,8 @@ export default function VistaPreviaScreen({ navigation, route }) {
   }
 
   const showBackArrow = navigation.canGoBack() || showResult;
-  const dimLabels = fields.tipoProyecto
-    ? DIMENSIONES_POR_TIPO[fields.tipoProyecto]
-    : { dim1: 'ancho', dim2: 'largo' };
-
-  // Canvas fills the card width (screen minus outer padding minus card inner padding)
   const canvasWidth = screenWidth - spacing.lg * 2 - spacing.md * 2;
-
-  const generateDisabled = !fields.tipoProyecto || fields.colores.length === 0;
+  const generateDisabled = fields.colores.length < 2 || !fields.patronPunto;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -343,6 +407,7 @@ export default function VistaPreviaScreen({ navigation, route }) {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
+        {/* Header */}
         <View style={styles.header}>
           {showBackArrow ? (
             <TouchableOpacity
@@ -350,122 +415,151 @@ export default function VistaPreviaScreen({ navigation, route }) {
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               accessibilityRole="button"
             >
-              <ArrowLeft size={22} color={colors.primary.dark} strokeWidth={1.8} />
+              <ArrowLeft size={22} color={colors.brand.copperRed} strokeWidth={1.8} />
             </TouchableOpacity>
           ) : (
             <View style={styles.headerPlaceholder} />
           )}
-          <Text style={styles.headerTitle}>{t('vistaPrevia.title')}</Text>
+          <Text style={[styles.headerTitle, { color: isDark ? '#BA797D' : '#5D2D24' }]}>
+            {t('vistaPrevia.title')}
+          </Text>
           <View style={styles.headerPlaceholder} />
         </View>
 
         {!showResult ? (
+          /* ── Form view ─────────────────────────────────────────────────────── */
           <ScrollView
             contentContainerStyle={styles.formBody}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            {!isProjectMode && (
-              <Text style={styles.freeModeLabel}>{t('vistaPrevia.freeMode')}</Text>
+            <Text style={styles.subtitle}>{t('vistaPrevia.subtitle')}</Text>
+
+            {/* Selected colours preview row */}
+            {fields.colores.length > 0 && (
+              <View style={styles.selectedRow}>
+                {fields.colores.map((hex) => (
+                  <TouchableOpacity
+                    key={hex}
+                    style={[
+                      styles.selectedCircle,
+                      { backgroundColor: hex },
+                      isLight(hex) && styles.selectedCircleLight,
+                    ]}
+                    onPress={() => toggleColor(hex)}
+                    activeOpacity={0.8}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: true }}
+                  >
+                    <Check size={14} color={COPPER} strokeWidth={2.5} />
+                  </TouchableOpacity>
+                ))}
+              </View>
             )}
 
-            {/* Tipo de proyecto */}
+            {/* Colour section */}
             <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>{t('vistaPrevia.tipoProyecto')}</Text>
-              <TouchableOpacity
-                style={[styles.input, styles.pickerRow, !!errors.tipoProyecto && styles.inputError]}
-                onPress={() => setShowTypePicker(true)}
-                activeOpacity={0.8}
-                accessibilityRole="button"
-              >
-                <Text style={fields.tipoProyecto ? styles.pickerValue : styles.pickerPlaceholder}>
-                  {fields.tipoProyecto
-                    ? t(`vistaPrevia.tipos.${fields.tipoProyecto}`)
-                    : t('vistaPrevia.seleccionaTipo')}
-                </Text>
-                <ChevronDown size={18} color={colors.text.tertiary} strokeWidth={1.8} />
-              </TouchableOpacity>
-              {!!errors.tipoProyecto && (
-                <Text style={styles.errorText}>{t('vistaPrevia.errors.required')}</Text>
+              <View style={styles.sectionHeaderRow}>
+                <Text style={styles.fieldLabel}>{t('vistaPrevia.coloresSection')}</Text>
+                <Text style={styles.fieldHint}>{t('vistaPrevia.coloresHint')}</Text>
+              </View>
+              {!!errors.colores && (
+                <Text style={styles.errorText}>{t('vistaPrevia.errors.minColors')}</Text>
               )}
+
+              {PALETTE.map(({ group, swatches }) => (
+                <View key={group} style={styles.paletteGroup}>
+                  <Text style={styles.groupHeader}>{group}</Text>
+                  <View style={styles.swatchRow}>
+                    {swatches.map(({ name, hex }) => {
+                      const selected = fields.colores.includes(hex);
+                      return (
+                        <TouchableOpacity
+                          key={hex}
+                          style={[
+                            styles.swatch,
+                            { backgroundColor: hex },
+                            isLight(hex) && styles.swatchLight,
+                          ]}
+                          onPress={() => toggleColor(hex)}
+                          activeOpacity={0.8}
+                          accessibilityLabel={name}
+                          accessibilityRole="checkbox"
+                          accessibilityState={{ checked: selected }}
+                        >
+                          {selected && (
+                            <View style={styles.swatchCheckmark}>
+                              <Check size={14} color={COPPER} strokeWidth={2.5} />
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+              ))}
             </View>
 
-            {/* Dimension inputs — side by side */}
+            {/* Pattern type */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>{t('vistaPrevia.disenoSection')}</Text>
+              <View style={styles.patternCards}>
+                {PATTERN_OPTIONS.map(({ key, value }) => {
+                  const selected = fields.patronPunto === value;
+                  return (
+                    <TouchableOpacity
+                      key={value}
+                      style={[styles.patternCard, selected && styles.patternCardSelected]}
+                      onPress={() => setFields((prev) => ({ ...prev, patronPunto: value }))}
+                      activeOpacity={0.8}
+                      accessibilityRole="radio"
+                      accessibilityState={{ selected }}
+                    >
+                      <PatternThumb type={value} size={52} />
+                      <Text style={[styles.patternLabel, selected && styles.patternLabelSelected]}>
+                        {t(`vistaPrevia.patrones.${key}`)}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+
+            {/* Dimensions */}
             <View style={styles.dimRow}>
               <View style={[styles.fieldGroup, styles.dimField]}>
-                <Text style={styles.fieldLabel}>{t(`vistaPrevia.${dimLabels.dim1}`)}</Text>
+                <Text style={styles.fieldLabel}>{t('vistaPrevia.ancho')}</Text>
                 <TextInput
                   style={[styles.input, !!errors.dim1 && styles.inputError]}
                   value={fields.dim1}
-                  onChangeText={(v) => setField('dim1', v)}
+                  onChangeText={(v) => {
+                    setFields((prev) => ({ ...prev, dim1: v }));
+                    setErrors((prev) => ({ ...prev, dim1: undefined }));
+                  }}
                   keyboardType="numeric"
                   placeholderTextColor={colors.text.tertiary}
-                  accessibilityLabel={t(`vistaPrevia.${dimLabels.dim1}`)}
+                  accessibilityLabel={t('vistaPrevia.ancho')}
                 />
                 {!!errors.dim1 && (
                   <Text style={styles.errorText}>{t('vistaPrevia.errors.dimensions')}</Text>
                 )}
               </View>
               <View style={[styles.fieldGroup, styles.dimField]}>
-                <Text style={styles.fieldLabel}>{t(`vistaPrevia.${dimLabels.dim2}`)}</Text>
+                <Text style={styles.fieldLabel}>{t('vistaPrevia.largo')}</Text>
                 <TextInput
                   style={[styles.input, !!errors.dim2 && styles.inputError]}
                   value={fields.dim2}
-                  onChangeText={(v) => setField('dim2', v)}
+                  onChangeText={(v) => {
+                    setFields((prev) => ({ ...prev, dim2: v }));
+                    setErrors((prev) => ({ ...prev, dim2: undefined }));
+                  }}
                   keyboardType="numeric"
                   placeholderTextColor={colors.text.tertiary}
-                  accessibilityLabel={t(`vistaPrevia.${dimLabels.dim2}`)}
+                  accessibilityLabel={t('vistaPrevia.largo')}
                 />
                 {!!errors.dim2 && (
                   <Text style={styles.errorText}>{t('vistaPrevia.errors.dimensions')}</Text>
                 )}
-              </View>
-            </View>
-
-            {/* Colour palette */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>{t('vistaPrevia.paleta')}</Text>
-              <View style={styles.paletteGrid}>
-                {PRESET_PALETTE.map((hex) => {
-                  const selected = fields.colores.includes(hex);
-                  return (
-                    <TouchableOpacity
-                      key={hex}
-                      style={[styles.swatch, { backgroundColor: hex }, selected && styles.swatchSelected]}
-                      onPress={() => toggleColor(hex)}
-                      activeOpacity={0.8}
-                      accessibilityRole="checkbox"
-                      accessibilityState={{ checked: selected }}
-                    />
-                  );
-                })}
-              </View>
-              {!!errors.colores && (
-                <Text style={styles.errorText}>{t('vistaPrevia.errors.required')}</Text>
-              )}
-            </View>
-
-            {/* Stitch pattern */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>{t('vistaPrevia.patronPunto')}</Text>
-              <View style={styles.pillRow}>
-                {Object.entries(PATRONES_PUNTO).map(([key, value]) => {
-                  const selected = fields.patronPunto === value;
-                  return (
-                    <TouchableOpacity
-                      key={value}
-                      style={[styles.pill, selected && styles.pillSelected]}
-                      onPress={() => setField('patronPunto', value)}
-                      activeOpacity={0.8}
-                      accessibilityRole="radio"
-                      accessibilityState={{ selected }}
-                    >
-                      <Text style={[styles.pillText, selected && styles.pillTextSelected]}>
-                        {t(`vistaPrevia.patrones.${key}`)}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
               </View>
             </View>
 
@@ -479,38 +573,51 @@ export default function VistaPreviaScreen({ navigation, route }) {
             </TouchableOpacity>
           </ScrollView>
         ) : (
-          <ScrollView contentContainerStyle={styles.resultBody} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-            {/* Canvas card */}
+          /* ── Result view ───────────────────────────────────────────────────── */
+          <ScrollView
+            contentContainerStyle={styles.resultBody}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Colour order controls */}
+            <View style={styles.coloursCard}>
+              <Text style={styles.coloursLabel}>{t('vistaPrevia.paletaEnUso')}</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.colorChipsScroll}>
+                <View style={styles.colorChips}>
+                  {colorOrder.map((hex, idx) => (
+                    <View key={`${hex}-${idx}`} style={[styles.colourCircle, { backgroundColor: hex }, isLight(hex) && styles.colourCircleLight]} />
+                  ))}
+                </View>
+              </ScrollView>
+              <View style={styles.shuffleRow}>
+                <TouchableOpacity style={styles.aleatorizarBtn} onPress={handleAleatorizar} activeOpacity={0.8}>
+                  <Text style={styles.aleatorizarText}>{t('vistaPrevia.aleatorizar')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.restablecerBtn} onPress={handleRestablecer} activeOpacity={0.8}>
+                  <Text style={styles.restablecerText}>{t('vistaPrevia.restablecer')}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Canvas */}
             <View style={styles.canvasCard}>
               <PreviewCanvas
                 ref={canvasRef}
-                tipoProyecto={params.tipoProyecto}
                 medidas={params.medidas}
-                colores={params.colores}
+                colores={colorOrder}
                 patronPunto={params.patronPunto}
+                squareSeed={squareSeed}
                 width={canvasWidth}
               />
             </View>
 
             <View style={styles.resultMeta}>
-              <Text style={styles.resultTypeName}>
-                {t(`vistaPrevia.tipos.${params.tipoProyecto}`)}
-              </Text>
               <Text style={styles.resultDimensions}>
-                {Object.values(params.medidas).join(' × ')} cm
+                {params.medidas.ancho} × {params.medidas.largo} cm
               </Text>
             </View>
 
-            {/* Selected colours */}
-            <View style={styles.coloursCard}>
-              <Text style={styles.coloursLabel}>{t('vistaPrevia.coloresSeleccionados')}</Text>
-              <View style={styles.colourCircles}>
-                {params.colores.map((hex) => (
-                  <View key={hex} style={[styles.colourCircle, { backgroundColor: hex }]} />
-                ))}
-              </View>
-            </View>
-
+            {/* Action buttons */}
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={styles.primaryBtn}
@@ -538,40 +645,6 @@ export default function VistaPreviaScreen({ navigation, route }) {
         )}
       </KeyboardAvoidingView>
 
-      {/* Type picker modal */}
-      <Modal visible={showTypePicker} transparent animationType="fade" statusBarTranslucent>
-        <TouchableOpacity
-          style={styles.pickerOverlay}
-          activeOpacity={1}
-          onPress={() => setShowTypePicker(false)}
-        >
-          <View style={styles.pickerSheet}>
-            {TIPOS_PROYECTO.map((tipo, idx) => (
-              <TouchableOpacity
-                key={tipo}
-                style={[
-                  styles.pickerItem,
-                  idx === TIPOS_PROYECTO.length - 1 && styles.pickerItemLast,
-                ]}
-                onPress={() => {
-                  setFields((prev) => ({ ...prev, tipoProyecto: tipo, dim1: '', dim2: '' }));
-                  setErrors((prev) => ({ ...prev, tipoProyecto: undefined, dim1: undefined, dim2: undefined }));
-                  setShowTypePicker(false);
-                }}
-                activeOpacity={0.7}
-              >
-                <Text style={[
-                  styles.pickerItemText,
-                  fields.tipoProyecto === tipo && styles.pickerItemTextSelected,
-                ]}>
-                  {t(`vistaPrevia.tipos.${tipo}`)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
       <ConfirmationModal
         visible={showOverwriteModal}
         title={t('vistaPrevia.overwrite.title')}
@@ -587,32 +660,14 @@ export default function VistaPreviaScreen({ navigation, route }) {
         destructive={false}
       />
 
-      <Modal visible={showSavedModal} transparent animationType="fade" statusBarTranslucent>
-        <View style={styles.savedOverlay}>
-          <View style={styles.savedSheet}>
-            <View style={styles.checkCircle}>
-              <Check size={28} color={colors.primary.dark} strokeWidth={2.5} />
-            </View>
-            <Text style={styles.savedTitle}>{t('vistaPrevia.saved.title')}</Text>
-            <View style={styles.savedButtons}>
-              <TouchableOpacity
-                style={[styles.savedBtn, styles.savedBtnPrimary]}
-                onPress={handleVerProyecto}
-                activeOpacity={0.85}
-              >
-                <Text style={styles.savedBtnPrimaryText}>{t('vistaPrevia.saved.verProyecto')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.savedBtn, styles.savedBtnOutline]}
-                onPress={handleCrearOtra}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.savedBtnOutlineText}>{t('vistaPrevia.saved.crearOtra')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <ConfirmationModal
+        visible={showSavedModal}
+        title={t('vistaPrevia.saved.title')}
+        confirmLabel={t('vistaPrevia.saved.verProyecto')}
+        cancelLabel={t('vistaPrevia.saved.crearOtra')}
+        onConfirm={handleVerProyecto}
+        onCancel={handleCrearOtra}
+      />
 
       <ProjectPickerModal
         visible={showProjectPicker}
@@ -621,7 +676,17 @@ export default function VistaPreviaScreen({ navigation, route }) {
         onSelect={handlePickProject}
         onCreateProject={() => {
           setShowProjectPicker(false);
-          navigation.navigate('Inicio', { screen: 'ProyectoFormScreen' });
+          savedParamsRef.current = params;
+          setSavedParams(params);
+          showResultRef.current = false;
+          setShowResult(false);
+          navigation.navigate('Inicio', {
+            screen: 'ProyectoFormScreen',
+            params: {
+              pendingResult: params,
+              pendingResultType: 'vista_previa',
+            },
+          });
         }}
       />
 
@@ -669,8 +734,16 @@ function makeStyles(colors) { return StyleSheet.create({
   freeModeLabel: {
     fontFamily: fonts.regular,
     fontSize: fontSizes.xs,
-    color: colors.text.tertiary,
+    color: '#5D2D24',
     textAlign: 'center',
+  },
+
+  subtitle: {
+    fontFamily: fonts.regular,
+    fontSize: fontSizes.sm,
+    color: colors.text.secondary,
+    textAlign: 'center',
+    marginBottom: spacing.xs,
   },
 
   formBody: {
@@ -678,27 +751,104 @@ function makeStyles(colors) { return StyleSheet.create({
     paddingBottom: spacing.xl,
     gap: spacing.md,
   },
+
+  selectedRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    justifyContent: 'center',
+    paddingVertical: spacing.xs,
+  },
+  selectedCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: COPPER,
+  },
+  selectedCircleLight: {
+    borderColor: '#9E9E9E',
+  },
+
   fieldGroup: { gap: spacing.xs },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: spacing.xs,
+  },
   fieldLabel: {
     fontFamily: fonts.semiBold,
     fontSize: fontSizes.sm,
-    color: colors.primary.dark,
+    color: '#BA797D',
+  },
+  fieldHint: {
+    fontFamily: fonts.regular,
+    fontSize: fontSizes.xs,
+    color: colors.text.tertiary,
   },
 
-  pickerRow: {
+  paletteGroup: { gap: 6 },
+  groupHeader: {
+    fontFamily: fonts.semiBold,
+    fontSize: fontSizes.xs,
+    color: colors.text.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginTop: spacing.xs,
+  },
+  swatchRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 5,
+  },
+  swatch: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
   },
-  pickerValue: {
-    fontFamily: fonts.regular,
-    fontSize: fontSizes.md,
-    color: colors.text.primary,
+  swatchLight: {
+    borderWidth: 1,
+    borderColor: colors.neutral.greige,
   },
-  pickerPlaceholder: {
-    fontFamily: fonts.regular,
-    fontSize: fontSizes.md,
-    color: colors.text.tertiary,
+  swatchCheckmark: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: '100%',
+  },
+
+  patternCards: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  patternCard: {
+    flex: 1,
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
+    borderRadius: radii.card,
+    borderWidth: 2,
+    borderColor: colors.neutral.greige,
+    backgroundColor: colors.card,
+  },
+  patternCardSelected: {
+    borderColor: COPPER,
+    backgroundColor: colors.background,
+  },
+  patternLabel: {
+    fontFamily: fonts.semiBold,
+    fontSize: fontSizes.xs,
+    color: colors.text.secondary,
+    textAlign: 'center',
+  },
+  patternLabelSelected: {
+    color: COPPER,
   },
 
   dimRow: {
@@ -725,51 +875,14 @@ function makeStyles(colors) { return StyleSheet.create({
     color: colors.status.errorText,
   },
 
-  paletteGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  swatch: {
-    width: 60,
-    height: 60,
-    borderRadius: radii.card,
-    borderWidth: 2.5,
-    borderColor: 'transparent',
-  },
-  swatchSelected: {
-    borderColor: colors.secondary.amber,
-  },
-
-  pillRow: {
-    flexDirection: 'row',
-    gap: spacing.xs,
-    flexWrap: 'wrap',
-  },
-  pill: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radii.small,
-    borderWidth: 1,
-    borderColor: colors.neutral.greige,
-    backgroundColor: colors.card,
-  },
-  pillSelected: {
-    backgroundColor: colors.button.primary,
-    borderColor: colors.button.primary,
-  },
-  pillText: {
-    fontFamily: fonts.semiBold,
-    fontSize: fontSizes.sm,
-    color: colors.text.secondary,
-  },
-  pillTextSelected: { color: colors.card },
-
   primaryBtn: {
-    backgroundColor: colors.button.primary,
+    backgroundColor: COPPER,
     borderRadius: radii.card,
     paddingVertical: spacing.md,
     alignItems: 'center',
+  },
+  primaryBtnDisabled: {
+    opacity: 0.45,
   },
   primaryBtnText: {
     fontFamily: fonts.bold,
@@ -782,31 +895,6 @@ function makeStyles(colors) { return StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingBottom: 120,
     gap: spacing.md,
-  },
-  canvasCard: {
-    backgroundColor: colors.card,
-    borderRadius: radii.card,
-    padding: spacing.md,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  resultMeta: {
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  resultTypeName: {
-    fontFamily: fonts.bold,
-    fontSize: fontSizes.lg,
-    color: colors.text.primary,
-  },
-  resultDimensions: {
-    fontFamily: fonts.semiBold,
-    fontSize: fontSizes.sm,
-    color: colors.primary.DEFAULT,
   },
   coloursCard: {
     backgroundColor: colors.card,
@@ -821,9 +909,11 @@ function makeStyles(colors) { return StyleSheet.create({
     fontSize: fontSizes.sm,
     color: colors.text.secondary,
   },
-  colourCircles: {
+  colorChipsScroll: { flexGrow: 0 },
+  colorChips: {
     flexDirection: 'row',
     gap: spacing.sm,
+    paddingBottom: 2,
   },
   colourCircle: {
     width: 36,
@@ -832,6 +922,57 @@ function makeStyles(colors) { return StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.neutral.greige,
   },
+  colourCircleLight: {
+    borderColor: '#9E9E9E',
+  },
+  shuffleRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    alignItems: 'center',
+  },
+  aleatorizarBtn: {
+    borderRadius: radii.small,
+    borderWidth: 1,
+    borderColor: COPPER,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  aleatorizarText: {
+    fontFamily: fonts.semiBold,
+    fontSize: fontSizes.sm,
+    color: COPPER,
+  },
+  restablecerBtn: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  restablecerText: {
+    fontFamily: fonts.regular,
+    fontSize: fontSizes.sm,
+    color: colors.text.tertiary,
+    textDecorationLine: 'underline',
+  },
+
+  canvasCard: {
+    backgroundColor: colors.card,
+    borderRadius: radii.card,
+    padding: spacing.md,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  resultMeta: {
+    alignItems: 'center',
+  },
+  resultDimensions: {
+    fontFamily: fonts.semiBold,
+    fontSize: fontSizes.sm,
+    color: colors.primary.DEFAULT,
+  },
+
   actionButtons: {
     gap: spacing.sm,
     marginTop: spacing.xs,
@@ -845,7 +986,7 @@ function makeStyles(colors) { return StyleSheet.create({
   journalBtnText: {
     fontFamily: fonts.bold,
     fontSize: fontSizes.md,
-    color: colors.text.primary,
+    color: colors.card,
   },
   outlineBtn: {
     borderRadius: radii.card,
@@ -857,93 +998,6 @@ function makeStyles(colors) { return StyleSheet.create({
   outlineBtnText: {
     fontFamily: fonts.semiBold,
     fontSize: fontSizes.md,
-    color: colors.text.secondary,
-  },
-
-  // Type picker modal
-  pickerOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-  },
-  pickerSheet: {
-    backgroundColor: colors.card,
-    borderRadius: radii.modal,
-    width: '100%',
-    overflow: 'hidden',
-  },
-  pickerItem: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.neutral.greige,
-  },
-  pickerItemLast: { borderBottomWidth: 0 },
-  pickerItemText: {
-    fontFamily: fonts.regular,
-    fontSize: fontSizes.md,
-    color: colors.text.primary,
-  },
-  pickerItemTextSelected: {
-    fontFamily: fonts.bold,
-    color: colors.primary.dark,
-  },
-
-  // Saved success modal
-  savedOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-  },
-  savedSheet: {
-    backgroundColor: colors.card,
-    borderRadius: radii.modal,
-    padding: spacing.xl,
-    alignItems: 'center',
-    gap: spacing.md,
-    width: '100%',
-  },
-  checkCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.status.success,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  savedTitle: {
-    fontFamily: fonts.bold,
-    fontSize: fontSizes.lg,
-    color: colors.text.primary,
-  },
-  savedButtons: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    width: '100%',
-  },
-  savedBtn: {
-    flex: 1,
-    borderRadius: radii.small,
-    paddingVertical: spacing.sm,
-    alignItems: 'center',
-  },
-  savedBtnPrimary: { backgroundColor: colors.button.primary },
-  savedBtnPrimaryText: {
-    fontFamily: fonts.semiBold,
-    fontSize: fontSizes.sm,
-    color: colors.card,
-  },
-  savedBtnOutline: {
-    borderWidth: 1,
-    borderColor: colors.neutral.greige,
-  },
-  savedBtnOutlineText: {
-    fontFamily: fonts.semiBold,
-    fontSize: fontSizes.sm,
     color: colors.text.secondary,
   },
 }); }

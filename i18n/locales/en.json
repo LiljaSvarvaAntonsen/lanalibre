@@ -39,7 +39,8 @@
     "perfil": "Profile"
   },
   "inicio": {
-    "greeting": "Hello! 👋",
+    "greeting": "Hello!",
+    "greetingWithName": "Hello, {{name}}!",
     "subtitle": "What do you want to create today?",
     "newProject": "Start new project",
     "recentProjects": "Recent projects",
@@ -153,7 +154,8 @@
     }
   },
   "vistaPrevia": {
-    "title": "Project Preview",
+    "title": "Blanket Design",
+    "subtitle": "Design your blanket's colour pattern before you start",
     "tipoProyecto": "Project type",
     "seleccionaTipo": "Select a type",
     "ancho": "Width (cm)",
@@ -161,8 +163,16 @@
     "circunferencia": "Circumference (cm)",
     "altura": "Height (cm)",
     "paleta": "Colour palette",
+    "coloresSection": "Blanket colours",
+    "coloresHint": "Choose 2 to 10 colours",
+    "elegirColores": "Choose colours",
+    "cerrarPaleta": "Close palette",
+    "disenoSection": "Pattern",
+    "paletaEnUso": "Active palette",
+    "aleatorizar": "🎲 Randomise",
+    "restablecer": "Reset",
     "patronPunto": "Stitch pattern",
-    "generar": "Generate preview",
+    "generar": "View design",
     "guardarProyecto": "Save to project",
     "añadirDiario": "Save preview to journal",
     "modificar": "Modify",
@@ -206,11 +216,13 @@
     },
     "patrones": {
       "liso": "Solid",
-      "rayasV": "V-Stripes ↕",
-      "rayasH": "H-Stripes ↔"
+      "rayasV": "Vertical stripes",
+      "rayasH": "Horizontal stripes",
+      "grannySquares": "Granny squares"
     },
     "errors": {
       "required": "Select a type and at least one colour.",
+      "minColors": "Select between 2 and 10 colours.",
       "dimensions": "Enter valid dimensions (numbers greater than zero)."
     }
   },
@@ -250,6 +262,7 @@
     "saveProject": "Save project",
     "proximamente": "Coming soon",
     "welcomeToast": "Project created! Start by adding a tool.",
+    "resultSavedBanner": "Result saved! Here's your project.",
     "herramientasPlanif": "Planning tools",
     "herramientasPlanifSubtitle": "Optional — use them now or later from the project",
     "calcularBtn": "Calculate",

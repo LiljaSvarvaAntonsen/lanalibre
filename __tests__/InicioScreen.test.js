@@ -8,6 +8,14 @@ jest.mock('../contexts/ThemeContext', () => ({
   useTheme: () => ({ theme: require('../constants/colors').colors, isDark: false, toggleTheme: jest.fn() }),
 }));
 
+jest.mock('../hooks/useAuth', () => ({
+  useAuth: jest.fn(() => ({ user: null })),
+}));
+
+jest.mock('../services/firestore', () => ({
+  getUserDocument: jest.fn(() => Promise.resolve(null)),
+}));
+
 import { render, screen } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import i18n from '../i18n';

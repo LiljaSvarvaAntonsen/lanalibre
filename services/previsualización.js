@@ -1,12 +1,11 @@
 export const TIPOS_PROYECTO = ['bufanda', 'manta', 'gorro', 'top'];
 
 export const PATRONES_PUNTO = {
-  liso: 'liso',
   rayasV: 'rayas_v',
   rayasH: 'rayas_h',
+  grannySquares: 'granny_squares',
 };
 
-// Which dimension labels each type uses
 export const DIMENSIONES_POR_TIPO = {
   bufanda: { dim1: 'ancho', dim2: 'largo' },
   manta:   { dim1: 'ancho', dim2: 'largo' },
@@ -15,24 +14,20 @@ export const DIMENSIONES_POR_TIPO = {
 };
 
 /**
- * buildCanvasParams({ tipoProyecto, dim1, dim2, colores, patronPunto })
+ * buildCanvasParams({ dim1, dim2, colores, patronPunto, squareSeed })
  * Pure function — no Firebase. Throws Error('validation') on bad input.
- * Returns a serialisable params object that can be stored in Firestore
- * and passed directly to <PreviewCanvas> to regenerate the canvas.
+ * Returns a serialisable params object for Firestore and PreviewCanvas.
+ * tipoProyecto is always 'manta' — this tool is blanket-only.
  */
-export function buildCanvasParams({ tipoProyecto, dim1, dim2, colores, patronPunto }) {
+export function buildCanvasParams({ dim1, dim2, colores, patronPunto, squareSeed = 0 }) {
   const errors = {};
-
-  if (!tipoProyecto || !TIPOS_PROYECTO.includes(tipoProyecto)) {
-    errors.tipoProyecto = true;
-  }
 
   const d1 = parseFloat(dim1);
   const d2 = parseFloat(dim2);
   if (!dim1 || isNaN(d1) || d1 <= 0) errors.dim1 = true;
   if (!dim2 || isNaN(d2) || d2 <= 0) errors.dim2 = true;
 
-  if (!colores || colores.length === 0) errors.colores = true;
+  if (!colores || colores.length < 2 || colores.length > 10) errors.colores = true;
 
   if (!patronPunto || !Object.values(PATRONES_PUNTO).includes(patronPunto)) {
     errors.patronPunto = true;
@@ -44,15 +39,11 @@ export function buildCanvasParams({ tipoProyecto, dim1, dim2, colores, patronPun
     throw err;
   }
 
-  const dimLabels = DIMENSIONES_POR_TIPO[tipoProyecto];
-
   return {
-    tipoProyecto,
-    medidas: {
-      [dimLabels.dim1]: d1,
-      [dimLabels.dim2]: d2,
-    },
+    tipoProyecto: 'manta',
+    medidas: { ancho: d1, largo: d2 },
     colores,
     patronPunto,
+    squareSeed,
   };
 }

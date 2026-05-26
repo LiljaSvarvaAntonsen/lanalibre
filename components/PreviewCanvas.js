@@ -3,32 +3,38 @@ import { Svg, Rect } from 'react-native-svg';
 import { PATRONES_PUNTO } from '../services/previsualización';
 
 const STRIPE_COUNT = 12;
+const GRANNY_GRID = 8;
+
+function rotateArray(arr, n) {
+  const len = arr.length;
+  if (len === 0) return arr;
+  const offset = ((n % len) + len) % len;
+  return [...arr.slice(offset), ...arr.slice(0, offset)];
+}
+
+function getSquareColors(colors, row, col, squareSeed) {
+  if (colors.length <= 5) return colors;
+  const subsetSize = Math.min(colors.length, 5);
+  const offset = (squareSeed + row * GRANNY_GRID + col) % colors.length;
+  return Array.from({ length: subsetSize }, (_, i) => colors[(offset + i) % colors.length]);
+}
 
 // forwardRef exposes the Svg node so callers can call ref.current.toDataURL() for PNG capture.
-const PreviewCanvas = forwardRef(function PreviewCanvas({ tipoProyecto, medidas, colores, patronPunto, width }, ref) {
-  const dimValues = Object.values(medidas);
-  const [d1, d2] = dimValues;
-
-  const aspectRatio = d2 / d1;
-  const canvasHeight = Math.min(width * aspectRatio, width * 2);
-  const canvasWidth = width;
-
+const PreviewCanvas = forwardRef(function PreviewCanvas(
+  { medidas, colores, patronPunto, width, squareSeed = 0 },
+  ref,
+) {
+  const canvasSize = width;
   const safeColors = colores && colores.length > 0 ? colores : ['#C8BBE8'];
-  const baseColor = safeColors[0];
 
   function renderStripes() {
-    if (patronPunto === PATRONES_PUNTO.liso) {
-      return <Rect x={0} y={0} width={canvasWidth} height={canvasHeight} fill={baseColor} />;
-    }
-
     const isVertical = patronPunto === PATRONES_PUNTO.rayasV;
     const stripeSize = isVertical
-      ? canvasWidth / STRIPE_COUNT
-      : canvasHeight / STRIPE_COUNT;
+      ? canvasSize / STRIPE_COUNT
+      : canvasSize / STRIPE_COUNT;
+    const total = Math.ceil(canvasSize / stripeSize) + 1;
 
-    const count = Math.ceil((isVertical ? canvasWidth : canvasHeight) / stripeSize) + 1;
-
-    return Array.from({ length: count }, (_, i) => {
+    return Array.from({ length: total }, (_, i) => {
       const color = safeColors[i % safeColors.length];
       return isVertical ? (
         <Rect
@@ -36,7 +42,7 @@ const PreviewCanvas = forwardRef(function PreviewCanvas({ tipoProyecto, medidas,
           x={i * stripeSize}
           y={0}
           width={stripeSize}
-          height={canvasHeight}
+          height={canvasSize}
           fill={color}
         />
       ) : (
@@ -44,7 +50,7 @@ const PreviewCanvas = forwardRef(function PreviewCanvas({ tipoProyecto, medidas,
           key={i}
           x={0}
           y={i * stripeSize}
-          width={canvasWidth}
+          width={canvasSize}
           height={stripeSize}
           fill={color}
         />
@@ -52,9 +58,47 @@ const PreviewCanvas = forwardRef(function PreviewCanvas({ tipoProyecto, medidas,
     });
   }
 
+  function renderGrannySquares() {
+    const sq = canvasSize / GRANNY_GRID;
+    const elements = [];
+
+    for (let row = 0; row < GRANNY_GRID; row++) {
+      for (let col = 0; col < GRANNY_GRID; col++) {
+        const seq = getSquareColors(safeColors, row, col, squareSeed);
+        const N = seq.length;
+        const t = sq / (2 * N);
+
+        for (let i = 0; i < N; i++) {
+          const inset = i * t;
+          const side = sq - 2 * inset;
+          elements.push(
+            <Rect
+              key={`${row}-${col}-${i}`}
+              x={col * sq + inset}
+              y={row * sq + inset}
+              width={side}
+              height={side}
+              fill={seq[i]}
+            />,
+          );
+        }
+      }
+    }
+
+    return elements;
+  }
+
+  function renderContent() {
+    if (patronPunto === PATRONES_PUNTO.grannySquares) return renderGrannySquares();
+    if (patronPunto === PATRONES_PUNTO.rayasV || patronPunto === PATRONES_PUNTO.rayasH) {
+      return renderStripes();
+    }
+    return <Rect x={0} y={0} width={canvasSize} height={canvasSize} fill={safeColors[0]} />;
+  }
+
   return (
-    <Svg ref={ref} width={canvasWidth} height={canvasHeight}>
-      {renderStripes()}
+    <Svg ref={ref} width={canvasSize} height={canvasSize}>
+      {renderContent()}
     </Svg>
   );
 });

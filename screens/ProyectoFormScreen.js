@@ -38,9 +38,9 @@ import { calcularConsumo, MULTIPLICADORES } from '../services/calculadora';
 import {
   TIPOS_PROYECTO,
   PATRONES_PUNTO,
-  DIMENSIONES_POR_TIPO,
   buildCanvasParams,
 } from '../services/previsualización';
+import { PALETTE, isLight } from '../constants/palette';
 import {
   createProject as fsCreateProject,
   updateProject as fsUpdateProject,
@@ -60,15 +60,17 @@ import Toast from '../components/Toast';
 
 const TAGS = ['WIP', 'PHD', 'FO', 'UFO', 'USO', 'YAP', 'TOAD'];
 const STITCH_TYPES = Object.keys(MULTIPLICADORES);
-const PRESET_PALETTE = [
-  '#C17B4E', '#D4868A', '#7A9E7E', '#E8C9A0',
-  '#8BB8A8', '#F5EEE0', '#8B6B5A', '#9AB89A',
+const COPPER = '#CB6D51';
+const PATTERN_OPTIONS = [
+  { key: 'rayasV',        value: PATRONES_PUNTO.rayasV },
+  { key: 'rayasH',        value: PATRONES_PUNTO.rayasH },
+  { key: 'grannySquares', value: PATRONES_PUNTO.grannySquares },
 ];
 const EMPTY_CALC = {
   metrosEtiqueta: '', gramosEtiqueta: '', ancho: '', largo: '', tension: '', tipoPunto: '',
 };
 const EMPTY_PREV = {
-  tipoProyecto: '', dim1: '', dim2: '', colores: [], patronPunto: PATRONES_PUNTO.liso,
+  dim1: '', dim2: '', colores: [], patronPunto: null,
 };
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -91,16 +93,15 @@ function prefillCalcFromSaved(saved) {
 
 function prefillPrevFromSaved(saved) {
   if (!saved) return EMPTY_PREV;
-  const dimLabels = saved.tipoProyecto
-    ? DIMENSIONES_POR_TIPO[saved.tipoProyecto]
-    : { dim1: 'ancho', dim2: 'largo' };
   const medidas = saved.medidas ?? {};
+  const validPatron = saved.patronPunto && Object.values(PATRONES_PUNTO).includes(saved.patronPunto)
+    ? saved.patronPunto
+    : null;
   return {
-    tipoProyecto: saved.tipoProyecto ?? '',
-    dim1: medidas[dimLabels?.dim1] != null ? String(medidas[dimLabels.dim1]) : '',
-    dim2: medidas[dimLabels?.dim2] != null ? String(medidas[dimLabels.dim2]) : '',
+    dim1: medidas.ancho != null ? String(medidas.ancho) : '',
+    dim2: medidas.largo != null ? String(medidas.largo) : '',
     colores: saved.colores ?? [],
-    patronPunto: saved.patronPunto ?? PATRONES_PUNTO.liso,
+    patronPunto: validPatron,
   };
 }
 
@@ -168,7 +169,7 @@ function ToolSectionHeader({ icon: Icon, iconColor, iconBg, label, open, onToggl
 // ── Main screen ───────────────────────────────────────────────────────────────
 
 export default function ProyectoFormScreen({ route, navigation }) {
-  const { theme: colors } = useTheme();
+  const { theme: colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -177,6 +178,8 @@ export default function ProyectoFormScreen({ route, navigation }) {
   const existingProject = route?.params?.project ?? null;
   const projectId = route?.params?.projectId ?? existingProject?.id ?? null;
   const isEdit = !!projectId;
+  const pendingResult = route?.params?.pendingResult ?? null;
+  const pendingResultType = route?.params?.pendingResultType ?? null;
 
   // ── Basic fields ────────────────────────────────────────────────────────────
   const [nombre, setNombre] = useState(existingProject?.nombre ?? '');
@@ -200,7 +203,10 @@ export default function ProyectoFormScreen({ route, navigation }) {
   );
   const [prevErrors, setPrevErrors] = useState({});
   const [prevParams, setPrevParams] = useState(null);
-  const [showTypePicker, setShowTypePicker] = useState(false);
+  const [prevColorOrder, setPrevColorOrder] = useState([]);
+  const [prevSquareSeed, setPrevSquareSeed] = useState(0);
+  const [prevOriginalColors, setPrevOriginalColors] = useState([]);
+  const [prevPaletteOpen, setPrevPaletteOpen] = useState(false);
 
   // ── Diario state ────────────────────────────────────────────────────────────
   const [diarioPending, setDiarioPending] = useState(false);
@@ -349,7 +355,7 @@ export default function ProyectoFormScreen({ route, navigation }) {
   function toggleColor(hex) {
     setPrevFields((prev) => {
       if (prev.colores.includes(hex)) return { ...prev, colores: prev.colores.filter((c) => c !== hex) };
-      if (prev.colores.length >= 4) return prev;
+      if (prev.colores.length >= 10) return prev;
       return { ...prev, colores: [...prev.colores, hex] };
     });
     setPrevErrors((prev) => ({ ...prev, colores: undefined }));
@@ -357,24 +363,40 @@ export default function ProyectoFormScreen({ route, navigation }) {
 
   function handleGenerar() {
     try {
+      const seed = Math.floor(Math.random() * 100000);
+      const order = [...prevFields.colores];
       const p = buildCanvasParams({
-        tipoProyecto: prevFields.tipoProyecto,
         dim1: prevFields.dim1,
         dim2: prevFields.dim2,
-        colores: prevFields.colores,
+        colores: order,
         patronPunto: prevFields.patronPunto,
+        squareSeed: seed,
       });
       Keyboard.dismiss();
+      setPrevColorOrder(order);
+      setPrevOriginalColors(order);
+      setPrevSquareSeed(seed);
       setPrevParams(p);
       setPrevErrors({});
+      setPrevPaletteOpen(false);
     } catch (err) {
       if (err.message === 'validation') setPrevErrors(err.fields ?? {});
     }
   }
 
-  const prevDimLabels = prevFields.tipoProyecto
-    ? DIMENSIONES_POR_TIPO[prevFields.tipoProyecto]
-    : { dim1: 'ancho', dim2: 'largo' };
+  function handlePrevAleatorizar() {
+    const shuffled = [...prevColorOrder].sort(() => Math.random() - 0.5);
+    const seed = Math.floor(Math.random() * 100000);
+    setPrevColorOrder(shuffled);
+    setPrevSquareSeed(seed);
+    setPrevParams((p) => ({ ...p, colores: shuffled, squareSeed: seed }));
+  }
+
+  function handlePrevRestablecer() {
+    setPrevColorOrder(prevOriginalColors);
+    setPrevSquareSeed(0);
+    setPrevParams((p) => ({ ...p, colores: prevOriginalColors, squareSeed: 0 }));
+  }
 
   const canvasWidth = screenWidth - spacing.lg * 2 - spacing.md * 2;
 
@@ -418,6 +440,12 @@ export default function ProyectoFormScreen({ route, navigation }) {
           : null,
         calcResult ? saveResultadoCalculadora(targetId, buildCalcData()) : null,
         prevParams ? saveResultadoPrevisualización(targetId, prevParams) : null,
+        pendingResultType === 'vista_previa' && pendingResult && !prevParams
+          ? saveResultadoPrevisualización(targetId, pendingResult)
+          : null,
+        pendingResultType === 'calculadora' && pendingResult && !calcResult
+          ? saveResultadoCalculadora(targetId, pendingResult)
+          : null,
       ].filter(Boolean));
 
       if (diarioPending && uid) {
@@ -427,7 +455,10 @@ export default function ProyectoFormScreen({ route, navigation }) {
       if (isEdit) {
         navigation.goBack();
       } else {
-        navigation.replace('ProyectoDetalleScreen', { projectId: targetId });
+        navigation.replace('ProyectoDetalleScreen', {
+          projectId: targetId,
+          resultSavedBanner: !!pendingResult,
+        });
       }
     } catch {
       isSavingRef.current = false;
@@ -448,9 +479,9 @@ export default function ProyectoFormScreen({ route, navigation }) {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityRole="button" accessibilityLabel={t('common.back')}>
-            <ArrowLeft size={22} color={colors.primary.dark} strokeWidth={1.8} />
+            <ArrowLeft size={22} color={colors.brand.copperRed} strokeWidth={1.8} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>
+          <Text style={[styles.headerTitle, { color: isDark ? '#BA797D' : '#5D2D24' }]}>
             {isEdit ? t('projects.editProject') : t('projects.newProject')}
           </Text>
           <View style={{ width: 24 }} />
@@ -470,7 +501,7 @@ export default function ProyectoFormScreen({ route, navigation }) {
               value={nombre}
               onChangeText={(v) => { setNombre(v); setNombreError(''); }}
               placeholder={t('projects.nombrePlaceholder')}
-              placeholderTextColor={colors.text.tertiary}
+              placeholderTextColor='#BA797D'
               maxLength={60}
               returnKeyType="next"
             />
@@ -511,7 +542,7 @@ export default function ProyectoFormScreen({ route, navigation }) {
               value={descripcion}
               onChangeText={setDescripcion}
               placeholder={t('projects.descripcionPlaceholder')}
-              placeholderTextColor={colors.text.tertiary}
+              placeholderTextColor='#BA797D'
               multiline
               numberOfLines={3}
               textAlignVertical="top"
@@ -635,26 +666,105 @@ export default function ProyectoFormScreen({ route, navigation }) {
             />
             {prevOpen && (
               <View style={styles.toolBody}>
-                {/* Tipo de proyecto */}
+
+                {/* Selected colours preview row */}
+                {prevFields.colores.length > 0 && (
+                  <View style={styles.prevSelectedRow}>
+                    {prevFields.colores.map((hex) => (
+                      <TouchableOpacity
+                        key={hex}
+                        style={[styles.prevSelectedCircle, { backgroundColor: hex }, isLight(hex) && styles.prevSelectedCircleLight]}
+                        onPress={() => toggleColor(hex)}
+                        activeOpacity={0.8}
+                        accessibilityRole="checkbox"
+                        accessibilityState={{ checked: true }}
+                      >
+                        <Check size={12} color={COPPER} strokeWidth={2.5} />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+
+                {/* Collapsible palette */}
                 <View style={styles.fieldGroup}>
-                  <Text style={styles.fieldLabel}>{t('vistaPrevia.tipoProyecto')}</Text>
-                  <TouchableOpacity
-                    style={[styles.input, styles.pickerRow, !!prevErrors.tipoProyecto && styles.inputError]}
-                    onPress={() => setShowTypePicker(true)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={prevFields.tipoProyecto ? styles.pickerValue : styles.pickerPlaceholder}>
-                      {prevFields.tipoProyecto ? t(`vistaPrevia.tipos.${prevFields.tipoProyecto}`) : t('vistaPrevia.seleccionaTipo')}
-                    </Text>
-                    <ChevronDown size={18} color={colors.text.tertiary} strokeWidth={1.8} />
-                  </TouchableOpacity>
-                  {!!prevErrors.tipoProyecto && <Text style={styles.fieldError}>{t('vistaPrevia.errors.required')}</Text>}
+                  <View style={styles.prevPaletteHeaderRow}>
+                    <Text style={styles.fieldLabel}>{t('vistaPrevia.coloresSection')}</Text>
+                    <TouchableOpacity
+                      style={styles.prevPaletteToggleBtn}
+                      onPress={() => setPrevPaletteOpen((v) => !v)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.prevPaletteToggleText}>
+                        {prevPaletteOpen ? t('vistaPrevia.cerrarPaleta') : t('vistaPrevia.elegirColores')}
+                      </Text>
+                      {prevPaletteOpen
+                        ? <ChevronUp size={14} color={COPPER} strokeWidth={1.8} />
+                        : <ChevronDown size={14} color={COPPER} strokeWidth={1.8} />}
+                    </TouchableOpacity>
+                  </View>
+                  {!!prevErrors.colores && <Text style={styles.fieldError}>{t('vistaPrevia.errors.minColors')}</Text>}
+
+                  {prevPaletteOpen && (
+                    <View style={styles.prevPaletteGrid}>
+                      {PALETTE.map(({ group, swatches }) => (
+                        <View key={group} style={styles.prevPaletteGroup}>
+                          <Text style={styles.prevGroupHeader}>{group}</Text>
+                          <View style={styles.prevSwatchRow}>
+                            {swatches.map(({ name, hex }) => {
+                              const selected = prevFields.colores.includes(hex);
+                              return (
+                                <TouchableOpacity
+                                  key={hex}
+                                  style={[styles.prevSwatch, { backgroundColor: hex }, isLight(hex) && styles.prevSwatchLight]}
+                                  onPress={() => toggleColor(hex)}
+                                  activeOpacity={0.8}
+                                  accessibilityLabel={name}
+                                  accessibilityRole="checkbox"
+                                  accessibilityState={{ checked: selected }}
+                                >
+                                  {selected && (
+                                    <View style={styles.prevSwatchCheck}>
+                                      <Check size={12} color={COPPER} strokeWidth={2.5} />
+                                    </View>
+                                  )}
+                                </TouchableOpacity>
+                              );
+                            })}
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  )}
                 </View>
 
-                {/* Dimensiones */}
+                {/* Pattern cards */}
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>{t('vistaPrevia.disenoSection')}</Text>
+                  <View style={styles.prevPatternCards}>
+                    {PATTERN_OPTIONS.map(({ key, value }) => {
+                      const selected = prevFields.patronPunto === value;
+                      return (
+                        <TouchableOpacity
+                          key={value}
+                          style={[styles.prevPatternCard, selected && styles.prevPatternCardSelected]}
+                          onPress={() => setPrevField('patronPunto', value)}
+                          activeOpacity={0.8}
+                          accessibilityRole="radio"
+                          accessibilityState={{ selected }}
+                        >
+                          <Text style={[styles.prevPatternLabel, selected && styles.prevPatternLabelSelected]}>
+                            {t(`vistaPrevia.patrones.${key}`)}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+
+                {/* Dimensions */}
                 <View style={styles.dimRow}>
                   <View style={[styles.fieldGroup, styles.dimField]}>
-                    <Text style={styles.fieldLabel}>{t(`vistaPrevia.${prevDimLabels.dim1}`)}</Text>
+                    <Text style={styles.fieldLabel}>{t('vistaPrevia.ancho')}</Text>
                     <TextInput
                       style={[styles.input, !!prevErrors.dim1 && styles.inputError]}
                       value={prevFields.dim1}
@@ -665,7 +775,7 @@ export default function ProyectoFormScreen({ route, navigation }) {
                     {!!prevErrors.dim1 && <Text style={styles.fieldError}>{t('vistaPrevia.errors.dimensions')}</Text>}
                   </View>
                   <View style={[styles.fieldGroup, styles.dimField]}>
-                    <Text style={styles.fieldLabel}>{t(`vistaPrevia.${prevDimLabels.dim2}`)}</Text>
+                    <Text style={styles.fieldLabel}>{t('vistaPrevia.largo')}</Text>
                     <TextInput
                       style={[styles.input, !!prevErrors.dim2 && styles.inputError]}
                       value={prevFields.dim2}
@@ -677,78 +787,43 @@ export default function ProyectoFormScreen({ route, navigation }) {
                   </View>
                 </View>
 
-                {/* Paleta de colores */}
-                <View style={styles.fieldGroup}>
-                  <Text style={styles.fieldLabel}>{t('vistaPrevia.paleta')}</Text>
-                  <View style={styles.paletteGrid}>
-                    {PRESET_PALETTE.map((hex) => {
-                      const selected = prevFields.colores.includes(hex);
-                      return (
-                        <TouchableOpacity
-                          key={hex}
-                          style={[styles.swatch, { backgroundColor: hex }, selected && styles.swatchSelected]}
-                          onPress={() => toggleColor(hex)}
-                          activeOpacity={0.8}
-                          accessibilityRole="checkbox"
-                          accessibilityState={{ checked: selected }}
-                        />
-                      );
-                    })}
-                  </View>
-                  {!!prevErrors.colores && <Text style={styles.fieldError}>{t('vistaPrevia.errors.required')}</Text>}
-                </View>
-
-                {/* Patrón de puntos */}
-                <View style={styles.fieldGroup}>
-                  <Text style={styles.fieldLabel}>{t('vistaPrevia.patronPunto')}</Text>
-                  <View style={styles.pillRow}>
-                    {Object.entries(PATRONES_PUNTO).map(([key, value]) => {
-                      const selected = prevFields.patronPunto === value;
-                      return (
-                        <TouchableOpacity
-                          key={value}
-                          style={[styles.pill, selected && styles.pillSelected]}
-                          onPress={() => setPrevField('patronPunto', value)}
-                          activeOpacity={0.8}
-                          accessibilityRole="radio"
-                          accessibilityState={{ selected }}
-                        >
-                          <Text style={[styles.pillText, selected && styles.pillTextSelected]}>
-                            {t(`vistaPrevia.patrones.${key}`)}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </View>
-
                 <TouchableOpacity
-                  style={[styles.toolPrimaryBtn, (!prevFields.tipoProyecto || prevFields.colores.length === 0) && styles.toolPrimaryBtnDisabled]}
+                  style={[styles.toolPrimaryBtn, (prevFields.colores.length < 2 || !prevFields.patronPunto) && styles.toolPrimaryBtnDisabled]}
                   onPress={handleGenerar}
                   activeOpacity={0.85}
-                  disabled={!prevFields.tipoProyecto || prevFields.colores.length === 0}
+                  disabled={prevFields.colores.length < 2 || !prevFields.patronPunto}
                 >
                   <Text style={styles.toolPrimaryBtnText}>{t('vistaPrevia.generar')}</Text>
                 </TouchableOpacity>
 
                 {prevParams && (
                   <View style={styles.resultGroup}>
+                    {/* Aleatorizar controls */}
+                    <View style={styles.prevShuffleRow}>
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }}>
+                        <View style={{ flexDirection: 'row', gap: spacing.xs, alignItems: 'center' }}>
+                          {prevColorOrder.map((hex, idx) => (
+                            <View key={`${hex}-${idx}`} style={[styles.colourCircle, { backgroundColor: hex }, isLight(hex) && styles.colourCircleLight]} />
+                          ))}
+                        </View>
+                      </ScrollView>
+                      <TouchableOpacity style={styles.prevAleatorizarBtn} onPress={handlePrevAleatorizar} activeOpacity={0.8}>
+                        <Text style={styles.prevAleatorizarText}>{t('vistaPrevia.aleatorizar')}</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={handlePrevRestablecer} activeOpacity={0.8}>
+                        <Text style={styles.prevRestablecerText}>{t('vistaPrevia.restablecer')}</Text>
+                      </TouchableOpacity>
+                    </View>
                     <View style={styles.canvasCard}>
                       <PreviewCanvas
-                        tipoProyecto={prevParams.tipoProyecto}
                         medidas={prevParams.medidas}
-                        colores={prevParams.colores}
+                        colores={prevColorOrder}
                         patronPunto={prevParams.patronPunto}
+                        squareSeed={prevSquareSeed}
                         width={canvasWidth}
                       />
                     </View>
-                    <Text style={styles.prevTypeName}>{t(`vistaPrevia.tipos.${prevParams.tipoProyecto}`)}</Text>
-                    <Text style={styles.prevDimensions}>{Object.values(prevParams.medidas).join(' × ')} cm</Text>
-                    <View style={styles.colourCircles}>
-                      {prevParams.colores.map((hex) => (
-                        <View key={hex} style={[styles.colourCircle, { backgroundColor: hex }]} />
-                      ))}
-                    </View>
+                    <Text style={styles.prevDimensions}>{prevParams.medidas.ancho} × {prevParams.medidas.largo} cm</Text>
                   </View>
                 )}
               </View>
@@ -784,30 +859,6 @@ export default function ProyectoFormScreen({ route, navigation }) {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-
-      {/* Type picker modal */}
-      <Modal visible={showTypePicker} transparent animationType="fade" statusBarTranslucent>
-        <TouchableOpacity style={styles.pickerOverlay} activeOpacity={1} onPress={() => setShowTypePicker(false)}>
-          <View style={styles.pickerSheet}>
-            {TIPOS_PROYECTO.map((tipo, idx) => (
-              <TouchableOpacity
-                key={tipo}
-                style={[styles.pickerItem, idx === TIPOS_PROYECTO.length - 1 && styles.pickerItemLast]}
-                onPress={() => {
-                  setPrevFields((prev) => ({ ...prev, tipoProyecto: tipo, dim1: '', dim2: '' }));
-                  setPrevErrors((prev) => ({ ...prev, tipoProyecto: undefined, dim1: undefined, dim2: undefined }));
-                  setShowTypePicker(false);
-                }}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.pickerItemText, prevFields.tipoProyecto === tipo && styles.pickerItemTextSelected]}>
-                  {t(`vistaPrevia.tipos.${tipo}`)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
 
       <LoadingOverlay visible={loading} />
       <Toast
@@ -861,7 +912,7 @@ function makeStyles(colors) { return StyleSheet.create({
   sectionLabel: {
     fontFamily: fonts.semiBold,
     fontSize: fontSizes.sm,
-    color: colors.text.secondary,
+    color: '#5D2D24',
   },
   input: {
     backgroundColor: colors.card,
@@ -936,14 +987,14 @@ function makeStyles(colors) { return StyleSheet.create({
   planifTitle: {
     fontFamily: fonts.semiBold,
     fontSize: fontSizes.xs,
-    color: colors.neutral.greige,
+    color: '#5D2D24',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
   planifSubtitle: {
     fontFamily: fonts.regular,
     fontSize: fontSizes.xs,
-    color: colors.text.tertiary,
+    color: '#5D2D24',
   },
 
   // Tool card
@@ -972,7 +1023,7 @@ function makeStyles(colors) { return StyleSheet.create({
     flex: 1,
     fontFamily: fonts.semiBold,
     fontSize: fontSizes.sm,
-    color: colors.text.primary,
+    color: '#5D2D24',
   },
   toolActionBtn: {
     backgroundColor: colors.button.primary,
@@ -1001,7 +1052,7 @@ function makeStyles(colors) { return StyleSheet.create({
   fieldLabel: {
     fontFamily: fonts.semiBold,
     fontSize: fontSizes.sm,
-    color: colors.primary.dark,
+    color: '#5D2D24',
   },
   pillRow: { flexDirection: 'row', gap: spacing.xs, flexWrap: 'wrap' },
   pill: {
@@ -1048,14 +1099,41 @@ function makeStyles(colors) { return StyleSheet.create({
   },
 
   // Preview fields
-  pickerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  pickerValue: { fontFamily: fonts.regular, fontSize: fontSizes.md, color: colors.text.primary },
-  pickerPlaceholder: { fontFamily: fonts.regular, fontSize: fontSizes.md, color: colors.text.tertiary },
   dimRow: { flexDirection: 'row', gap: spacing.sm },
   dimField: { flex: 1 },
-  paletteGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  swatch: { width: 48, height: 48, borderRadius: radii.card, borderWidth: 2.5, borderColor: 'transparent' },
-  swatchSelected: { borderColor: colors.secondary.amber },
+
+  prevSelectedRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.xs },
+  prevSelectedCircle: {
+    width: 36, height: 36, borderRadius: 18,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: '#CB6D51',
+  },
+  prevSelectedCircleLight: { borderColor: '#9E9E9E' },
+
+  prevPaletteHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  prevPaletteToggleBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  prevPaletteToggleText: { fontFamily: fonts.semiBold, fontSize: fontSizes.xs, color: '#CB6D51' },
+
+  prevPaletteGrid: { gap: spacing.xs, marginTop: spacing.xs },
+  prevPaletteGroup: { gap: 4 },
+  prevGroupHeader: {
+    fontFamily: fonts.semiBold, fontSize: fontSizes.xs,
+    color: colors.text.secondary, textTransform: 'uppercase', letterSpacing: 0.6,
+  },
+  prevSwatchRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
+  prevSwatch: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  prevSwatchLight: { borderWidth: 1, borderColor: colors.neutral.greige },
+  prevSwatchCheck: { position: 'absolute', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' },
+
+  prevPatternCards: { flexDirection: 'row', gap: spacing.xs },
+  prevPatternCard: {
+    flex: 1, alignItems: 'center', paddingVertical: spacing.xs, paddingHorizontal: 4,
+    borderRadius: radii.small, borderWidth: 1.5, borderColor: colors.neutral.greige,
+    backgroundColor: colors.card,
+  },
+  prevPatternCardSelected: { borderColor: '#CB6D51', backgroundColor: colors.background },
+  prevPatternLabel: { fontFamily: fonts.semiBold, fontSize: fontSizes.xs, color: colors.text.secondary, textAlign: 'center' },
+  prevPatternLabelSelected: { color: '#CB6D51' },
 
   // Preview result
   canvasCard: {
@@ -1064,29 +1142,16 @@ function makeStyles(colors) { return StyleSheet.create({
     padding: spacing.sm,
     overflow: 'hidden',
   },
-  prevTypeName: { fontFamily: fonts.bold, fontSize: fontSizes.md, color: colors.text.primary, textAlign: 'center' },
   prevDimensions: { fontFamily: fonts.semiBold, fontSize: fontSizes.sm, color: colors.primary.DEFAULT, textAlign: 'center' },
-  colourCircles: { flexDirection: 'row', gap: spacing.sm, justifyContent: 'center' },
-  colourCircle: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: colors.neutral.greige },
-
-  // Type picker modal
-  pickerOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
+  colourCircle: { width: 24, height: 24, borderRadius: 12, borderWidth: 1, borderColor: colors.neutral.greige },
+  colourCircleLight: { borderColor: '#9E9E9E' },
+  prevShuffleRow: { gap: spacing.xs },
+  prevAleatorizarBtn: {
+    borderRadius: radii.small, borderWidth: 1, borderColor: '#CB6D51',
+    paddingHorizontal: spacing.sm, paddingVertical: 4, alignSelf: 'flex-start',
   },
-  pickerSheet: { backgroundColor: colors.card, borderRadius: radii.modal, width: '100%', overflow: 'hidden' },
-  pickerItem: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.neutral.greige,
-  },
-  pickerItemLast: { borderBottomWidth: 0 },
-  pickerItemText: { fontFamily: fonts.regular, fontSize: fontSizes.md, color: colors.text.primary },
-  pickerItemTextSelected: { fontFamily: fonts.bold, color: colors.primary.dark },
+  prevAleatorizarText: { fontFamily: fonts.semiBold, fontSize: fontSizes.xs, color: '#CB6D51' },
+  prevRestablecerText: { fontFamily: fonts.regular, fontSize: fontSizes.xs, color: colors.text.tertiary, textDecorationLine: 'underline' },
 
   // Footer save button
   footer: {
@@ -1098,7 +1163,7 @@ function makeStyles(colors) { return StyleSheet.create({
     borderTopColor: colors.neutral.greige,
   },
   saveBtn: {
-    backgroundColor: colors.button.save,
+    backgroundColor: colors.button.primary,
     borderRadius: radii.card,
     paddingVertical: spacing.md,
     alignItems: 'center',

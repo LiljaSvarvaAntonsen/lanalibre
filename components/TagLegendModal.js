@@ -61,13 +61,13 @@ function makeStyles(colors) { return StyleSheet.create({
   title: {
     fontFamily: fonts.bold,
     fontSize: fontSizes.lg,
-    color: colors.text.primary,
+    color: '#5D2D24',
     marginBottom: spacing.xs,
   },
   subtitle: {
     fontFamily: fonts.regular,
     fontSize: fontSizes.sm,
-    color: colors.text.tertiary,
+    color: '#5D2D24',
     marginBottom: spacing.md,
   },
   scroll: {

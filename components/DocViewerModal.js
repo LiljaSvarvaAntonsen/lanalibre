@@ -36,7 +36,7 @@ export default function DocViewerModal({ visible, onClose, title, content }) {
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             accessibilityRole="button"
           >
-            <ArrowLeft size={22} color={colors.text.primary} strokeWidth={1.8} />
+            <ArrowLeft size={22} color={colors.brand.copperRed} strokeWidth={1.8} />
           </TouchableOpacity>
           <Text style={styles.title} numberOfLines={1}>{title}</Text>
         </View>

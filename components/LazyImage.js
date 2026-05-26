@@ -9,7 +9,7 @@ export default function LazyImage({ style, ...props }) {
       {!loaded && (
         <ActivityIndicator
           style={StyleSheet.absoluteFill}
-          color={colors.neutral.tertiary}
+          color='#CB6D51'
         />
       )}
       <Image

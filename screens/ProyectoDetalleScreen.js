@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -118,10 +118,18 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
   const [fullscreenImage, setFullscreenImage] = useState(null);
   const [editingDiarioId, setEditingDiarioId] = useState(null);
   const [editingDiarioName, setEditingDiarioName] = useState('');
+  const [showPdfShareModal, setShowPdfShareModal] = useState(false);
+  const [pdfShareUrl, setPdfShareUrl] = useState('');
 
   function showToast(message, type = 'success') {
     setToast({ visible: true, message, type });
   }
+
+  useEffect(() => {
+    if (!route.params?.resultSavedBanner) return;
+    showToast(t('projects.resultSavedBanner'));
+    navigation.setParams({ resultSavedBanner: undefined });
+  }, [route.params?.resultSavedBanner]);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -246,25 +254,17 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
         await WebBrowser.openBrowserAsync(url);
         return;
       }
-      // Local URI in Expo Go — native PDF viewers require an EAS build.
-      // Inform the user and offer the share sheet as an alternative.
-      Alert.alert(
-        '',
-        t('projectDetail.pdfExpoGoMessage'),
-        [
-          { text: t('common.cancel'), style: 'cancel' },
-          {
-            text: t('projectDetail.pdfShare'),
-            onPress: async () => {
-              try {
-                await Sharing.shareAsync(url, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' });
-              } catch {
-                showToast(t('common.error'), 'error');
-              }
-            },
-          },
-        ]
-      );
+      setPdfShareUrl(url);
+      setShowPdfShareModal(true);
+    } catch {
+      showToast(t('common.error'), 'error');
+    }
+  }
+
+  async function handlePdfShare() {
+    setShowPdfShareModal(false);
+    try {
+      await Sharing.shareAsync(pdfShareUrl, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' });
     } catch {
       showToast(t('common.error'), 'error');
     }
@@ -295,7 +295,7 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
           accessibilityRole="button"
           accessibilityLabel={t('common.back')}
         >
-          <ArrowLeft size={22} color={colors.primary.dark} strokeWidth={1.8} />
+          <ArrowLeft size={22} color={colors.brand.copperRed} strokeWidth={1.8} />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setShowProjectDeleteModal(true)}
@@ -455,7 +455,7 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
             )}
           </View>
           <TouchableOpacity style={styles.outlineBtn} onPress={handleNuevoDiario} activeOpacity={0.8}>
-            <Plus size={16} color={colors.primary.dark} strokeWidth={2} />
+            <Plus size={16} color='#BA797D' strokeWidth={2} />
             <Text style={styles.outlineBtnText}>{t('projectDetail.nuevoDiario')}</Text>
           </TouchableOpacity>
         </View>
@@ -559,6 +559,16 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
         onCancel={() => setShowProjectDeleteModal(false)}
       />
 
+      <ConfirmationModal
+        visible={showPdfShareModal}
+        title={t('projectDetail.pdfShare')}
+        message={t('projectDetail.pdfExpoGoMessage')}
+        confirmLabel={t('projectDetail.pdfShare')}
+        cancelLabel={t('common.cancel')}
+        onConfirm={handlePdfShare}
+        onCancel={() => setShowPdfShareModal(false)}
+      />
+
     </SafeAreaView>
   );
 }
@@ -607,7 +617,7 @@ function makeStyles(colors) { return StyleSheet.create({
     flex: 1,
     fontFamily: fonts.extraBold,
     fontSize: fontSizes.xxl,
-    color: colors.text.primary,
+    color: '#5D2D24',
     lineHeight: fontSizes.xxl * 1.25,
   },
   badge: {
@@ -630,7 +640,7 @@ function makeStyles(colors) { return StyleSheet.create({
   metaDate: {
     fontFamily: fonts.regular,
     fontSize: fontSizes.xs,
-    color: colors.text.tertiary,
+    color: '#BA797D',
   },
   descDivider: {
     height: 1,
@@ -639,11 +649,11 @@ function makeStyles(colors) { return StyleSheet.create({
   description: {
     fontFamily: fonts.regular,
     fontSize: fontSizes.sm,
-    color: colors.text.secondary,
+    color: '#5D2D24',
     lineHeight: fontSizes.sm * 1.5,
   },
   descriptionEmpty: {
-    color: colors.text.tertiary,
+    color: '#BA797D',
     fontStyle: 'italic',
   },
 
@@ -654,7 +664,7 @@ function makeStyles(colors) { return StyleSheet.create({
   sectionHeader: {
     fontFamily: fonts.semiBold,
     fontSize: fontSizes.xs,
-    color: colors.text.secondary,
+    color: '#5D2D24',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
@@ -707,7 +717,7 @@ function makeStyles(colors) { return StyleSheet.create({
   toolResultValue: {
     fontFamily: fonts.extraBold,
     fontSize: fontSizes.xl,
-    color: colors.text.primary,
+    color: '#5D2D24',
   },
   toolNameLabel: {
     fontFamily: fonts.regular,
@@ -717,7 +727,7 @@ function makeStyles(colors) { return StyleSheet.create({
   toolSummary: {
     fontFamily: fonts.regular,
     fontSize: fontSizes.xs,
-    color: colors.text.tertiary,
+    color: '#BA797D',
   },
   toolSummaryEmpty: {
     fontStyle: 'italic',
@@ -766,14 +776,14 @@ function makeStyles(colors) { return StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.xs,
     borderWidth: 1,
-    borderColor: colors.primary.dark,
+    borderColor: '#BA797D',
     borderRadius: radii.card,
     paddingVertical: spacing.sm,
   },
   outlineBtnText: {
     fontFamily: fonts.semiBold,
     fontSize: fontSizes.sm,
-    color: colors.primary.dark,
+    color: '#BA797D',
   },
 
   // Archivos
@@ -822,7 +832,7 @@ function makeStyles(colors) { return StyleSheet.create({
   uploadBtnText: {
     fontFamily: fonts.semiBold,
     fontSize: fontSizes.sm,
-    color: colors.text.secondary,
+    color: '#5D2D24',
   },
 
   // Fullscreen image modal
