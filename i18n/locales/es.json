@@ -39,7 +39,8 @@
     "perfil": "Perfil"
   },
   "inicio": {
-    "greeting": "¡Hola! 👋",
+    "greeting": "¡Hola!",
+    "greetingWithName": "¡Hola, {{name}}!",
     "subtitle": "¿Qué quieres crear hoy?",
     "newProject": "Empezar nuevo proyecto",
     "recentProjects": "Proyectos recientes",
@@ -153,7 +154,8 @@
     }
   },
   "vistaPrevia": {
-    "title": "Vista previa del proyecto",
+    "title": "Diseño de manta",
+    "subtitle": "Diseña el patrón de color de tu manta antes de empezar",
     "tipoProyecto": "Tipo de proyecto",
     "seleccionaTipo": "Selecciona un tipo",
     "ancho": "Ancho (cm)",
@@ -161,8 +163,16 @@
     "circunferencia": "Circunferencia (cm)",
     "altura": "Altura (cm)",
     "paleta": "Paleta de colores",
+    "coloresSection": "Colores de tu manta",
+    "coloresHint": "Elige entre 2 y 10 colores",
+    "elegirColores": "Elegir colores",
+    "cerrarPaleta": "Cerrar paleta",
+    "disenoSection": "Diseño",
+    "paletaEnUso": "Paleta en uso",
+    "aleatorizar": "🎲 Aleatorizar",
+    "restablecer": "Restablecer",
     "patronPunto": "Patrón de punto",
-    "generar": "Generar vista previa",
+    "generar": "Ver diseño",
     "guardarProyecto": "Guardar en proyecto",
     "añadirDiario": "Guardar captura en diario",
     "modificar": "Modificar",
@@ -206,11 +216,13 @@
     },
     "patrones": {
       "liso": "Liso",
-      "rayasV": "Rayas ↕",
-      "rayasH": "Rayas ↔"
+      "rayasV": "Rayas verticales",
+      "rayasH": "Rayas horizontales",
+      "grannySquares": "Granny squares"
     },
     "errors": {
       "required": "Selecciona un tipo y al menos un color.",
+      "minColors": "Selecciona entre 2 y 10 colores.",
       "dimensions": "Introduce dimensiones válidas (números mayores que cero)."
     }
   },
@@ -250,6 +262,7 @@
     "saveProject": "Guardar proyecto",
     "proximamente": "Próximamente",
     "welcomeToast": "¡Proyecto creado! Empieza añadiendo una herramienta.",
+    "resultSavedBanner": "¡Resultado guardado! Aquí está tu proyecto.",
     "herramientasPlanif": "Herramientas de planificación",
     "herramientasPlanifSubtitle": "Opcional — puedes usarlas ahora o más tarde desde el proyecto",
     "calcularBtn": "Calcular",

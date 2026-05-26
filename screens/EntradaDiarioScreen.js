@@ -303,13 +303,13 @@ function TextFormatBar({ element, onChange, onDelete, onDone, style }) {
   return (
     <View style={[styles.formatBar, style]}>
       <FmtBtn active={element.bold} onPress={() => onChange({ bold: !element.bold })}>
-        <Bold size={16} color={element.bold ? colors.primary.dark : colors.text.secondary} strokeWidth={2} />
+        <Bold size={16} color={element.bold ? colors.brand.burntCopper : colors.text.secondary} strokeWidth={2} />
       </FmtBtn>
       <FmtBtn active={element.italic} onPress={() => onChange({ italic: !element.italic })}>
-        <Italic size={16} color={element.italic ? colors.primary.dark : colors.text.secondary} strokeWidth={2} />
+        <Italic size={16} color={element.italic ? colors.brand.burntCopper : colors.text.secondary} strokeWidth={2} />
       </FmtBtn>
       <FmtBtn active={element.underline} onPress={() => onChange({ underline: !element.underline })}>
-        <Underline size={16} color={element.underline ? colors.primary.dark : colors.text.secondary} strokeWidth={2} />
+        <Underline size={16} color={element.underline ? colors.brand.burntCopper : colors.text.secondary} strokeWidth={2} />
       </FmtBtn>
       <View style={styles.fmtDivider} />
       {['S', 'M', 'L'].map((sz) => (
@@ -344,7 +344,7 @@ function TbBtn({ icon: Icon, onPress, active, disabled, label }) {
     >
       <Icon
         size={20}
-        color={disabled ? colors.neutral.tertiary : active ? colors.primary.dark : colors.text.secondary}
+        color={disabled ? colors.neutral.tertiary : active ? colors.brand.burntCopper : colors.text.secondary}
         strokeWidth={1.8}
         style={disabled && { opacity: 0.4 }}
       />
@@ -501,15 +501,28 @@ export default function EntradaDiarioScreen({ navigation, route }) {
       let initial = Array.isArray(data?.elementos) ? data.elementos : [];
 
       if (resultadoCalculadora) {
+        const metros = Math.round(resultadoCalculadora.metrosTotales ?? 0);
         const gramos = Math.round(resultadoCalculadora.gramosTotales ?? 0);
-        initial = [makeTextBox(40, 40, t('diario.resultadoCalculadora', { gramos })), ...initial];
+        const final = Math.round(resultadoCalculadora.resultadoFinal ?? 0);
+        const text = [
+          t('calculadora.result.metrosTotales') + ': ~' + metros + ' m',
+          t('calculadora.result.gramosTotales') + ': ~' + gramos + ' g',
+          t('calculadora.result.resultadoFinal') + ': ~' + final + ' g',
+        ].join('\n');
+        initial = [makeTextBox(40, 40, text), ...initial];
       }
-      if (previewImageUri && user?.uid) {
-        try {
-          const { url, storagePath } = await uploadEntradaFile(user.uid, diarioId, { uri: previewImageUri, name: 'vista-previa.png' });
-          initial = [{ id: makeId(), type: 'image', x: 40, y: 40, width: 240, height: 180, url, storagePath, isPdf: false }, ...initial];
-          setPreviewPlaced(true);
-        } catch { /* skip if upload fails — non-fatal */ }
+      if (previewImageUri) {
+        let imageUrl = previewImageUri;
+        let storagePath = null;
+        if (user?.uid) {
+          try {
+            const res = await uploadEntradaFile(user.uid, diarioId, { uri: previewImageUri, name: 'vista-previa.png' });
+            imageUrl = res.url;
+            storagePath = res.storagePath;
+          } catch { /* fall back to local data URI */ }
+        }
+        initial = [{ id: makeId(), type: 'image', x: 40, y: 40, width: 240, height: 180, url: imageUrl, storagePath, isPdf: false }, ...initial];
+        setPreviewPlaced(true);
       }
 
       setEntradaNombre(data?.nombre ?? '');
@@ -884,7 +897,7 @@ export default function EntradaDiarioScreen({ navigation, route }) {
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           accessibilityRole="button"
         >
-          <ArrowLeft size={22} color={colors.primary.dark} strokeWidth={1.8} />
+          <ArrowLeft size={22} color={colors.brand.copperRed} strokeWidth={1.8} />
         </TouchableOpacity>
 
         <View style={styles.titleInputWrapper} pointerEvents={editingId ? 'none' : 'auto'}>
@@ -1130,7 +1143,7 @@ function makeStyles(colors) { return StyleSheet.create({
   titleInput: {
     fontFamily: fonts.semiBold,
     fontSize: fontSizes.md,
-    color: colors.text.primary,
+    color: '#5D2D24',
     textAlign: 'center',
     paddingVertical: 4,
   },
@@ -1153,7 +1166,7 @@ function makeStyles(colors) { return StyleSheet.create({
   },
   draggableSelected: {
     borderWidth: 1.5,
-    borderColor: colors.primary.DEFAULT,
+    borderColor: colors.brand.burntCopper,
     borderStyle: 'dashed',
     borderRadius: radii.small,
   },
@@ -1242,7 +1255,7 @@ function makeStyles(colors) { return StyleSheet.create({
     borderRadius: 6,
   },
   fmtBtnActive: {
-    backgroundColor: colors.primary.light + '55',
+    backgroundColor: colors.brand.burntCopper + '22',
   },
   fmtDivider: {
     width: 1,
@@ -1256,7 +1269,7 @@ function makeStyles(colors) { return StyleSheet.create({
     color: colors.text.secondary,
   },
   fmtSizeLabelActive: {
-    color: colors.primary.dark,
+    color: colors.brand.burntCopper,
   },
 
   // Floating toolbar
@@ -1264,7 +1277,9 @@ function makeStyles(colors) { return StyleSheet.create({
     position: 'absolute',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.secondary.amber,
+    backgroundColor: colors.card,
+    borderWidth: 1.5,
+    borderColor: colors.brand.burntCopper,
     borderRadius: radii.card,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
@@ -1288,6 +1303,6 @@ function makeStyles(colors) { return StyleSheet.create({
     borderRadius: 8,
   },
   tbBtnActive: {
-    backgroundColor: 'rgba(0,0,0,0.12)',
+    backgroundColor: colors.brand.burntCopper + '22',
   },
 }); }

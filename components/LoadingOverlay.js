@@ -7,7 +7,7 @@ export default function LoadingOverlay({ visible }) {
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
-        <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
+        <ActivityIndicator size="large" color='#CB6D51' />
       </View>
     </Modal>
   );

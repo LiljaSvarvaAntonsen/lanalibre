@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -7,6 +7,8 @@ import { radii } from '../constants/colors';
 import { useTheme } from '../contexts/ThemeContext';
 import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
+import { useAuth } from '../hooks/useAuth';
+import { getUserDocument } from '../services/firestore';
 
 const CARD_TERRACOTTA = '#C07050';
 
@@ -26,15 +28,28 @@ function ShortcutCard({ label, icon: Icon, bg, iconColor, textColor, border, onP
 }
 
 export default function InicioScreen({ navigation }) {
-  const { theme: colors } = useTheme();
+  const { theme: colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
+  const { user } = useAuth() ?? {};
+  const [userName, setUserName] = useState('');
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    getUserDocument(user.uid)
+      .then((docData) => { if (docData?.nombre) setUserName(docData.nombre); })
+      .catch(() => {});
+  }, [user?.uid]);
+
+  const greeting = userName
+    ? t('inicio.greetingWithName', { name: userName })
+    : t('inicio.greeting');
 
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
-        <Text style={styles.greeting}>{t('inicio.greeting')}</Text>
-        <Text style={styles.subtitle}>{t('inicio.subtitle')}</Text>
+        <Text style={[styles.greeting, { color: isDark ? '#BA797D' : '#5D2D24' }]}>{greeting}</Text>
+        <Text style={[styles.subtitle, { color: isDark ? '#BA797D' : '#5D2D24' }]}>{t('inicio.subtitle')}</Text>
 
         <View style={styles.grid}>
           <ShortcutCard
@@ -50,8 +65,8 @@ export default function InicioScreen({ navigation }) {
             styles={styles}
             label={t('inicio.recentProjects')}
             icon={Clock}
-            bg={colors.primary.light}
-            iconColor={colors.primary.dark}
+            bg='#E69E7F'
+            iconColor='#CB6D51'
             textColor={colors.text.primary}
             onPress={() => navigation.navigate('ProyectosScreen', { filter: 'recent' })}
           />
@@ -59,8 +74,8 @@ export default function InicioScreen({ navigation }) {
             styles={styles}
             label={t('inicio.allProjects')}
             icon={Folder}
-            bg={colors.secondary.olive}
-            iconColor={colors.card}
+            bg='#D0917F'
+            iconColor='#5D2D24'
             textColor={colors.text.primary}
             onPress={() => navigation.navigate('ProyectosScreen')}
           />
@@ -68,10 +83,9 @@ export default function InicioScreen({ navigation }) {
             styles={styles}
             label={t('inicio.journal')}
             icon={BookOpen}
-            bg={colors.card}
-            iconColor={colors.text.primary}
-            textColor={colors.text.primary}
-            border
+            bg='#5D2D24'
+            iconColor='#CB6D51'
+            textColor={colors.card}
             onPress={() => navigation.navigate('Diario')}
           />
         </View>

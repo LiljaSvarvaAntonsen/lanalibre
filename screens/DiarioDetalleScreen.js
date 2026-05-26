@@ -37,7 +37,7 @@ function EntradaCard({ item, onPress, styles }) {
 }
 
 export default function DiarioDetalleScreen({ navigation, route }) {
-  const { theme: colors } = useTheme();
+  const { theme: colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const { diarioId, resultadoCalculadora, resultadoVistaPrevia, previewImageUri } = route.params;
@@ -101,9 +101,9 @@ export default function DiarioDetalleScreen({ navigation, route }) {
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           accessibilityRole="button"
         >
-          <ArrowLeft size={22} color={colors.primary.dark} strokeWidth={1.8} />
+          <ArrowLeft size={22} color={colors.brand.copperRed} strokeWidth={1.8} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>
+        <Text style={[styles.headerTitle, { color: isDark ? '#BA797D' : '#5D2D24' }]} numberOfLines={1}>
           {diario?.nombre ?? ''}
         </Text>
         <View style={{ width: 22 }} />
@@ -170,7 +170,7 @@ function makeStyles(colors) { return StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.secondary.cinnamon,
+    backgroundColor: colors.button.primary,
     marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
     borderRadius: radii.card,
@@ -194,7 +194,7 @@ function makeStyles(colors) { return StyleSheet.create({
   emptyText: {
     fontFamily: fonts.regular,
     fontSize: fontSizes.sm,
-    color: colors.text.tertiary,
+    color: '#5D2D24',
     textAlign: 'center',
   },
   card: {

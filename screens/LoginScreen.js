@@ -65,7 +65,7 @@ export default function LoginScreen({ signInWithGoogle, signInWithApple, error, 
             accessibilityLabel={t('login.signInWithGoogle')}
           >
             {busy ? (
-              <ActivityIndicator color={colors.text.primary} />
+              <ActivityIndicator color='#CB6D51' />
             ) : (
               <>
                 <Text style={styles.googleIcon}>G</Text>
@@ -83,7 +83,7 @@ export default function LoginScreen({ signInWithGoogle, signInWithApple, error, 
               accessibilityLabel={t('login.signInWithApple')}
             >
               {busy ? (
-                <ActivityIndicator color={colors.card} />
+                <ActivityIndicator color='#CB6D51' />
               ) : (
                 <Text style={styles.appleLabel}>{'🍎  '}{t('login.signInWithApple')}</Text>
               )}

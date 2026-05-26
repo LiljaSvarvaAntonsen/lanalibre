@@ -12,6 +12,11 @@ export const colors = {
     copper: '#CE702B',
     cinnamon: '#D47E30',
   },
+  brand: {
+    burntCopper: '#CB6D51',
+    copperRed: '#CB6D51',
+    dustyRose: '#BA797D',
+  },
   neutral: {
     greige: '#D4CFC7',
     tertiary: '#666664',
@@ -31,9 +36,9 @@ export const colors = {
     tertiary: '#A8A9A6',
   },
   button: {
-    primary: '#7C6AAF',
-    secondary: '#EAC96A',
-    diary: '#7DCEC4',
+    primary: '#CB6D51',
+    secondary: '#CB6D51',
+    diary: '#BA797D',
     save: '#D47E30',
   },
   tags: {
@@ -61,6 +66,11 @@ export const darkColors = {
     copper: '#CE702B',
     cinnamon: '#D47E30',
   },
+  brand: {
+    burntCopper: '#D47A49',
+    copperRed: '#D98068',
+    dustyRose: '#C98B8F',
+  },
   neutral: {
     greige: '#3A3835',
     tertiary: '#909090',
@@ -80,9 +90,9 @@ export const darkColors = {
     tertiary: '#6B6B68',
   },
   button: {
-    primary: '#9B8EC8',
-    secondary: '#EAC96A',
-    diary: '#7DCEC4',
+    primary: '#CB6D51',
+    secondary: '#CB6D51',
+    diary: '#C98B8F',
     save: '#D47E30',
   },
   tags: {
@@ -99,5 +109,5 @@ export const darkColors = {
 export const radii = {
   small: 8,
   card: 12,
-  modal: 16,
+  modal: 24,
 };

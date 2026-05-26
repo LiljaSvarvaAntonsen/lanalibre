@@ -39,7 +39,8 @@
     "perfil": "Profil"
   },
   "inicio": {
-    "greeting": "Hei! 👋",
+    "greeting": "Hei!",
+    "greetingWithName": "Hei, {{name}}!",
     "subtitle": "Hva vil du lage i dag?",
     "newProject": "Start nytt prosjekt",
     "recentProjects": "Nylige prosjekter",
@@ -153,7 +154,8 @@
     }
   },
   "vistaPrevia": {
-    "title": "Prosjektforhåndsvisning",
+    "title": "Teppedesign",
+    "subtitle": "Design fargemønsteret til teppet ditt før du begynner",
     "tipoProyecto": "Prosjekttype",
     "seleccionaTipo": "Velg en type",
     "ancho": "Bredde (cm)",
@@ -161,8 +163,16 @@
     "circunferencia": "Omkrets (cm)",
     "altura": "Høyde (cm)",
     "paleta": "Fargepalett",
+    "coloresSection": "Teppets farger",
+    "coloresHint": "Velg 2 til 10 farger",
+    "elegirColores": "Velg farger",
+    "cerrarPaleta": "Lukk palett",
+    "disenoSection": "Mønster",
+    "paletaEnUso": "Aktiv palett",
+    "aleatorizar": "🎲 Tilfeldig",
+    "restablecer": "Tilbakestill",
     "patronPunto": "Maskemønster",
-    "generar": "Generer forhåndsvisning",
+    "generar": "Vis design",
     "guardarProyecto": "Lagre i prosjekt",
     "añadirDiario": "Lagre visning i dagbok",
     "modificar": "Endre",
@@ -206,11 +216,13 @@
     },
     "patrones": {
       "liso": "Ensfarget",
-      "rayasV": "Loddrette striper ↕",
-      "rayasH": "Vannrette striper ↔"
+      "rayasV": "Loddrette striper",
+      "rayasH": "Vannrette striper",
+      "grannySquares": "Granny squares"
     },
     "errors": {
       "required": "Velg en type og minst én farge.",
+      "minColors": "Velg mellom 2 og 10 farger.",
       "dimensions": "Skriv inn gyldige mål (tall større enn null)."
     }
   },
@@ -250,6 +262,7 @@
     "saveProject": "Lagre prosjekt",
     "proximamente": "Kommer snart",
     "welcomeToast": "Prosjekt opprettet! Start med å legge til et verktøy.",
+    "resultSavedBanner": "Resultat lagret! Her er prosjektet ditt.",
     "herramientasPlanif": "Planleggingsverktøy",
     "herramientasPlanifSubtitle": "Valgfritt — du kan bruke dem nå eller senere fra prosjektet",
     "calcularBtn": "Beregn",

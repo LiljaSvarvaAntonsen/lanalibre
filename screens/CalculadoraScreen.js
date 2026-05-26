@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Check } from 'lucide-react-native';
+import { ArrowLeft } from 'lucide-react-native';
 import { radii } from '../constants/colors';
 import { useTheme } from '../contexts/ThemeContext';
 import { spacing } from '../constants/spacing';
@@ -52,7 +52,7 @@ function prefillFromSaved(saved) {
 }
 
 export default function CalculadoraScreen({ navigation, route }) {
-  const { theme: colors } = useTheme();
+  const { theme: colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -236,9 +236,12 @@ export default function CalculadoraScreen({ navigation, route }) {
     };
     try {
       await saveResultadoCalculadora(targetProjectId, data);
+      savedResultRef.current = data;
       setSavedResult(data);
       if (navigateAfterSaveRef.current) {
         navigateAfterSaveRef.current = false;
+        showResultRef.current = false;
+        setShowResult(false);
         if (pendingNavigationRef.current) {
           navigation.navigate(pendingNavigationRef.current);
           pendingNavigationRef.current = null;
@@ -326,12 +329,12 @@ export default function CalculadoraScreen({ navigation, route }) {
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               accessibilityRole="button"
             >
-              <ArrowLeft size={22} color={colors.primary.dark} strokeWidth={1.8} />
+              <ArrowLeft size={22} color={colors.brand.copperRed} strokeWidth={1.8} />
             </TouchableOpacity>
           ) : (
             <View style={styles.headerPlaceholder} />
           )}
-          <Text style={styles.headerTitle}>{t('calculadora.title')}</Text>
+          <Text style={[styles.headerTitle, { color: isDark ? '#BA797D' : '#5D2D24' }]}>{t('calculadora.title')}</Text>
           <View style={styles.headerPlaceholder} />
         </View>
 
@@ -341,10 +344,6 @@ export default function CalculadoraScreen({ navigation, route }) {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            {!isProjectMode && (
-              <Text style={styles.freeModeLabel}>{t('calculadora.freeMode')}</Text>
-            )}
-
             <FormField
               label={t('calculadora.metrosEtiqueta')}
               value={fields.metrosEtiqueta}
@@ -433,19 +432,19 @@ export default function CalculadoraScreen({ navigation, route }) {
             <ResultCard
               label={t('calculadora.result.metrosTotales')}
               value={`${Math.round(result.metrosTotales)} m`}
-              valueColor={colors.primary.dark}
+              valueColor={colors.brand.burntCopper}
               styles={styles}
             />
             <ResultCard
               label={t('calculadora.result.gramosTotales')}
               value={`${Math.round(result.gramosTotales)} g`}
-              valueColor={colors.primary.DEFAULT}
+              valueColor={colors.brand.dustyRose}
               styles={styles}
             />
             <ResultCard
               label={t('calculadora.result.resultadoFinal')}
               value={`${Math.round(result.resultadoFinal)} g`}
-              valueColor={colors.secondary.cinnamon}
+              valueColor={colors.brand.burntCopper}
               highlight
               styles={styles}
             />
@@ -454,11 +453,11 @@ export default function CalculadoraScreen({ navigation, route }) {
 
             <View style={styles.actionButtons}>
               <TouchableOpacity
-                style={styles.primaryBtn}
+                style={styles.secondaryBtn}
                 onPress={handleGuardar}
                 activeOpacity={0.85}
               >
-                <Text style={styles.primaryBtnText}>{t('calculadora.guardarProyecto')}</Text>
+                <Text style={styles.secondaryBtnText}>{t('calculadora.guardarProyecto')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -496,32 +495,14 @@ export default function CalculadoraScreen({ navigation, route }) {
         destructive={false}
       />
 
-      <Modal visible={showSavedModal} transparent animationType="fade" statusBarTranslucent>
-        <View style={styles.savedOverlay}>
-          <View style={styles.savedSheet}>
-            <View style={styles.checkCircle}>
-              <Check size={28} color={colors.primary.dark} strokeWidth={2.5} />
-            </View>
-            <Text style={styles.savedTitle}>{t('calculadora.saved.title')}</Text>
-            <View style={styles.savedButtons}>
-              <TouchableOpacity
-                style={[styles.savedBtn, styles.savedBtnPrimary]}
-                onPress={handleVerProyecto}
-                activeOpacity={0.85}
-              >
-                <Text style={styles.savedBtnPrimaryText}>{t('calculadora.saved.verProyecto')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.savedBtn, styles.savedBtnOutline]}
-                onPress={handleSeguirCalculando}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.savedBtnOutlineText}>{t('calculadora.saved.seguirCalculando')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <ConfirmationModal
+        visible={showSavedModal}
+        title={t('calculadora.saved.title')}
+        confirmLabel={t('calculadora.saved.verProyecto')}
+        cancelLabel={t('calculadora.saved.seguirCalculando')}
+        onConfirm={handleVerProyecto}
+        onCancel={handleSeguirCalculando}
+      />
 
       <ProjectPickerModal
         visible={showProjectPicker}
@@ -529,8 +510,28 @@ export default function CalculadoraScreen({ navigation, route }) {
         onClose={() => { navigateAfterSaveRef.current = false; setShowProjectPicker(false); }}
         onSelect={handlePickProject}
         onCreateProject={() => {
+          const calcData = {
+            metrosEtiqueta: parseFloat(fields.metrosEtiqueta),
+            gramosEtiqueta: parseFloat(fields.gramosEtiqueta),
+            tension: parseFloat(fields.tension),
+            tipoPunto: fields.tipoPunto,
+            dimensiones: { ancho: parseFloat(fields.ancho), largo: parseFloat(fields.largo) },
+            metrosTotales: result.metrosTotales,
+            gramosTotales: result.gramosTotales,
+            resultadoFinal: result.resultadoFinal,
+          };
           setShowProjectPicker(false);
-          navigation.navigate('Inicio', { screen: 'ProyectoFormScreen' });
+          savedResultRef.current = calcData;
+          setSavedResult(calcData);
+          showResultRef.current = false;
+          setShowResult(false);
+          navigation.navigate('Inicio', {
+            screen: 'ProyectoFormScreen',
+            params: {
+              pendingResult: calcData,
+              pendingResultType: 'calculadora',
+            },
+          });
         }}
       />
 
@@ -577,7 +578,7 @@ function ResultCard({ label, value, valueColor, highlight, styles }) {
   return (
     <View style={[styles.resultCard, highlight && styles.resultCardHighlight]}>
       <Text style={[styles.resultLabel, highlight && styles.resultLabelHighlight]}>{label}</Text>
-      <Text style={[styles.resultValue, { color: valueColor }]}>{value}</Text>
+      <Text style={[styles.resultValue, { color: valueColor }, highlight && styles.resultValueHighlight]}>{value}</Text>
     </View>
   );
 }
@@ -603,7 +604,7 @@ function makeStyles(colors) { return StyleSheet.create({
   freeModeLabel: {
     fontFamily: fonts.regular,
     fontSize: fontSizes.xs,
-    color: colors.text.tertiary,
+    color: '#5D2D24',
     marginBottom: spacing.xs,
     textAlign: 'center',
   },
@@ -617,7 +618,7 @@ function makeStyles(colors) { return StyleSheet.create({
   fieldLabel: {
     fontFamily: fonts.semiBold,
     fontSize: fontSizes.sm,
-    color: colors.primary.dark,
+    color: '#BA797D',
   },
   input: {
     backgroundColor: colors.card,
@@ -684,16 +685,20 @@ function makeStyles(colors) { return StyleSheet.create({
   },
   resultCard: {
     backgroundColor: colors.card,
-    borderRadius: radii.card,
-    borderWidth: 1,
-    borderColor: colors.neutral.greige,
+    borderRadius: 16,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
     gap: spacing.xs,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   resultCardHighlight: {
-    backgroundColor: '#FDF3E0',
-    borderColor: colors.secondary.amber,
+    backgroundColor: '#FFF0E8',
+    borderWidth: 1,
+    borderColor: colors.brand.burntCopper,
   },
   resultLabel: {
     fontFamily: fonts.semiBold,
@@ -701,11 +706,14 @@ function makeStyles(colors) { return StyleSheet.create({
     color: colors.text.tertiary,
   },
   resultLabelHighlight: {
-    color: colors.secondary.cinnamon,
+    color: colors.brand.burntCopper,
   },
   resultValue: {
     fontFamily: fonts.extraBold,
     fontSize: fontSizes.xxl,
+  },
+  resultValueHighlight: {
+    fontSize: fontSizes.xxxl,
   },
   disclaimer: {
     fontFamily: fonts.regular,
@@ -719,6 +727,17 @@ function makeStyles(colors) { return StyleSheet.create({
     gap: spacing.sm,
     marginTop: spacing.xs,
   },
+  secondaryBtn: {
+    backgroundColor: colors.button.secondary,
+    borderRadius: radii.card,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+  },
+  secondaryBtnText: {
+    fontFamily: fonts.bold,
+    fontSize: fontSizes.md,
+    color: colors.card,
+  },
   journalBtn: {
     backgroundColor: colors.button.diary,
     borderRadius: radii.card,
@@ -728,7 +747,7 @@ function makeStyles(colors) { return StyleSheet.create({
   journalBtnText: {
     fontFamily: fonts.bold,
     fontSize: fontSizes.md,
-    color: colors.text.primary,
+    color: colors.card,
   },
   outlineBtn: {
     borderRadius: radii.card,
@@ -743,60 +762,4 @@ function makeStyles(colors) { return StyleSheet.create({
     color: colors.text.secondary,
   },
 
-  savedOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-  },
-  savedSheet: {
-    backgroundColor: colors.card,
-    borderRadius: radii.modal,
-    padding: spacing.xl,
-    alignItems: 'center',
-    gap: spacing.md,
-    width: '100%',
-  },
-  checkCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.status.success,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  savedTitle: {
-    fontFamily: fonts.bold,
-    fontSize: fontSizes.lg,
-    color: colors.text.primary,
-  },
-  savedButtons: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    width: '100%',
-  },
-  savedBtn: {
-    flex: 1,
-    borderRadius: radii.small,
-    paddingVertical: spacing.sm,
-    alignItems: 'center',
-  },
-  savedBtnPrimary: {
-    backgroundColor: colors.button.primary,
-  },
-  savedBtnPrimaryText: {
-    fontFamily: fonts.semiBold,
-    fontSize: fontSizes.sm,
-    color: colors.card,
-  },
-  savedBtnOutline: {
-    borderWidth: 1,
-    borderColor: colors.neutral.greige,
-  },
-  savedBtnOutlineText: {
-    fontFamily: fonts.semiBold,
-    fontSize: fontSizes.sm,
-    color: colors.text.secondary,
-  },
 }); }

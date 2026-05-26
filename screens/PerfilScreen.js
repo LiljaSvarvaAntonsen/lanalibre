@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import Constants from 'expo-constants';
-import { Pencil, Moon, Sun, Bell, Download, Trash2, ChevronRight, Check } from 'lucide-react-native';
+import { Pencil, Moon, Sun, Bell, Download, Trash2, ChevronRight } from 'lucide-react-native';
 import { radii } from '../constants/colors';
 import { useTheme } from '../contexts/ThemeContext';
 import { spacing } from '../constants/spacing';
@@ -51,7 +51,7 @@ export default function PerfilScreen({ navigation }) {
   const [nombre, setNombre] = useState('');
   const [fotoPerfil, setFotoPerfil] = useState(null);
   const [fechaRegistro, setFechaRegistro] = useState(null);
-  const [editingName, setEditingName] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
   const [tempName, setTempName] = useState('');
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
@@ -101,25 +101,18 @@ export default function PerfilScreen({ navigation }) {
     }
   }
 
-  function startEditName() {
-    setTempName(nombre);
-    setEditingName(true);
-  }
-
-  async function saveName() {
+  async function handleSaveProfile() {
     const trimmed = tempName.trim();
-    if (!trimmed || trimmed === nombre) {
-      setEditingName(false);
-      return;
+    setEditingProfile(false);
+    if (trimmed && trimmed !== nombre) {
+      try {
+        await updateUserDocument(uid, { nombre: trimmed });
+        setNombre(trimmed);
+      } catch (e) {
+        console.error('[PerfilScreen] saveProfile error:', e);
+        showToast(t('common.error'), 'error');
+      }
     }
-    try {
-      await updateUserDocument(uid, { nombre: trimmed });
-      setNombre(trimmed);
-    } catch (e) {
-      console.error('[PerfilScreen] saveName error:', e);
-      showToast(t('common.error'), 'error');
-    }
-    setEditingName(false);
   }
 
   async function handleLangChange(code) {
@@ -184,57 +177,57 @@ export default function PerfilScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
       >
         {/* ── Header ── */}
-        <Text style={styles.screenTitle}>{t('perfil.title')}</Text>
+        <Text style={[styles.screenTitle, { color: isDark ? '#BA797D' : '#5D2D24' }]}>{t('perfil.title')}</Text>
 
         {/* ── Avatar + Name ── */}
         <View style={styles.profileCard}>
           <TouchableOpacity
-            onPress={handleAvatarEdit}
-            style={styles.avatarWrap}
-            activeOpacity={0.8}
-            disabled={uploadingPhoto}
+            style={styles.editProfileBtn}
+            onPress={editingProfile
+              ? handleSaveProfile
+              : () => { setTempName(nombre); setEditingProfile(true); }
+            }
+            activeOpacity={0.7}
           >
+            {editingProfile
+              ? <Text style={styles.saveProfileLabel}>{t('perfil.saveNombre')}</Text>
+              : <Pencil size={16} color={colors.brand.copperRed} strokeWidth={1.8} />
+            }
+          </TouchableOpacity>
+
+          <View style={styles.avatarWrap}>
             {fotoPerfil ? (
               <LazyImage source={{ uri: fotoPerfil }} style={styles.avatar} resizeMode="cover" />
             ) : (
               <View style={styles.avatarPlaceholder}>
                 {uploadingPhoto ? (
-                  <ActivityIndicator size="small" color={colors.secondary.copper} />
+                  <ActivityIndicator size="small" color='#CB6D51' />
                 ) : (
                   <Text style={styles.avatarInitial}>{initial}</Text>
                 )}
               </View>
             )}
-            <View style={styles.editBadge}>
-              <Pencil size={11} color={colors.card} strokeWidth={2} />
-            </View>
-          </TouchableOpacity>
-
-          <View style={styles.nameRow}>
-            {editingName ? (
-              <>
-                <TextInput
-                  style={styles.nameInput}
-                  value={tempName}
-                  onChangeText={setTempName}
-                  onBlur={saveName}
-                  autoFocus
-                  returnKeyType="done"
-                  onSubmitEditing={saveName}
-                />
-                <TouchableOpacity onPress={saveName} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                  <Check size={18} color={colors.primary.dark} strokeWidth={2} />
-                </TouchableOpacity>
-              </>
-            ) : (
-              <>
-                <Text style={styles.nombre}>{nombre || t('perfil.title')}</Text>
-                <TouchableOpacity onPress={startEditName} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityRole="button" accessibilityLabel={t('common.edit')}>
-                  <Pencil size={16} color={colors.text.tertiary} strokeWidth={1.8} />
-                </TouchableOpacity>
-              </>
-            )}
           </View>
+
+          {editingProfile && (
+            <TouchableOpacity onPress={handleAvatarEdit} disabled={uploadingPhoto} activeOpacity={0.7}>
+              <Text style={styles.cambiarFotoLink}>{t('perfil.editPhoto')}</Text>
+            </TouchableOpacity>
+          )}
+
+          {editingProfile ? (
+            <TextInput
+              style={styles.nameInput}
+              value={tempName}
+              onChangeText={setTempName}
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={handleSaveProfile}
+              textAlign="center"
+            />
+          ) : (
+            <Text style={styles.nombre}>{nombre || t('perfil.title')}</Text>
+          )}
 
           {!!user?.email && (
             <Text style={styles.email}>{user.email}</Text>
@@ -435,66 +428,67 @@ function makeStyles(colors) { return StyleSheet.create({
   // Profile card
   profileCard: {
     alignItems: 'center',
-    backgroundColor: colors.primary.light,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.neutral.greige,
     borderRadius: radii.card,
     paddingVertical: spacing.lg,
     paddingHorizontal: spacing.md,
     marginBottom: spacing.lg,
     gap: spacing.xs,
   },
+  editProfileBtn: {
+    alignSelf: 'flex-end',
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+  },
+  saveProfileLabel: {
+    fontFamily: fonts.semiBold,
+    fontSize: fontSizes.sm,
+    color: colors.brand.copperRed,
+  },
   avatarWrap: {
-    position: 'relative',
     marginBottom: spacing.xs,
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
   },
   avatarPlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.card,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarInitial: {
     fontFamily: fonts.bold,
-    fontSize: 32,
+    fontSize: 36,
     color: colors.secondary.copper,
   },
-  editBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: colors.secondary.cinnamon,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: colors.card,
-  },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
+  cambiarFotoLink: {
+    fontFamily: fonts.semiBold,
+    fontSize: fontSizes.sm,
+    color: colors.brand.copperRed,
+    textDecorationLine: 'underline',
+    marginTop: 4,
   },
   nombre: {
-    fontFamily: fonts.bold,
-    fontSize: fontSizes.lg,
-    color: colors.text.primary,
+    fontFamily: fonts.extraBold,
+    fontSize: fontSizes.xl,
+    color: colors.brand.burntCopper,
   },
   nameInput: {
-    fontFamily: fonts.bold,
-    fontSize: fontSizes.lg,
-    color: colors.text.primary,
+    fontFamily: fonts.extraBold,
+    fontSize: fontSizes.xl,
+    color: colors.brand.burntCopper,
     borderBottomWidth: 1.5,
-    borderBottomColor: colors.primary.dark,
+    borderBottomColor: colors.brand.burntCopper,
     minWidth: 120,
     paddingVertical: 2,
+    textAlign: 'center',
   },
   email: {
     fontFamily: fonts.regular,
@@ -504,7 +498,7 @@ function makeStyles(colors) { return StyleSheet.create({
   memberSince: {
     fontFamily: fonts.regular,
     fontSize: fontSizes.xs,
-    color: colors.text.tertiary,
+    color: colors.brand.copperRed,
   },
 
   // Section labels
@@ -550,7 +544,7 @@ function makeStyles(colors) { return StyleSheet.create({
   },
   rowLabelActive: {
     fontFamily: fonts.semiBold,
-    color: colors.primary.dark,
+    color: colors.brand.burntCopper,
   },
   rowValue: {
     fontFamily: fonts.regular,
@@ -561,7 +555,7 @@ function makeStyles(colors) { return StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: colors.primary.dark,
+    backgroundColor: colors.brand.burntCopper,
   },
 
   bottomPad: {

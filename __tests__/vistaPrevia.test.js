@@ -21,79 +21,71 @@ import PreviewCanvas from '../components/PreviewCanvas';
 // ─── Unit tests: buildCanvasParams ───────────────────────────────────────────
 
 describe('buildCanvasParams — valid inputs', () => {
-  test('returns correct structure for bufanda', () => {
+  test('always returns tipoProyecto manta with ancho/largo medidas', () => {
     const result = buildCanvasParams({
-      tipoProyecto: 'bufanda',
-      dim1: '15',
-      dim2: '75',
-      colores: ['#FF0000'],
-      patronPunto: PATRONES_PUNTO.liso,
-    });
-    expect(result.tipoProyecto).toBe('bufanda');
-    expect(result.medidas).toEqual({ ancho: 15, largo: 75 });
-    expect(result.colores).toEqual(['#FF0000']);
-    expect(result.patronPunto).toBe('liso');
-  });
-
-  test('returns correct dimension keys for gorro (circunferencia + altura)', () => {
-    const result = buildCanvasParams({
-      tipoProyecto: 'gorro',
-      dim1: '56',
-      dim2: '22',
-      colores: ['#00FF00'],
+      dim1: '100',
+      dim2: '150',
+      colores: ['#FF0000', '#00FF00'],
       patronPunto: PATRONES_PUNTO.rayasV,
     });
-    expect(result.medidas).toEqual({ circunferencia: 56, altura: 22 });
+    expect(result.tipoProyecto).toBe('manta');
+    expect(result.medidas).toEqual({ ancho: 100, largo: 150 });
+    expect(result.colores).toEqual(['#FF0000', '#00FF00']);
+    expect(result.patronPunto).toBe(PATRONES_PUNTO.rayasV);
   });
 
-  test('returns correct structure for all TIPOS_PROYECTO', () => {
-    TIPOS_PROYECTO.forEach((tipo) => {
-      expect(() =>
-        buildCanvasParams({
-          tipoProyecto: tipo,
-          dim1: '30',
-          dim2: '50',
-          colores: ['#AABBCC'],
-          patronPunto: PATRONES_PUNTO.liso,
-        }),
-      ).not.toThrow();
+  test('accepts up to 10 colours and passes squareSeed through', () => {
+    const colores = Array.from({ length: 10 }, (_, i) => `#${String(i).padStart(6, '0')}`);
+    const result = buildCanvasParams({
+      dim1: '80',
+      dim2: '100',
+      colores,
+      patronPunto: PATRONES_PUNTO.grannySquares,
+      squareSeed: 42,
     });
+    expect(result.colores).toHaveLength(10);
+    expect(result.squareSeed).toBe(42);
   });
 
   test('returns correct structure for all PATRONES_PUNTO', () => {
     Object.values(PATRONES_PUNTO).forEach((p) => {
       expect(() =>
         buildCanvasParams({
-          tipoProyecto: 'manta',
           dim1: '100',
           dim2: '120',
-          colores: ['#FFFFFF'],
+          colores: ['#FFFFFF', '#000000'],
           patronPunto: p,
         }),
       ).not.toThrow();
     });
   });
+
+  test('defaults squareSeed to 0 when not provided', () => {
+    const result = buildCanvasParams({
+      dim1: '50',
+      dim2: '60',
+      colores: ['#AA0000', '#00AA00'],
+      patronPunto: PATRONES_PUNTO.rayasH,
+    });
+    expect(result.squareSeed).toBe(0);
+  });
 });
 
 describe('buildCanvasParams — validation', () => {
   const valid = {
-    tipoProyecto: 'bufanda',
-    dim1: '15',
-    dim2: '75',
-    colores: ['#FF0000'],
-    patronPunto: PATRONES_PUNTO.liso,
+    dim1: '100',
+    dim2: '150',
+    colores: ['#FF0000', '#00FF00'],
+    patronPunto: PATRONES_PUNTO.rayasV,
   };
-
-  test('throws validation error when tipoProyecto is missing', () => {
-    expect(() => buildCanvasParams({ ...valid, tipoProyecto: '' })).toThrow('validation');
-  });
-
-  test('throws validation error when tipoProyecto is invalid', () => {
-    expect(() => buildCanvasParams({ ...valid, tipoProyecto: 'chaleco' })).toThrow('validation');
-  });
 
   test('throws validation error when dim1 is missing', () => {
     expect(() => buildCanvasParams({ ...valid, dim1: '' })).toThrow('validation');
+  });
+
+  test('throws validation error when dim1 is not a positive number', () => {
+    expect(() => buildCanvasParams({ ...valid, dim1: 'abc' })).toThrow('validation');
+    expect(() => buildCanvasParams({ ...valid, dim1: '0' })).toThrow('validation');
   });
 
   test('throws validation error when dim2 is zero or negative', () => {
@@ -101,21 +93,28 @@ describe('buildCanvasParams — validation', () => {
     expect(() => buildCanvasParams({ ...valid, dim2: '-5' })).toThrow('validation');
   });
 
-  test('throws validation error when colores is empty', () => {
+  test('throws validation error when colores has fewer than 2 colours', () => {
     expect(() => buildCanvasParams({ ...valid, colores: [] })).toThrow('validation');
+    expect(() => buildCanvasParams({ ...valid, colores: ['#FF0000'] })).toThrow('validation');
+  });
+
+  test('throws validation error when colores has more than 10 colours', () => {
+    const tooMany = Array.from({ length: 11 }, (_, i) => `#${String(i).padStart(6, '0')}`);
+    expect(() => buildCanvasParams({ ...valid, colores: tooMany })).toThrow('validation');
   });
 
   test('throws validation error when patronPunto is invalid', () => {
     expect(() => buildCanvasParams({ ...valid, patronPunto: 'chevron' })).toThrow('validation');
+    expect(() => buildCanvasParams({ ...valid, patronPunto: 'liso' })).toThrow('validation');
   });
 
   test('error object includes specific failing fields', () => {
     try {
-      buildCanvasParams({ ...valid, tipoProyecto: '', colores: [] });
+      buildCanvasParams({ ...valid, colores: [], dim1: '' });
     } catch (err) {
-      expect(err.fields.tipoProyecto).toBeTruthy();
       expect(err.fields.colores).toBeTruthy();
-      expect(err.fields.dim1).toBeUndefined();
+      expect(err.fields.dim1).toBeTruthy();
+      expect(err.fields.dim2).toBeUndefined();
     }
   });
 });
@@ -123,22 +122,13 @@ describe('buildCanvasParams — validation', () => {
 // ─── Component tests: PreviewCanvas ──────────────────────────────────────────
 
 const BASE_CANVAS_PROPS = {
-  tipoProyecto: 'bufanda',
-  medidas: { ancho: 15, largo: 75 },
+  medidas: { ancho: 100, largo: 150 },
   colores: ['#C17B4E', '#E8C9A0'],
   width: 300,
 };
 
 describe('PreviewCanvas — renders without crashing', () => {
-  test('renders liso pattern', () => {
-    expect(() =>
-      render(
-        <PreviewCanvas {...BASE_CANVAS_PROPS} patronPunto={PATRONES_PUNTO.liso} />,
-      ),
-    ).not.toThrow();
-  });
-
-  test('renders rayas_v (vertical stripes) pattern', () => {
+  test('renders vertical stripes pattern', () => {
     expect(() =>
       render(
         <PreviewCanvas {...BASE_CANVAS_PROPS} patronPunto={PATRONES_PUNTO.rayasV} />,
@@ -146,7 +136,7 @@ describe('PreviewCanvas — renders without crashing', () => {
     ).not.toThrow();
   });
 
-  test('renders rayas_h (horizontal stripes) pattern', () => {
+  test('renders horizontal stripes pattern', () => {
     expect(() =>
       render(
         <PreviewCanvas {...BASE_CANVAS_PROPS} patronPunto={PATRONES_PUNTO.rayasH} />,
@@ -154,28 +144,32 @@ describe('PreviewCanvas — renders without crashing', () => {
     ).not.toThrow();
   });
 
-  test('renders with a single colour', () => {
+  test('renders granny squares pattern', () => {
+    expect(() =>
+      render(
+        <PreviewCanvas {...BASE_CANVAS_PROPS} patronPunto={PATRONES_PUNTO.grannySquares} />,
+      ),
+    ).not.toThrow();
+  });
+
+  test('renders granny squares with 6 colours (per-square variation)', () => {
+    const colores = ['#C17B4E', '#E8C9A0', '#8BB8A8', '#F5EEE0', '#8B6B5A', '#9AB89A'];
     expect(() =>
       render(
         <PreviewCanvas
           {...BASE_CANVAS_PROPS}
-          colores={['#7A9E7E']}
-          patronPunto={PATRONES_PUNTO.rayasV}
+          colores={colores}
+          patronPunto={PATRONES_PUNTO.grannySquares}
+          squareSeed={12345}
         />,
       ),
     ).not.toThrow();
   });
 
-  test('renders gorro type with circunferencia/altura medidas', () => {
+  test('renders with unknown pattern without crashing (fallback solid fill)', () => {
     expect(() =>
       render(
-        <PreviewCanvas
-          tipoProyecto="gorro"
-          medidas={{ circunferencia: 56, altura: 22 }}
-          colores={['#8BB8A8']}
-          patronPunto={PATRONES_PUNTO.liso}
-          width={300}
-        />,
+        <PreviewCanvas {...BASE_CANVAS_PROPS} patronPunto="unknown_pattern" />,
       ),
     ).not.toThrow();
   });

@@ -94,7 +94,7 @@ export default function MainTabs() {
       sceneContainerStyle={{ backgroundColor: colors.background }}
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: colors.primary.dark,
+        tabBarActiveTintColor: '#C56A39',
         tabBarInactiveTintColor: colors.neutral.tertiary,
         tabBarStyle: {
           backgroundColor: colors.card,

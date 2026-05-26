@@ -24,7 +24,7 @@ import LoadingOverlay from '../components/LoadingOverlay';
 import Toast from '../components/Toast';
 
 export default function ProyectosScreen({ navigation, route }) {
-  const { theme: colors } = useTheme();
+  const { theme: colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -141,9 +141,9 @@ export default function ProyectosScreen({ navigation, route }) {
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           accessibilityRole="button"
         >
-          <ArrowLeft size={22} color={colors.primary.dark} strokeWidth={1.8} />
+          <ArrowLeft size={22} color={colors.brand.copperRed} strokeWidth={1.8} />
         </TouchableOpacity>
-        <Text style={styles.screenTitle}>
+        <Text style={[styles.screenTitle, { color: isDark ? '#BA797D' : '#5D2D24' }]}>
           {activeTab === 'active'
             ? (recentMode ? t('projects.tabRecent') : t('projects.tabActive'))
             : t('projects.tabDeleted')}
@@ -155,7 +155,7 @@ export default function ProyectosScreen({ navigation, route }) {
             accessibilityRole="button"
             accessibilityLabel={t('projects.tagLegendTitle')}
           >
-            <Info size={22} color={colors.primary.dark} strokeWidth={1.5} />
+            <Info size={22} color='#CB6D51' strokeWidth={1.5} />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => navigation.navigate('ProyectoFormScreen')}
@@ -163,7 +163,7 @@ export default function ProyectosScreen({ navigation, route }) {
             accessibilityRole="button"
             accessibilityLabel={t('projects.newProject')}
           >
-            <Plus size={24} color={colors.primary.dark} strokeWidth={1.8} />
+            <Plus size={24} color='#CB6D51' strokeWidth={1.8} />
           </TouchableOpacity>
         </View>
       </View>
@@ -288,7 +288,7 @@ function makeStyles(colors) { return StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: colors.primary.dark,
+    borderBottomColor: '#CB6D51',
   },
   tabLabel: {
     fontFamily: fonts.semiBold,
@@ -296,7 +296,7 @@ function makeStyles(colors) { return StyleSheet.create({
     color: colors.text.tertiary,
   },
   tabLabelActive: {
-    color: colors.primary.dark,
+    color: '#CB6D51',
   },
   searchRow: {
     flexDirection: 'row',

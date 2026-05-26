@@ -18,7 +18,7 @@ export default function ConfirmationModal({
   const { theme: colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
-    <Modal visible={visible} animationType="slide" transparent statusBarTranslucent>
+    <Modal visible={visible} animationType="fade" transparent statusBarTranslucent>
       <View style={styles.overlay}>
         <View style={styles.sheet}>
           <Text style={styles.title}>{title}</Text>
@@ -42,21 +42,23 @@ export default function ConfirmationModal({
 function makeStyles(colors) { return StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
   },
   sheet: {
     backgroundColor: colors.card,
-    borderTopLeftRadius: radii.modal,
-    borderTopRightRadius: radii.modal,
-    padding: spacing.lg,
-    paddingBottom: spacing.xl,
-    gap: spacing.sm,
+    borderRadius: radii.modal,
+    padding: spacing.md,
+    gap: spacing.md,
+    width: '100%',
   },
   title: {
     fontFamily: fonts.bold,
-    fontSize: fontSizes.lg,
+    fontSize: 17,
     color: colors.text.primary,
+    textAlign: 'center',
     marginBottom: spacing.xs,
   },
   message: {
@@ -64,12 +66,13 @@ function makeStyles(colors) { return StyleSheet.create({
     fontSize: fontSizes.sm,
     color: colors.text.secondary,
     lineHeight: 22,
+    textAlign: 'center',
     marginBottom: spacing.xs,
   },
   confirmBtn: {
     backgroundColor: colors.button.primary,
     borderRadius: radii.small,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.xs,
     alignItems: 'center',
   },
   confirmBtnDestructive: {
@@ -81,12 +84,15 @@ function makeStyles(colors) { return StyleSheet.create({
     color: colors.card,
   },
   cancelBtn: {
-    alignItems: 'center',
+    borderRadius: radii.small,
+    borderWidth: 1,
+    borderColor: colors.neutral.greige,
     paddingVertical: spacing.xs,
+    alignItems: 'center',
   },
   cancelLabel: {
     fontFamily: fonts.semiBold,
     fontSize: fontSizes.md,
-    color: colors.text.secondary,
+    color: colors.text.primary,
   },
 }); }

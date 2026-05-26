@@ -44,7 +44,7 @@ function DiarioCard({ item, onPress, styles }) {
 }
 
 export default function DiarioScreen({ navigation, route }) {
-  const { theme: colors } = useTheme();
+  const { theme: colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -150,7 +150,7 @@ export default function DiarioScreen({ navigation, route }) {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('diario.title')}</Text>
+        <Text style={[styles.headerTitle, { color: isDark ? '#BA797D' : '#5D2D24' }]}>{t('diario.title')}</Text>
       </View>
 
       <TouchableOpacity style={styles.newBtn} onPress={openModal} activeOpacity={0.85}>
@@ -310,7 +310,7 @@ function makeStyles(colors) { return StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.secondary.cinnamon,
+    backgroundColor: colors.button.primary,
     marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
     borderRadius: radii.card,
@@ -334,7 +334,7 @@ function makeStyles(colors) { return StyleSheet.create({
   emptyText: {
     fontFamily: fonts.regular,
     fontSize: fontSizes.sm,
-    color: colors.text.tertiary,
+    color: '#5D2D24',
     textAlign: 'center',
   },
   card: {
@@ -436,7 +436,7 @@ function makeStyles(colors) { return StyleSheet.create({
   },
   modalConfirm: {
     flex: 1,
-    backgroundColor: colors.secondary.cinnamon,
+    backgroundColor: colors.button.primary,
     borderRadius: radii.card,
     paddingVertical: spacing.sm,
     alignItems: 'center',
