@@ -7,14 +7,6 @@
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleRelease"
-      },
-      "env": {
-        "GOOGLE_SERVICES_JSON": "$GOOGLE_SERVICES_JSON"
-      }
-    },
-    "production": {
-      "android": {
-        "buildType": "app-bundle"
       }
     }
   }

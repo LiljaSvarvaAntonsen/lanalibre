@@ -31,7 +31,12 @@
       "softwareKeyboardLayoutMode": "pan",
       "permissions": [
         "android.permission.RECORD_AUDIO"
-      ]
+      ],
+      "splits": {
+        "abi": {
+          "enable": false
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
