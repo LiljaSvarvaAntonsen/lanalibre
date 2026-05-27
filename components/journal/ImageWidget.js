@@ -1,6 +1,8 @@
-import { useRef, useMemo } from 'react';
-import { View, Text, TouchableOpacity, PanResponder, StyleSheet } from 'react-native';
+import { useRef, useMemo, useState } from 'react';
+import { View, Text, TouchableOpacity, PanResponder, StyleSheet, Platform, ActivityIndicator } from 'react-native';
 import { FileText } from 'lucide-react-native';
+import * as FileSystem from 'expo-file-system';
+import * as IntentLauncher from 'expo-intent-launcher';
 import { radii } from '../../constants/colors';
 import { useTheme } from '../../contexts/ThemeContext';
 import LazyImage from '../LazyImage';
@@ -81,6 +83,25 @@ function CornerHandle({ corner, element, onResize, styles }) {
 export default function ImageWidget({ element, onResize, selected, onPress }) {
   const { theme: colors } = useTheme();
   const s = useMemo(() => makeStyles(colors), [colors]);
+  const [openingPdf, setOpeningPdf] = useState(false);
+
+  async function handleOpenPdf() {
+    if (Platform.OS !== 'android' || !element.url) return;
+    setOpeningPdf(true);
+    try {
+      const localUri = FileSystem.cacheDirectory + 'lanalibere_preview.pdf';
+      await FileSystem.downloadAsync(element.url, localUri);
+      await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
+        data: localUri,
+        flags: 1,
+        type: 'application/pdf',
+      });
+    } catch (e) {
+      console.error('[ImageWidget] openPdf error:', e);
+    } finally {
+      setOpeningPdf(false);
+    }
+  }
 
   return (
     <TouchableOpacity
@@ -92,8 +113,21 @@ export default function ImageWidget({ element, onResize, selected, onPress }) {
 
       {element.isPdf ? (
         <View style={s.pdfContainer}>
-          <FileText size={40} color={colors.primary.dark} strokeWidth={1.5} />
+          {openingPdf
+            ? <ActivityIndicator size="large" color={colors.primary.dark} />
+            : <FileText size={40} color={colors.primary.dark} strokeWidth={1.5} />
+          }
           <Text style={s.pdfName} numberOfLines={2}>{element.fileName}</Text>
+          {Platform.OS === 'android' && (
+            <TouchableOpacity
+              style={s.pdfOpenBtn}
+              onPress={handleOpenPdf}
+              activeOpacity={0.7}
+              disabled={openingPdf}
+            >
+              <Text style={s.pdfOpenBtnText}>Abrir PDF</Text>
+            </TouchableOpacity>
+          )}
         </View>
       ) : (
         <LazyImage
@@ -154,5 +188,17 @@ function makeStyles(colors) { return StyleSheet.create({
     fontSize: fontSizes.sm,
     color: colors.text.secondary,
     textAlign: 'center',
+  },
+  pdfOpenBtn: {
+    marginTop: spacing.xs,
+    paddingVertical: 4,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radii.small,
+    backgroundColor: colors.primary.dark,
+  },
+  pdfOpenBtnText: {
+    fontFamily: fonts.semiBold,
+    fontSize: fontSizes.xs,
+    color: '#FFFFFF',
   },
 }); }

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "lanalibre",
-    "slug": "lanalibre",
+    "name": "LanaLibre",
+    "slug": "lanalibere",
     "scheme": "lanalibre",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -14,15 +14,24 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.lanalibere.app"
     },
     "android": {
+      "package": "com.lanalibere.app",
+      "googleServicesFile": "./google-services.json",
+      "targetSdkVersion": 34,
+      "compileSdkVersion": 34,
+      "buildToolsVersion": "34.0.0",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "softwareKeyboardLayoutMode": "pan"
+      "softwareKeyboardLayoutMode": "pan",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -30,7 +39,21 @@
     "plugins": [
       "expo-font",
       "expo-web-browser",
-      "expo-localization"
-    ]
+      "expo-localization",
+      "expo-image-picker",
+      "expo-document-picker",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#CB6D51"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "5cb2dde7-87b4-4705-b547-2997316b13e7"
+      }
+    }
   }
 }
