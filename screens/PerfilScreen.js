@@ -8,13 +8,17 @@ import {
   Switch,
   TextInput,
   ActivityIndicator,
+  Modal,
+  Image,
+  useWindowDimensions,
 } from 'react-native';
 import LazyImage from '../components/LazyImage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import Constants from 'expo-constants';
-import { Pencil, Moon, Sun, Bell, Download, Trash2, ChevronRight } from 'lucide-react-native';
+import { Pencil, Moon, Sun, Bell, Download, Trash2, ChevronRight, Camera } from 'lucide-react-native';
 import { radii } from '../constants/colors';
 import { useTheme } from '../contexts/ThemeContext';
 import { spacing } from '../constants/spacing';
@@ -45,6 +49,7 @@ export default function PerfilScreen({ navigation }) {
   const { theme: colors, isDark, toggleTheme, notifEnabled, setNotifEnabled } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t, i18n } = useTranslation();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const { user, signOut } = useAuth();
   const uid = user?.uid;
 
@@ -54,6 +59,7 @@ export default function PerfilScreen({ navigation }) {
   const [editingProfile, setEditingProfile] = useState(false);
   const [tempName, setTempName] = useState('');
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [cropAsset, setCropAsset] = useState(null);
 
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [signOutModalVisible, setSignOutModalVisible] = useState(false);
@@ -81,20 +87,33 @@ export default function PerfilScreen({ navigation }) {
 
   async function handleAvatarEdit() {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
+      mediaTypes: ['images'],
+      allowsEditing: false,
+      quality: 1,
     });
     if (result.canceled || !result.assets?.[0]) return;
-    const uri = result.assets[0].uri;
+    setCropAsset(result.assets[0]);
+  }
+
+  async function handleCropAndSave() {
+    if (!cropAsset) return;
+    setCropAsset(null);
     setUploadingPhoto(true);
     try {
-      const url = await uploadProfilePhoto(uid, uri);
+      const { width, height, uri } = cropAsset;
+      const size = Math.min(width, height);
+      const originX = Math.floor((width - size) / 2);
+      const originY = Math.floor((height - size) / 2);
+      const cropped = await ImageManipulator.manipulateAsync(
+        uri,
+        [{ crop: { originX, originY, width: size, height: size } }],
+        { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG },
+      );
+      const url = await uploadProfilePhoto(uid, cropped.uri);
       await updateUserDocument(uid, { fotoPerfil: url });
       setFotoPerfil(url);
     } catch (e) {
-      console.error('[PerfilScreen] handleAvatarEdit error:', e);
+      console.error('[PerfilScreen] handleCropAndSave error:', e);
       showToast(t('common.error'), 'error');
     } finally {
       setUploadingPhoto(false);
@@ -195,24 +214,38 @@ export default function PerfilScreen({ navigation }) {
             }
           </TouchableOpacity>
 
-          <View style={styles.avatarWrap}>
-            {fotoPerfil ? (
-              <LazyImage source={{ uri: fotoPerfil }} style={styles.avatar} resizeMode="cover" />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                {uploadingPhoto ? (
-                  <ActivityIndicator size="small" color='#CB6D51' />
-                ) : (
-                  <Text style={styles.avatarInitial}>{initial}</Text>
-                )}
+          {editingProfile ? (
+            <TouchableOpacity
+              onPress={handleAvatarEdit}
+              disabled={uploadingPhoto}
+              activeOpacity={0.8}
+              style={styles.avatarWrap}
+            >
+              {fotoPerfil ? (
+                <LazyImage source={{ uri: fotoPerfil }} style={styles.avatar} resizeMode="cover" />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  {uploadingPhoto ? (
+                    <ActivityIndicator size="small" color='#CB6D51' />
+                  ) : (
+                    <Text style={styles.avatarInitial}>{initial}</Text>
+                  )}
+                </View>
+              )}
+              <View style={styles.cameraBadge}>
+                <Camera size={14} color="#FFFFFF" strokeWidth={2} />
               </View>
-            )}
-          </View>
-
-          {editingProfile && (
-            <TouchableOpacity onPress={handleAvatarEdit} disabled={uploadingPhoto} activeOpacity={0.7}>
-              <Text style={styles.cambiarFotoLink}>{t('perfil.editPhoto')}</Text>
             </TouchableOpacity>
+          ) : (
+            <View style={styles.avatarWrap}>
+              {fotoPerfil ? (
+                <LazyImage source={{ uri: fotoPerfil }} style={styles.avatar} resizeMode="cover" />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <Text style={styles.avatarInitial}>{initial}</Text>
+                </View>
+              )}
+            </View>
           )}
 
           {editingProfile ? (
@@ -232,8 +265,10 @@ export default function PerfilScreen({ navigation }) {
           {!!user?.email && (
             <Text style={styles.email}>{user.email}</Text>
           )}
-          {!!dateStr && (
-            <Text style={styles.memberSince}>{t('perfil.memberSince', { date: dateStr })}</Text>
+          {!!uid && (
+            <Text style={styles.memberSince}>
+              {t('perfil.memberSince', { date: dateStr || '—' })}
+            </Text>
           )}
         </View>
 
@@ -400,6 +435,38 @@ export default function PerfilScreen({ navigation }) {
         type={toast.type}
         onHide={() => setToast((p) => ({ ...p, visible: false }))}
       />
+
+      {/* ── Crop modal ── */}
+      <Modal visible={!!cropAsset} animationType="slide" statusBarTranslucent>
+        <View style={styles.cropContainer}>
+          <View style={styles.cropImageWrap}>
+            {cropAsset && (
+              <Image
+                source={{ uri: cropAsset.uri }}
+                style={{ width: screenWidth, flex: 1 }}
+                resizeMode="contain"
+              />
+            )}
+          </View>
+          <View style={styles.cropActions}>
+            <Text style={styles.cropHint}>La foto se recortará en formato cuadrado</Text>
+            <TouchableOpacity
+              style={styles.cropConfirmBtn}
+              onPress={handleCropAndSave}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.cropConfirmLabel}>Recortar y guardar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.cropCancelBtn}
+              onPress={() => setCropAsset(null)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.cropCancelLabel}>{t('common.cancel')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -450,6 +517,19 @@ function makeStyles(colors) { return StyleSheet.create({
   avatarWrap: {
     marginBottom: spacing.xs,
   },
+  cameraBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#CB6D51',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.card,
+  },
   avatar: {
     width: 96,
     height: 96,
@@ -467,13 +547,6 @@ function makeStyles(colors) { return StyleSheet.create({
     fontFamily: fonts.bold,
     fontSize: 36,
     color: colors.secondary.copper,
-  },
-  cambiarFotoLink: {
-    fontFamily: fonts.semiBold,
-    fontSize: fontSizes.sm,
-    color: colors.brand.copperRed,
-    textDecorationLine: 'underline',
-    marginTop: 4,
   },
   nombre: {
     fontFamily: fonts.extraBold,
@@ -560,5 +633,56 @@ function makeStyles(colors) { return StyleSheet.create({
 
   bottomPad: {
     height: spacing.xl,
+  },
+
+  // Crop modal
+  cropContainer: {
+    flex: 1,
+    backgroundColor: '#000',
+    alignItems: 'center',
+  },
+  cropImageWrap: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+  },
+  cropActions: {
+    width: '100%',
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xl,
+    gap: spacing.md,
+    alignItems: 'center',
+  },
+  cropHint: {
+    fontFamily: fonts.regular,
+    fontSize: fontSizes.sm,
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  cropConfirmBtn: {
+    width: '100%',
+    backgroundColor: '#CB6D51',
+    borderRadius: radii.card,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+  },
+  cropConfirmLabel: {
+    fontFamily: fonts.semiBold,
+    fontSize: fontSizes.md,
+    color: '#FFFFFF',
+  },
+  cropCancelBtn: {
+    width: '100%',
+    borderRadius: radii.card,
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+  },
+  cropCancelLabel: {
+    fontFamily: fonts.semiBold,
+    fontSize: fontSizes.md,
+    color: '#FFFFFF',
   },
 }); }

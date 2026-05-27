@@ -502,14 +502,18 @@ export default function EntradaDiarioScreen({ navigation, route }) {
 
       if (resultadoCalculadora) {
         const metros = Math.round(resultadoCalculadora.metrosTotales ?? 0);
-        const gramos = Math.round(resultadoCalculadora.gramosTotales ?? 0);
-        const final = Math.round(resultadoCalculadora.resultadoFinal ?? 0);
-        const text = [
-          t('calculadora.result.metrosTotales') + ': ~' + metros + ' m',
-          t('calculadora.result.gramosTotales') + ': ~' + gramos + ' g',
-          t('calculadora.result.resultadoFinal') + ': ~' + final + ' g',
-        ].join('\n');
-        initial = [makeTextBox(40, 40, text), ...initial];
+        const gramos = Math.round(resultadoCalculadora.resultadoFinal ?? 0);
+        const ovillos = resultadoCalculadora.ovillosTotales ?? null;
+        const gramosEtiqueta = Math.round(resultadoCalculadora.gramosEtiqueta ?? 0);
+        const lines = [
+          '🧶 Resultado calculadora',
+          t('calculadora.result.metrosTotales') + ': ' + metros + ' m',
+          t('calculadora.result.gramosTotales') + ': ' + gramos + ' g',
+        ];
+        if (ovillos != null) {
+          lines.push(t('calculadora.resultado.ovillos') + ': ' + ovillos + ' ovillos de ' + gramosEtiqueta + 'g');
+        }
+        initial = [makeTextBox(40, 40, lines.join('\n')), ...initial];
       }
       if (previewImageUri) {
         let imageUrl = previewImageUri;

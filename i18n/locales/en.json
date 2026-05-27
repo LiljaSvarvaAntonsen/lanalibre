@@ -119,8 +119,12 @@
     "result": {
       "metrosTotales": "Total Metres",
       "gramosTotales": "Total Grams",
-      "resultadoFinal": "Final Result (+10%)",
+      "resultadoFinal": "Total grams (+10%)",
       "disclaimer": "This result is an estimate. Actual values may vary."
+    },
+    "resultado": {
+      "ovillos": "Skeins needed",
+      "basadoEn": "Based on {{gramos}}g skeins"
     },
     "guardarProyecto": "Save to project",
     "calcularOtro": "Calculate again",
@@ -262,7 +266,7 @@
     "herramientas": "Project tools",
     "saveProject": "Save project",
     "proximamente": "Coming soon",
-    "welcomeToast": "Project created! Start by adding a tool.",
+    "welcomeToast": "Project created! 🧶",
     "resultSavedBanner": "Result saved! Here's your project.",
     "herramientasPlanif": "Planning tools",
     "herramientasPlanifSubtitle": "Optional — use them now or later from the project",

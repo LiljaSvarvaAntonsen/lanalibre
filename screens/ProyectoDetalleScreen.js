@@ -131,6 +131,12 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
     navigation.setParams({ resultSavedBanner: undefined });
   }, [route.params?.resultSavedBanner]);
 
+  useEffect(() => {
+    if (!route.params?.newProjectBanner) return;
+    showToast(t('projects.welcomeToast'));
+    navigation.setParams({ newProjectBanner: undefined });
+  }, [route.params?.newProjectBanner]);
+
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
@@ -271,9 +277,20 @@ export default function ProyectoDetalleScreen({ navigation, route }) {
   }
 
   const calcHasResult = !!project?.resultadoCalculadora;
-  const calcResultValue = calcHasResult ? `~${Math.round(project.resultadoCalculadora.resultadoFinal)} g` : '';
+  const calcResultValue = calcHasResult
+    ? (project.resultadoCalculadora.ovillosTotales != null
+        ? `${project.resultadoCalculadora.ovillosTotales} ovillos 🧶`
+        : `~${Math.round(project.resultadoCalculadora.resultadoFinal)} g`)
+    : '';
   const calcResultDate = calcHasResult
-    ? t('projectDetail.guardadoEl', { date: formatDateLong(project.resultadoCalculadora.fechaGuardado) })
+    ? [
+        project.resultadoCalculadora.ovillosTotales != null
+          ? `~${Math.round(project.resultadoCalculadora.resultadoFinal)} g`
+          : null,
+        project.resultadoCalculadora.fechaGuardado
+          ? t('projectDetail.guardadoEl', { date: formatDateLong(project.resultadoCalculadora.fechaGuardado) })
+          : null,
+      ].filter(Boolean).join(' · ')
     : null;
 
   const prevHasResult = !!project?.resultadoPrevisualización;

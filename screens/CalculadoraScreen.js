@@ -233,6 +233,7 @@ export default function CalculadoraScreen({ navigation, route }) {
       metrosTotales: result.metrosTotales,
       gramosTotales: result.gramosTotales,
       resultadoFinal: result.resultadoFinal,
+      ovillosTotales: result.ovillosTotales,
     };
     try {
       await saveResultadoCalculadora(targetProjectId, data);
@@ -436,16 +437,17 @@ export default function CalculadoraScreen({ navigation, route }) {
               styles={styles}
             />
             <ResultCard
-              label={t('calculadora.result.gramosTotales')}
-              value={`${Math.round(result.gramosTotales)} g`}
+              label={t('calculadora.result.resultadoFinal')}
+              value={`${Math.round(result.resultadoFinal)} g`}
               valueColor={colors.brand.dustyRose}
               styles={styles}
             />
             <ResultCard
-              label={t('calculadora.result.resultadoFinal')}
-              value={`${Math.round(result.resultadoFinal)} g`}
+              label={t('calculadora.resultado.ovillos')}
+              value={`${result.ovillosTotales} 🧶`}
               valueColor={colors.brand.burntCopper}
               highlight
+              subtext={t('calculadora.resultado.basadoEn', { gramos: Math.round(parseFloat(fields.gramosEtiqueta)) })}
               styles={styles}
             />
 
@@ -519,6 +521,7 @@ export default function CalculadoraScreen({ navigation, route }) {
             metrosTotales: result.metrosTotales,
             gramosTotales: result.gramosTotales,
             resultadoFinal: result.resultadoFinal,
+            ovillosTotales: result.ovillosTotales,
           };
           setShowProjectPicker(false);
           savedResultRef.current = calcData;
@@ -574,11 +577,12 @@ function FormField({ label, value, onChangeText, error, styles, colors }) {
   );
 }
 
-function ResultCard({ label, value, valueColor, highlight, styles }) {
+function ResultCard({ label, value, valueColor, highlight, subtext, styles }) {
   return (
     <View style={[styles.resultCard, highlight && styles.resultCardHighlight]}>
       <Text style={[styles.resultLabel, highlight && styles.resultLabelHighlight]}>{label}</Text>
       <Text style={[styles.resultValue, { color: valueColor }, highlight && styles.resultValueHighlight]}>{value}</Text>
+      {!!subtext && <Text style={styles.resultSubtext}>{subtext}</Text>}
     </View>
   );
 }
@@ -714,6 +718,11 @@ function makeStyles(colors) { return StyleSheet.create({
   },
   resultValueHighlight: {
     fontSize: fontSizes.xxxl,
+  },
+  resultSubtext: {
+    fontFamily: fonts.regular,
+    fontSize: fontSizes.xs,
+    color: colors.text.tertiary,
   },
   disclaimer: {
     fontFamily: fonts.regular,

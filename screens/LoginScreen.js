@@ -17,8 +17,10 @@ import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
 import DocViewerModal from '../components/DocViewerModal';
 import { getLegalContent } from '../constants/legalContent';
+import { signInAnonymously } from '../services/auth';
+import { createUserDocument } from '../services/firestore';
 
-export default function LoginScreen({ signInWithGoogle, signInWithApple, error, devSignIn }) {
+export default function LoginScreen({ signInWithGoogle, signInWithApple, error }) {
   const { theme: colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t, i18n } = useTranslation();
@@ -35,6 +37,20 @@ export default function LoginScreen({ signInWithGoogle, signInWithApple, error, 
     setBusy(true);
     await signInWithApple();
     setBusy(false);
+  }
+
+  async function handleDevSignIn() {
+    setBusy(true);
+    try {
+      const result = await signInAnonymously();
+      if (result?.user?.uid) {
+        await createUserDocument(result.user.uid, { nombre: '', fotoPerfil: null });
+      }
+    } catch (e) {
+      // dev-only path, ignore errors silently
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -92,8 +108,8 @@ export default function LoginScreen({ signInWithGoogle, signInWithApple, error, 
         </View>
 
         {__DEV__ && (
-          <TouchableOpacity style={styles.devButton} onPress={devSignIn} activeOpacity={0.7}>
-            <Text style={styles.devButtonText}>Continuar sin cuenta (desarrollo)</Text>
+          <TouchableOpacity style={styles.devButton} onPress={handleDevSignIn} activeOpacity={0.7}>
+            <Text style={styles.devButtonText}>Cuenta de desarrollo</Text>
           </TouchableOpacity>
         )}
 
@@ -145,13 +161,13 @@ function makeStyles(colors) { return StyleSheet.create({
   logoText: {
     fontFamily: fonts.extraBold,
     fontSize: 40,
-    color: colors.primary.dark,
+    color: '#5D2D24',
     letterSpacing: 1,
   },
   tagline: {
     fontFamily: fonts.regular,
     fontSize: fontSizes.lg,
-    color: colors.text.secondary,
+    color: '#CB6D51',
     marginTop: spacing.xs,
   },
   errorBanner: {

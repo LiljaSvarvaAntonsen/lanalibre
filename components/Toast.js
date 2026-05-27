@@ -6,7 +6,7 @@ import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
 
 const TOAST_CONFIG = {
-  success: { bg: '#D4EAC8', text: '#2D6A2B', Icon: CheckCircle },
+  success: { bg: '#E69E7F', text: '#F7F5F0', Icon: CheckCircle },
   error:   { bg: '#F5C8C8', text: '#8B1A1A', Icon: XCircle },
   info:    { bg: '#E8E4F5', text: '#4A3570', Icon: Info },
 };

@@ -119,8 +119,12 @@
     "result": {
       "metrosTotales": "Metros Totales",
       "gramosTotales": "Gramos Totales",
-      "resultadoFinal": "Resultado Final (+10%)",
+      "resultadoFinal": "Gramos totales (+10%)",
       "disclaimer": "Este resultado es una estimación. Los factores reales pueden variar."
+    },
+    "resultado": {
+      "ovillos": "Ovillos necesarios",
+      "basadoEn": "Basado en ovillos de {{gramos}}g"
     },
     "guardarProyecto": "Guardar en proyecto",
     "calcularOtro": "Calcular otro",
@@ -262,7 +266,7 @@
     "herramientas": "Herramientas del proyecto",
     "saveProject": "Guardar proyecto",
     "proximamente": "Próximamente",
-    "welcomeToast": "¡Proyecto creado! Empieza añadiendo una herramienta.",
+    "welcomeToast": "¡Proyecto creado! 🧶",
     "resultSavedBanner": "¡Resultado guardado! Aquí está tu proyecto.",
     "herramientasPlanif": "Herramientas de planificación",
     "herramientasPlanifSubtitle": "Opcional — puedes usarlas ahora o más tarde desde el proyecto",
