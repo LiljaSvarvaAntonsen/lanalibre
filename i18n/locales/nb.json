@@ -119,8 +119,12 @@
     "result": {
       "metrosTotales": "Totale meter",
       "gramosTotales": "Totale gram",
-      "resultadoFinal": "Endelig resultat (+10%)",
+      "resultadoFinal": "Totale gram (+10%)",
       "disclaimer": "Dette resultatet er et estimat. De faktiske verdiene kan variere."
+    },
+    "resultado": {
+      "ovillos": "Nødvendige nøster",
+      "basadoEn": "Basert på nøster på {{gramos}}g"
     },
     "guardarProyecto": "Lagre i prosjekt",
     "calcularOtro": "Beregn på nytt",
@@ -262,7 +266,7 @@
     "herramientas": "Prosjektverktøy",
     "saveProject": "Lagre prosjekt",
     "proximamente": "Kommer snart",
-    "welcomeToast": "Prosjekt opprettet! Start med å legge til et verktøy.",
+    "welcomeToast": "Prosjekt opprettet! 🧶",
     "resultSavedBanner": "Resultat lagret! Her er prosjektet ditt.",
     "herramientasPlanif": "Planleggingsverktøy",
     "herramientasPlanifSubtitle": "Valgfritt — du kan bruke dem nå eller senere fra prosjektet",

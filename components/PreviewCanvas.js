@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 import { Svg, Rect } from 'react-native-svg';
-import { PATRONES_PUNTO, GRANNY_SQUARE_CM } from '../services/previsualización';
+import { PATRONES_PUNTO, GRANNY_SQUARE_CM, STRIPE_CM } from '../services/previsualización';
 
 const MAX_GRID = 20;
 
@@ -18,11 +18,13 @@ function getSquareColors(colors, row, col, squareSeed, colCount) {
   return Array.from({ length: subsetSize }, (_, i) => colors[(offset + i) % colors.length]);
 }
 
-function computeGrid(medidas, colsProp, rowsProp) {
+function computeGrid(medidas, patronPunto, colsProp, rowsProp) {
   const ancho = medidas?.ancho ?? 120;
   const largo = medidas?.largo ?? 120;
-  const cols = colsProp ?? Math.max(1, Math.min(MAX_GRID, Math.round(ancho / GRANNY_SQUARE_CM)));
-  const rows = rowsProp ?? Math.max(1, Math.min(MAX_GRID, Math.round(largo / GRANNY_SQUARE_CM)));
+  const isStripe = patronPunto === PATRONES_PUNTO.rayasV || patronPunto === PATRONES_PUNTO.rayasH;
+  const unitCm = isStripe ? STRIPE_CM : GRANNY_SQUARE_CM;
+  const cols = colsProp ?? Math.max(1, Math.min(MAX_GRID, Math.round(ancho / unitCm)));
+  const rows = rowsProp ?? Math.max(1, Math.min(MAX_GRID, Math.round(largo / unitCm)));
   return { cols, rows };
 }
 
@@ -33,7 +35,7 @@ const PreviewCanvas = forwardRef(function PreviewCanvas(
 ) {
   const canvasSize = width;
   const safeColors = colores && colores.length > 0 ? colores : ['#C8BBE8'];
-  const { cols, rows } = computeGrid(medidas, colsProp, rowsProp);
+  const { cols, rows } = computeGrid(medidas, patronPunto, colsProp, rowsProp);
 
   function renderStripes() {
     const isVertical = patronPunto === PATRONES_PUNTO.rayasV;

@@ -105,7 +105,7 @@ export default function StitchWidget({ element, onRotate }) {
 
   return (
     <View style={[s.wrapper, { transform: [{ rotate: `${element.rotation ?? 0}deg` }] }]}>
-      <Icon stroke={colors.text.primary} />
+      <Icon stroke="#2C2C2A" />
       {/* Rotation handle — sits 20px above the element centre */}
       <View style={s.rotHandle} {...rotateResponder.panHandlers} />
     </View>

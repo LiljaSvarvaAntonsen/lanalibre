@@ -1,4 +1,5 @@
 export const GRANNY_SQUARE_CM = 15;
+export const STRIPE_CM = 5;
 const MAX_GRID = 20;
 
 export const TIPOS_PROYECTO = ['bufanda', 'manta', 'gorro', 'top'];
@@ -42,8 +43,10 @@ export function buildCanvasParams({ dim1, dim2, colores, patronPunto, squareSeed
     throw err;
   }
 
-  const cols = Math.max(1, Math.min(MAX_GRID, Math.round(d1 / GRANNY_SQUARE_CM)));
-  const rows = Math.max(1, Math.min(MAX_GRID, Math.round(d2 / GRANNY_SQUARE_CM)));
+  const isStripe = patronPunto === PATRONES_PUNTO.rayasV || patronPunto === PATRONES_PUNTO.rayasH;
+  const unitCm = isStripe ? STRIPE_CM : GRANNY_SQUARE_CM;
+  const cols = Math.max(1, Math.min(MAX_GRID, Math.round(d1 / unitCm)));
+  const rows = Math.max(1, Math.min(MAX_GRID, Math.round(d2 / unitCm)));
 
   return {
     tipoProyecto: 'manta',

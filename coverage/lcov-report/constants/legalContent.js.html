@@ -1,0 +1,823 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for constants/legalContent.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">constants</a> legalContent.js</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>18/18</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">91.66% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>11/12</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>1/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>14/14</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line high'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a>
+<a name='L151'></a><a href='#L151'>151</a>
+<a name='L152'></a><a href='#L152'>152</a>
+<a name='L153'></a><a href='#L153'>153</a>
+<a name='L154'></a><a href='#L154'>154</a>
+<a name='L155'></a><a href='#L155'>155</a>
+<a name='L156'></a><a href='#L156'>156</a>
+<a name='L157'></a><a href='#L157'>157</a>
+<a name='L158'></a><a href='#L158'>158</a>
+<a name='L159'></a><a href='#L159'>159</a>
+<a name='L160'></a><a href='#L160'>160</a>
+<a name='L161'></a><a href='#L161'>161</a>
+<a name='L162'></a><a href='#L162'>162</a>
+<a name='L163'></a><a href='#L163'>163</a>
+<a name='L164'></a><a href='#L164'>164</a>
+<a name='L165'></a><a href='#L165'>165</a>
+<a name='L166'></a><a href='#L166'>166</a>
+<a name='L167'></a><a href='#L167'>167</a>
+<a name='L168'></a><a href='#L168'>168</a>
+<a name='L169'></a><a href='#L169'>169</a>
+<a name='L170'></a><a href='#L170'>170</a>
+<a name='L171'></a><a href='#L171'>171</a>
+<a name='L172'></a><a href='#L172'>172</a>
+<a name='L173'></a><a href='#L173'>173</a>
+<a name='L174'></a><a href='#L174'>174</a>
+<a name='L175'></a><a href='#L175'>175</a>
+<a name='L176'></a><a href='#L176'>176</a>
+<a name='L177'></a><a href='#L177'>177</a>
+<a name='L178'></a><a href='#L178'>178</a>
+<a name='L179'></a><a href='#L179'>179</a>
+<a name='L180'></a><a href='#L180'>180</a>
+<a name='L181'></a><a href='#L181'>181</a>
+<a name='L182'></a><a href='#L182'>182</a>
+<a name='L183'></a><a href='#L183'>183</a>
+<a name='L184'></a><a href='#L184'>184</a>
+<a name='L185'></a><a href='#L185'>185</a>
+<a name='L186'></a><a href='#L186'>186</a>
+<a name='L187'></a><a href='#L187'>187</a>
+<a name='L188'></a><a href='#L188'>188</a>
+<a name='L189'></a><a href='#L189'>189</a>
+<a name='L190'></a><a href='#L190'>190</a>
+<a name='L191'></a><a href='#L191'>191</a>
+<a name='L192'></a><a href='#L192'>192</a>
+<a name='L193'></a><a href='#L193'>193</a>
+<a name='L194'></a><a href='#L194'>194</a>
+<a name='L195'></a><a href='#L195'>195</a>
+<a name='L196'></a><a href='#L196'>196</a>
+<a name='L197'></a><a href='#L197'>197</a>
+<a name='L198'></a><a href='#L198'>198</a>
+<a name='L199'></a><a href='#L199'>199</a>
+<a name='L200'></a><a href='#L200'>200</a>
+<a name='L201'></a><a href='#L201'>201</a>
+<a name='L202'></a><a href='#L202'>202</a>
+<a name='L203'></a><a href='#L203'>203</a>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a>
+<a name='L206'></a><a href='#L206'>206</a>
+<a name='L207'></a><a href='#L207'>207</a>
+<a name='L208'></a><a href='#L208'>208</a>
+<a name='L209'></a><a href='#L209'>209</a>
+<a name='L210'></a><a href='#L210'>210</a>
+<a name='L211'></a><a href='#L211'>211</a>
+<a name='L212'></a><a href='#L212'>212</a>
+<a name='L213'></a><a href='#L213'>213</a>
+<a name='L214'></a><a href='#L214'>214</a>
+<a name='L215'></a><a href='#L215'>215</a>
+<a name='L216'></a><a href='#L216'>216</a>
+<a name='L217'></a><a href='#L217'>217</a>
+<a name='L218'></a><a href='#L218'>218</a>
+<a name='L219'></a><a href='#L219'>219</a>
+<a name='L220'></a><a href='#L220'>220</a>
+<a name='L221'></a><a href='#L221'>221</a>
+<a name='L222'></a><a href='#L222'>222</a>
+<a name='L223'></a><a href='#L223'>223</a>
+<a name='L224'></a><a href='#L224'>224</a>
+<a name='L225'></a><a href='#L225'>225</a>
+<a name='L226'></a><a href='#L226'>226</a>
+<a name='L227'></a><a href='#L227'>227</a>
+<a name='L228'></a><a href='#L228'>228</a>
+<a name='L229'></a><a href='#L229'>229</a>
+<a name='L230'></a><a href='#L230'>230</a>
+<a name='L231'></a><a href='#L231'>231</a>
+<a name='L232'></a><a href='#L232'>232</a>
+<a name='L233'></a><a href='#L233'>233</a>
+<a name='L234'></a><a href='#L234'>234</a>
+<a name='L235'></a><a href='#L235'>235</a>
+<a name='L236'></a><a href='#L236'>236</a>
+<a name='L237'></a><a href='#L237'>237</a>
+<a name='L238'></a><a href='#L238'>238</a>
+<a name='L239'></a><a href='#L239'>239</a>
+<a name='L240'></a><a href='#L240'>240</a>
+<a name='L241'></a><a href='#L241'>241</a>
+<a name='L242'></a><a href='#L242'>242</a>
+<a name='L243'></a><a href='#L243'>243</a>
+<a name='L244'></a><a href='#L244'>244</a>
+<a name='L245'></a><a href='#L245'>245</a>
+<a name='L246'></a><a href='#L246'>246</a>
+<a name='L247'></a><a href='#L247'>247</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">50x</span>
+<span class="cline-any cline-yes">50x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">22x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">22x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// Bundled as strings to avoid Metro .md transforms
+const TERMS_CONTENT_ES = `# Términos y condiciones de uso — LanaLibre
+Última actualización: mayo 2026
+Desarrolladora: Lilja Svarva Antonsen
+Contacto: contacto@lanalibre.es (placeholder)
+&nbsp;
+1. Aceptación de los términos
+Al usar LanaLibre aceptas estos términos. Si no estás de acuerdo, por favor no uses la aplicación.
+2. Descripción del servicio
+LanaLibre es una aplicación móvil gratuita para planificar y gestionar proyectos de crochet. Incluye una calculadora de lana, una herramienta de previsualización de diseños y un diario interactivo.
+3. Cuenta de usuario
+Necesitas una cuenta de Google o Apple para usar LanaLibre
+Eres responsable de mantener tu cuenta segura
+Debes tener al menos 16 años para usar la aplicación (requisito mínimo RGPD)
+4. Contenido del usuario
+Tus proyectos, diarios y patrones son tuyos — LanaLibre no reclama ningún derecho sobre tu contenido
+Al subir contenido otorgas a LanaLibre el permiso necesario para almacenarlo y mostrártelo
+No subas contenido que infrinja derechos de autor de terceros
+5. Estimaciones de la calculadora
+Los resultados de la calculadora de lana son estimaciones orientativas y no garantías. El consumo real puede variar según tu tensión personal, el tipo de fibra y el acabado del proyecto. LanaLibre no se hace responsable de compras de material basadas en estas estimaciones.
+6. Eliminación de datos
+Los proyectos eliminados se conservan durante 30 días y pueden recuperarse durante ese período
+Transcurridos 30 días la eliminación es permanente e irreversible
+Puedes eliminar tu cuenta en cualquier momento desde tu perfil
+7. Limitación de responsabilidad
+LanaLibre se proporciona tal como está, sin garantías de disponibilidad continua. Al tratarse de un proyecto académico en desarrollo, pueden producirse interrupciones del servicio.
+8. Cambios en los términos
+Si los términos cambian de forma significativa se te notificará dentro de la app. El uso continuado implica la aceptación de los nuevos términos.
+9. Contacto
+Para cualquier consulta sobre estos términos: contacto@lanalibre.es (placeholder)`;
+&nbsp;
+const TERMS_CONTENT_EN = `# Terms and Conditions — LanaLibre
+Last updated: May 2026
+Developer: Lilja Svarva Antonsen
+Contact: contacto@lanalibre.es (placeholder)
+&nbsp;
+1. Acceptance of Terms
+By using LanaLibre you accept these terms. If you disagree, please do not use the app.
+2. Service Description
+LanaLibre is a free mobile app for planning and managing crochet projects. It includes a yarn calculator, a design preview tool, and an interactive journal.
+3. User Account
+You need a Google or Apple account to use LanaLibre
+You are responsible for keeping your account secure
+You must be at least 16 years old to use the app (minimum GDPR requirement)
+4. User Content
+Your projects, journals, and patterns are yours — LanaLibre claims no rights over your content
+By uploading content you grant LanaLibre the permission needed to store and display it to you
+Do not upload content that infringes third-party copyrights
+5. Calculator Estimates
+Yarn calculator results are indicative estimates, not guarantees. Actual yarn use may vary depending on your personal tension, fibre type, and project finishing. LanaLibre is not responsible for material purchases based on these estimates.
+6. Data Deletion
+Deleted projects are kept for 30 days and can be recovered during that period
+After 30 days the deletion is permanent and irreversible
+You can delete your account at any time from your profile
+7. Limitation of Liability
+LanaLibre is provided as-is, without guarantees of continuous availability. As an academic project in development, service interruptions may occur.
+8. Changes to Terms
+If the terms change significantly you will be notified within the app. Continued use implies acceptance of the new terms.
+9. Contact
+For any questions about these terms: contacto@lanalibre.es (placeholder)`;
+&nbsp;
+const TERMS_CONTENT_NB = `# Vilkår og betingelser — LanaLibre
+Sist oppdatert: mai 2026
+Utvikler: Lilja Svarva Antonsen
+Kontakt: contacto@lanalibre.es (placeholder)
+&nbsp;
+1. Aksept av vilkår
+Ved å bruke LanaLibre godtar du disse vilkårene. Hvis du ikke er enig, vennligst ikke bruk appen.
+2. Beskrivelse av tjenesten
+LanaLibre er en gratis mobilapp for å planlegge og administrere hekleprosjekter. Den inkluderer en garenkalkulator, et forhåndsvisningsverktøy og en interaktiv dagbok.
+3. Brukerkonto
+Du trenger en Google- eller Apple-konto for å bruke LanaLibre
+Du er ansvarlig for å holde kontoen din sikker
+Du må være minst 16 år for å bruke appen (minimum GDPR-krav)
+4. Brukerinnhold
+Prosjektene, dagbøkene og mønstrene dine tilhører deg — LanaLibre gjør ingen krav på innholdet ditt
+Ved å laste opp innhold gir du LanaLibre tillatelse til å lagre og vise det til deg
+Ikke last opp innhold som krenker tredjeparts opphavsrett
+5. Kalkulatorestimater
+Resultatene fra garenkalkulatoren er veiledende estimater, ikke garantier. Faktisk garnforbruk kan variere avhengig av din personlige masketetthet, fibertype og prosjektets etterbehandling. LanaLibre er ikke ansvarlig for materialkjøp basert på disse estimatene.
+6. Sletting av data
+Slettede prosjekter beholdes i 30 dager og kan gjenopprettes i denne perioden
+Etter 30 dager er slettingen permanent og irreversibel
+Du kan slette kontoen din når som helst fra profilen din
+7. Ansvarsfraskrivelse
+LanaLibre leveres som det er, uten garantier for kontinuerlig tilgjengelighet. Som et akademisk prosjekt under utvikling kan det forekomme avbrudd i tjenesten.
+8. Endringer i vilkårene
+Hvis vilkårene endres vesentlig, vil du bli varslet i appen. Fortsatt bruk innebærer aksept av de nye vilkårene.
+9. Kontakt
+For spørsmål om disse vilkårene: contacto@lanalibre.es (placeholder)`;
+&nbsp;
+const PRIVACY_CONTENT_ES = `# Política de privacidad — LanaLibre
+Última actualización: mayo 2026
+Responsable del tratamiento: Lilja Svarva Antonsen
+Contacto: contacto@lanalibre.es (placeholder)
+&nbsp;
+1. Qué datos recogemos
+LanaLibre recoge únicamente los datos necesarios para que la aplicación funcione:
+Datos de cuenta (gestionados por Google o Apple):
+Nombre de usuario
+Dirección de correo electrónico
+Foto de perfil (si está disponible)
+Datos de uso generados por ti:
+Proyectos de crochet que creas (nombre, etiqueta, herramientas usadas)
+Entradas de diario, notas y paletas de color
+Archivos que subes (patrones en PDF, imágenes de inspiración)
+Resultados de la calculadora y parámetros de previsualización
+Datos técnicos mínimos:
+Fecha de registro
+Preferencias de idioma y tema visual
+2. Para qué usamos tus datos
+Tus datos se usan exclusivamente para:
+Permitirte acceder a tu cuenta y tus proyectos
+Sincronizar tu contenido entre dispositivos
+Mostrarte tus proyectos, diarios y resultados guardados
+Enviarte notificaciones locales si las has activado (solo en tu dispositivo)
+LanaLibre no vende tus datos, no los comparte con terceros y no los usa para publicidad.
+3. Dónde se almacenan tus datos
+Tus datos se almacenan en Google Firebase (Cloud Firestore y Firebase Storage), con servidores ubicados en Europa (región EUR3). Google Firebase cumple con el RGPD.
+4. Durante cuánto tiempo conservamos tus datos
+Proyectos activos: mientras tengas cuenta activa
+Proyectos eliminados: 30 días, luego se borran permanentemente
+Cuenta eliminada: todos tus datos se eliminan de Firestore y Storage en el momento de la eliminación
+5. Tus derechos (RGPD)
+Como usuario tienes derecho a:
+Acceso — saber qué datos tenemos sobre ti
+Rectificación — corregir datos incorrectos
+Eliminación — borrar tu cuenta y todos tus datos
+Portabilidad — exportar tus datos en formato descargable
+Para ejercer cualquiera de estos derechos contacta con: contacto@lanalibre.es (placeholder)
+6. Seguridad
+La autenticación se gestiona íntegramente por Google o Apple — LanaLibre nunca ve ni almacena tu contraseña
+Cada usuario solo puede acceder a sus propios datos (reglas de seguridad de Firestore)
+Toda la comunicación con Firebase se realiza sobre HTTPS
+7. Menores de edad
+LanaLibre no está dirigida a menores de 16 años.
+8. Contacto
+Para cualquier consulta sobre privacidad: contacto@lanalibre.es (placeholder)`;
+&nbsp;
+const PRIVACY_CONTENT_EN = `# Privacy Policy — LanaLibre
+Last updated: May 2026
+Data controller: Lilja Svarva Antonsen
+Contact: contacto@lanalibre.es (placeholder)
+&nbsp;
+1. What data we collect
+LanaLibre only collects the data needed for the app to function:
+Account data (managed by Google or Apple):
+Username
+Email address
+Profile photo (if available)
+Usage data generated by you:
+Crochet projects you create (name, tag, tools used)
+Journal entries, notes, and colour palettes
+Files you upload (PDF patterns, inspiration images)
+Calculator results and preview parameters
+Minimal technical data:
+Registration date
+Language and visual theme preferences
+2. How we use your data
+Your data is used exclusively to:
+Allow you to access your account and projects
+Sync your content across devices
+Display your projects, journals, and saved results
+Send you local notifications if you have enabled them (on your device only)
+LanaLibre does not sell your data, does not share it with third parties, and does not use it for advertising.
+3. Where your data is stored
+Your data is stored in Google Firebase (Cloud Firestore and Firebase Storage), with servers located in Europe (EUR3 region). Google Firebase complies with GDPR.
+4. How long we keep your data
+Active projects: while you have an active account
+Deleted projects: 30 days, then permanently deleted
+Deleted account: all your data is removed from Firestore and Storage at the time of deletion
+5. Your rights (GDPR)
+As a user you have the right to:
+Access — know what data we hold about you
+Rectification — correct incorrect data
+Erasure — delete your account and all your data
+Portability — export your data in a downloadable format
+To exercise any of these rights contact: contacto@lanalibre.es (placeholder)
+6. Security
+Authentication is handled entirely by Google or Apple — LanaLibre never sees or stores your password
+Each user can only access their own data (Firestore security rules)
+All communication with Firebase is done over HTTPS
+7. Minors
+LanaLibre is not intended for users under 16 years of age.
+8. Contact
+For any privacy enquiries: contacto@lanalibre.es (placeholder)`;
+&nbsp;
+const PRIVACY_CONTENT_NB = `# Personvernerklæring — LanaLibre
+Sist oppdatert: mai 2026
+Behandlingsansvarlig: Lilja Svarva Antonsen
+Kontakt: contacto@lanalibre.es (placeholder)
+&nbsp;
+1. Hvilke data vi samler inn
+LanaLibre samler kun inn data som er nødvendig for at appen skal fungere:
+Kontodata (administrert av Google eller Apple):
+Brukernavn
+E-postadresse
+Profilbilde (hvis tilgjengelig)
+Bruksdata generert av deg:
+Hekleprosjekter du oppretter (navn, merkelapp, brukte verktøy)
+Dagbokoppføringer, notater og fargepaletter
+Filer du laster opp (PDF-mønstre, inspirasjonsbilder)
+Kalkulatorresultater og forhåndsvisningsparametere
+Minimale tekniske data:
+Registreringsdato
+Språk- og temapreferanser
+2. Hvordan vi bruker dataene dine
+Dataene dine brukes utelukkende til å:
+La deg få tilgang til kontoen og prosjektene dine
+Synkronisere innholdet ditt mellom enheter
+Vise prosjekter, dagbøker og lagrede resultater
+Sende deg lokale varsler hvis du har aktivert dem (bare på din enhet)
+LanaLibre selger ikke dataene dine, deler dem ikke med tredjeparter og bruker dem ikke til reklame.
+3. Hvor dataene dine lagres
+Dataene dine lagres i Google Firebase (Cloud Firestore og Firebase Storage), med servere i Europa (EUR3-regionen). Google Firebase overholder GDPR.
+4. Hvor lenge vi beholder dataene dine
+Aktive prosjekter: så lenge du har en aktiv konto
+Slettede prosjekter: 30 dager, deretter slettet permanent
+Slettet konto: alle dataene dine fjernes fra Firestore og Storage ved slettingstidspunktet
+5. Dine rettigheter (GDPR)
+Som bruker har du rett til:
+Innsyn — vite hvilke data vi har om deg
+Retting — korrigere uriktige data
+Sletting — slette kontoen din og alle dataene dine
+Dataportabilitet — eksportere dataene dine i et nedlastbart format
+For å utøve noen av disse rettighetene, kontakt: contacto@lanalibre.es (placeholder)
+6. Sikkerhet
+Autentisering håndteres fullt ut av Google eller Apple — LanaLibre ser eller lagrer aldri passordet ditt
+Hver bruker kan bare få tilgang til sine egne data (Firestore-sikkerhetsregler)
+All kommunikasjon med Firebase skjer over HTTPS
+7. Mindreårige
+LanaLibre er ikke beregnet på brukere under 16 år.
+8. Kontakt
+For personvernspørsmål: contacto@lanalibre.es (placeholder)`;
+&nbsp;
+export function getLegalContent(type, lang) {
+  const l = (lang ?? <span class="branch-1 cbranch-no" title="branch not covered" >'es')</span>.split('-')[0];
+  if (type === 'terms') {
+    if (l === 'en') return TERMS_CONTENT_EN;
+    if (l === 'nb') return TERMS_CONTENT_NB;
+    return TERMS_CONTENT_ES;
+  }
+  if (l === 'en') return PRIVACY_CONTENT_EN;
+  if (l === 'nb') return PRIVACY_CONTENT_NB;
+  return PRIVACY_CONTENT_ES;
+}
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-05-27T18:01:16.705Z
+            </div>
+        <script src="../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../sorter.js"></script>
+        <script src="../block-navigation.js"></script>
+    </body>
+</html>
+    

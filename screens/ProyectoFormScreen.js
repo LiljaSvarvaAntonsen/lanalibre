@@ -458,6 +458,7 @@ export default function ProyectoFormScreen({ route, navigation }) {
         navigation.replace('ProyectoDetalleScreen', {
           projectId: targetId,
           resultSavedBanner: !!pendingResult,
+          newProjectBanner: !pendingResult,
         });
       }
     } catch {

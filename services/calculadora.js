@@ -27,6 +27,7 @@ export function calcularConsumo({ metrosEtiqueta, gramosEtiqueta, tension, tipoP
   const metrosTotales = (areaProyecto * densidad * multiplicador) / FACTOR_BASE;
   const gramosTotales = (metrosTotales / metrosPor100g) * 100;
   const resultadoFinal = gramosTotales * 1.1;
+  const ovillosTotales = Math.ceil(resultadoFinal / gramosEtiqueta);
 
-  return { metrosTotales, gramosTotales, resultadoFinal };
+  return { metrosTotales, gramosTotales, resultadoFinal, ovillosTotales };
 }

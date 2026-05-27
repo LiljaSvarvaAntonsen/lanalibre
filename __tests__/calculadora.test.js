@@ -21,6 +21,8 @@ describe('calcularConsumo — punto_bajo', () => {
     expect(result.metrosTotales).toBeCloseTo(10);
     expect(result.gramosTotales).toBeCloseTo(5);
     expect(result.resultadoFinal).toBeCloseTo(5.5);
+    // resultadoFinal=5.5, gramosEtiqueta=100 → ceil(5.5/100)=1
+    expect(result.ovillosTotales).toBe(1);
   });
 });
 
@@ -78,7 +80,7 @@ describe('calcularConsumo — validation edge cases', () => {
 // 50×80 cm, tension 15, punto_bajo, 300m/100g yarn
 // metrosPor100g=300, area=4000, densidad=(15/10)²=2.25
 // metrosTotales=4000×2.25×1.0/10=900, gramosTotales=900/300×100=300
-// resultadoFinal=300×1.1=330
+// resultadoFinal=300×1.1=330, ovillosTotales=ceil(330/100)=4
 describe('calcularConsumo — formula verification with real-world values', () => {
   test('scarf 50×80 cm yields 330 g with 300m/100g yarn at tension 15', () => {
     const result = calcularConsumo({
@@ -91,5 +93,20 @@ describe('calcularConsumo — formula verification with real-world values', () =
     expect(result.metrosTotales).toBeCloseTo(900);
     expect(result.gramosTotales).toBeCloseTo(300);
     expect(result.resultadoFinal).toBeCloseTo(330);
+    expect(result.ovillosTotales).toBe(4);
+  });
+});
+
+describe('calcularConsumo — ovillosTotales', () => {
+  test('always rounds up to whole skeins', () => {
+    // resultadoFinal=5.5, gramosEtiqueta=100 → ceil(0.055)=1
+    const result = calcularConsumo(BASE_INPUT);
+    expect(result.ovillosTotales).toBe(Math.ceil(result.resultadoFinal / BASE_INPUT.gramosEtiqueta));
+  });
+
+  test('uses gramosEtiqueta as skein size', () => {
+    // gramosEtiqueta=50 → ceil(5.5/50)=1
+    const result = calcularConsumo({ ...BASE_INPUT, gramosEtiqueta: 50 });
+    expect(result.ovillosTotales).toBe(Math.ceil(result.resultadoFinal / 50));
   });
 });

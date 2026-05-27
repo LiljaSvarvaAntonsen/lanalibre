@@ -127,6 +127,7 @@ Tasks are ordered by development slice. Complete each slice fully (services → 
 - [x] Show error if selected project type has no template yet (validation via buildCanvasParams)
 - [x] Component test: canvas renders without crashing given valid params (16 tests, all passing)
 - [x] Blanket visualizer: granny square grid calculated from blanket dimensions — each square = 15 cm × 15 cm, cols/rows capped at 20; stripe count also dimension-based; grannySquaresInfo text shown below canvas
+- [x] Stripe width adjusted to 5 cm per stripe (`STRIPE_CM = 5`) for rayas_v and rayas_h; granny squares keep 15 cm (`GRANNY_SQUARE_CM = 15`); both `buildCanvasParams` and `computeGrid` in PreviewCanvas are pattern-aware
 
 ---
 
@@ -335,6 +336,26 @@ Tasks are ordered by development slice. Complete each slice fully (services → 
 - [ ] Review and add missing confirmation messages across the app
 - [ ] Fix export toast message — remove the inaccurate reference to data being visible on screen
 - [ ] Change recent projects parameter back to 14 days before deployment (currently set to 1 day in hooks/useProjects.js RECENT_PROJECTS_DAYS)
+
+---
+
+## Pre-release bug fixes (2026-05-27)
+- [x] LoginScreen: 'LanaLibre' text color → #5D2D24 (dark copper); tagline color → #CB6D51 (copper red)
+- [x] LoginScreen: dev bypass button restored with `__DEV__` guard — auto-excluded from production EAS builds; calls `signInAnonymously()` + `createUserDocument()` so Firestore user doc is always created
+- [x] PerfilScreen: profile photo crop — `allowsEditing: false` disables native Android crop UI; custom `expo-image-manipulator` modal is the only crop path; center-crop origin uses `Math.floor((dim - size) / 2)`
+- [x] PerfilScreen: crop modal layout — image fills available flex space; hint + buttons pinned to bottom in a single `cropActions` group (eliminates duplicate button rendering)
+- [x] PerfilScreen: `mediaTypes: ['images']` replaces deprecated `MediaTypeOptions.Images`
+- [x] PerfilScreen: 'Miembro desde' row always rendered when user is logged in; falls back to '—' when `fechaRegistro` is missing
+- [x] InicioScreen: greeting falls back to `¡Hola!` (no name) when `nombre` is null, undefined or empty string; safety net calls `createUserDocument` if the Firestore document is missing entirely
+- [x] StitchWidget: stitch symbol stroke hardcoded to `#2C2C2A` — always visible against white journal canvas regardless of theme
+
+---
+
+## Pendiente EAS build
+- [ ] PDF fullscreen viewing — requires expo-intent-launcher, not available in Expo Go
+- [ ] Data export to file — requires expo-file-system directories, not available in Expo Go
+- [ ] Push notifications — requires EAS build with development client
+- [ ] Eraser tool for paint brush strokes — medium complexity, deferred to post-launch
 
 ---
 

@@ -8,7 +8,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { spacing } from '../constants/spacing';
 import { fonts, fontSizes } from '../constants/typography';
 import { useAuth } from '../hooks/useAuth';
-import { getUserDocument } from '../services/firestore';
+import { getUserDocument, createUserDocument } from '../services/firestore';
 
 const CARD_TERRACOTTA = '#C07050';
 
@@ -37,7 +37,12 @@ export default function InicioScreen({ navigation }) {
   useEffect(() => {
     if (!user?.uid) return;
     getUserDocument(user.uid)
-      .then((docData) => { if (docData?.nombre) setUserName(docData.nombre); })
+      .then((userDoc) => {
+        if (!userDoc) {
+          return createUserDocument(user.uid, { nombre: '', fotoPerfil: null });
+        }
+        if (userDoc.nombre) setUserName(userDoc.nombre);
+      })
       .catch(() => {});
   }, [user?.uid]);
 
