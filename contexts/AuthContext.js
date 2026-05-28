@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import * as Google from 'expo-auth-session/providers/google';
-import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import Constants from 'expo-constants';
 import i18n from '../i18n';
@@ -30,23 +29,18 @@ export function AuthProvider({ children }) {
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? webClientId,
     webClientId,
     useProxy: isExpoGo,
-    redirectUri: isExpoGo
-      ? AuthSession.makeRedirectUri({ useProxy: true })
-      : AuthSession.makeRedirectUri({
-          native: 'com.lanalibere.app:/oauth2redirect/google',
-          scheme: 'lanalibre',
-        }),
+    scopes: ['profile', 'email'],
   });
 
   useEffect(() => {
     if (response?.type !== 'success') return;
-    const idToken = response.params?.id_token ?? response.authentication?.idToken;
-    if (!idToken) {
+    const { id_token } = response.params;
+    if (!id_token) {
       setError(i18n.t('errors.googleToken'));
       return;
     }
     setError(null);
-    signInWithGoogleCredential(idToken)
+    signInWithGoogleCredential(id_token)
       .then((result) =>
         createUserDocument(result.user.uid, {
           nombre: result.user.displayName ?? '',
