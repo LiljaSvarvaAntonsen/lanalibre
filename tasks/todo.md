@@ -314,14 +314,18 @@ Tasks are ordered by development slice. Complete each slice fully (services → 
 ---
 
 ## Slice 14 — Deployment prep (Sprint 7)
-- [ ] Configure `app.json` / `app.config.js`: app name "LanaLibre", bundle IDs, icons, splash screen
-- [ ] Build for Android with `eas build --platform android`
+- [x] Configure `app.json` / `app.config.js`: app name "LanaLibre", bundle IDs, icons, splash screen
+- [x] Create `eas.json` with preview (APK) and production (AAB) profiles
+- [x] Install `expo-notifications` and `expo-intent-launcher`
+- [x] PDF fullscreen viewing — `expo-intent-launcher` wired in `components/journal/ImageWidget.js`
+- [x] Build for Android with `eas build --platform android` — APK produced successfully
+- [ ] Fix APK install on Android 14 — "parsing problem" being diagnosed (SDK versions pinned to 34, universal APK forced via gradleCommand)
+- [ ] Fix Google OAuth 400 error in native APK — `useProxy: isExpoGo` + `scopes` set; Android client ID must match Cloud Console package + SHA-1
 - [ ] Build for iOS with `eas build --platform ios`
 - [ ] Submit to Google Play Store (internal test track first)
 - [ ] Submit to Apple App Store (TestFlight first)
 - [ ] Verify Firebase plan is on Blaze (pay-as-you-go) for production Storage usage
 - [ ] Final smoke test on physical iOS and Android devices
-- [ ] PDF fullscreen viewing requires EAS build — implement with expo-intent-launcher in Slice 14
 - [ ] Verify data export works correctly in EAS production build — expo-file-system directories unavailable in Expo Go
 
 ---
@@ -339,6 +343,15 @@ Tasks are ordered by development slice. Complete each slice fully (services → 
 
 ---
 
+## EAS build fixes (2026-05-28)
+- [x] `metro.config.js` — created with `expo/metro-config` extension; fixes expo doctor check that was flagging the missing config
+- [x] `coverage/` added to `.gitignore` — prevents Jest output from being committed
+- [x] `app.json` android: `targetSdkVersion: 34`, `compileSdkVersion: 34`, `buildToolsVersion: "34.0.0"`, `splits.abi.enable: false` — pins to Android 14 API level to avoid parse errors
+- [x] `eas.json`: `gradleCommand: ":app:assembleRelease"` forces single universal APK; removed production profile and env section (EAS secrets auto-exposed)
+- [x] `AuthContext.js`: `isExpoGo = Constants.appOwnership === 'expo'`; `useProxy: isExpoGo`; `scopes: ['profile', 'email']`; `androidClientId` no longer falls back to webClientId; token extracted via `const { id_token } = response.params`
+
+---
+
 ## Pre-release bug fixes (2026-05-27)
 - [x] LoginScreen: 'LanaLibre' text color → #5D2D24 (dark copper); tagline color → #CB6D51 (copper red)
 - [x] LoginScreen: dev bypass button restored with `__DEV__` guard — auto-excluded from production EAS builds; calls `signInAnonymously()` + `createUserDocument()` so Firestore user doc is always created
@@ -352,7 +365,7 @@ Tasks are ordered by development slice. Complete each slice fully (services → 
 ---
 
 ## Pendiente EAS build
-- [ ] PDF fullscreen viewing — requires expo-intent-launcher, not available in Expo Go
+- [x] PDF fullscreen viewing — implemented with expo-intent-launcher in ImageWidget.js
 - [ ] Data export to file — requires expo-file-system directories, not available in Expo Go
 - [ ] Push notifications — requires EAS build with development client
 - [ ] Eraser tool for paint brush strokes — medium complexity, deferred to post-launch
