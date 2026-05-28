@@ -12,14 +12,14 @@ LanaLibre is a cross-platform mobile app designed for intermediate to advanced c
 
 ## Features
 
-- 🔐 Google and Apple OAuth authentication via Firebase
-- 🌍 Three languages: Spanish (default), English and Norwegian
-- 🌙 Light and dark mode
-- 📁 Project management with soft delete and 30-day recovery
-- 💾 Results saved to projects with overwrite confirmation
-- 📓 Diary entries linked optionally to projects
-- 🔒 Firestore security rules — users can only access their own data
-- 📱 Built and deployed as Android APK via EAS Build
+-  Google and Apple OAuth authentication via Firebase
+-  Three languages: Spanish (default), English and Norwegian
+-  Light and dark mode
+-  Project management with soft delete and 30-day recovery
+-  Results saved to projects with overwrite confirmation
+-  Diary entries linked optionally to projects
+-  Firestore security rules — users can only access their own data
+-  Built and deployed as Android APK via EAS Build
 
 ## Tech Stack
 
