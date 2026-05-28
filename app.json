@@ -32,6 +32,13 @@
       "permissions": [
         "android.permission.RECORD_AUDIO"
       ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [{ "scheme": "com.googleusercontent.apps.667448149935-odtcsnl11ift1jvcklo86mfitnmhr378" }],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
       "splits": {
         "abi": {
           "enable": false
