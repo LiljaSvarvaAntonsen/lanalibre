@@ -437,8 +437,8 @@ export default function CalculadoraScreen({ navigation, route }) {
               styles={styles}
             />
             <ResultCard
-              label={t('calculadora.result.resultadoFinal')}
-              value={`${Math.round(result.resultadoFinal)} g`}
+              label={t('calculadora.result.gramosTotales')}
+              value={`${Math.round(result.gramosTotales)} g`}
               valueColor={colors.brand.dustyRose}
               styles={styles}
             />

@@ -43,14 +43,14 @@ jest.mock('../services/exportData', () => ({
   exportUserData: (...args) => mockExportUserData(...args),
 }));
 
-const mockRequestPermission = jest.fn(() => Promise.resolve(false));
-const mockScheduleWIPReminder = jest.fn(() => Promise.resolve());
-const mockCancelWIPReminder = jest.fn(() => Promise.resolve());
+const mockRequestPermissionsAsync = jest.fn(() => Promise.resolve({ status: 'granted' }));
+const mockCancelAllScheduledNotificationsAsync = jest.fn(() => Promise.resolve());
+const mockScheduleNotificationAsync = jest.fn(() => Promise.resolve());
 
-jest.mock('../services/notifications', () => ({
-  requestNotificationPermission: (...args) => mockRequestPermission(...args),
-  scheduleWIPReminder: (...args) => mockScheduleWIPReminder(...args),
-  cancelWIPReminder: (...args) => mockCancelWIPReminder(...args),
+jest.mock('expo-notifications', () => ({
+  requestPermissionsAsync: (...args) => mockRequestPermissionsAsync(...args),
+  cancelAllScheduledNotificationsAsync: (...args) => mockCancelAllScheduledNotificationsAsync(...args),
+  scheduleNotificationAsync: (...args) => mockScheduleNotificationAsync(...args),
 }));
 
 jest.mock('expo-image-picker', () => ({
@@ -86,7 +86,9 @@ afterEach(() => {
   mockSetNotifEnabled.mockClear();
   mockDeleteAccount.mockClear();
   mockExportUserData.mockClear();
-  mockRequestPermission.mockClear();
+  mockRequestPermissionsAsync.mockClear();
+  mockCancelAllScheduledNotificationsAsync.mockClear();
+  mockScheduleNotificationAsync.mockClear();
 });
 
 test('renders all five settings section labels', async () => {
@@ -128,21 +130,20 @@ test('dark mode toggle calls toggleTheme', async () => {
   expect(mockToggleTheme).toHaveBeenCalledTimes(1);
 });
 
-test('notifications toggle: toggling on shows informational toast and saves setting', async () => {
+test('notifications toggle: toggling on saves setting, requests permission and schedules notification', async () => {
   const { saveUserSettings } = require('../services/firestore');
   render(<PerfilScreen navigation={mockNavigation} />, { wrapper: Wrapper });
   await waitFor(() => screen.getByText(i18n.t('perfil.notifWIP')));
   const switches = screen.UNSAFE_getAllByType(Switch);
   fireEvent(switches[1], 'valueChange', true);
   await waitFor(() => {
-    expect(screen.getByText(i18n.t('perfil.notifDevToast'))).toBeTruthy();
     expect(saveUserSettings).toHaveBeenCalledWith('test-uid', { notifWIP: true });
+    expect(mockRequestPermissionsAsync).toHaveBeenCalledTimes(1);
+    expect(mockScheduleNotificationAsync).toHaveBeenCalledTimes(1);
   });
-  expect(mockScheduleWIPReminder).not.toHaveBeenCalled();
-  expect(mockRequestPermission).not.toHaveBeenCalled();
 });
 
-test('notifications toggle: toggling off saves setting and shows no toast', async () => {
+test('notifications toggle: toggling off saves setting and cancels notifications', async () => {
   const { getUserDocument, saveUserSettings } = require('../services/firestore');
   getUserDocument.mockResolvedValueOnce({ nombre: 'Test User', notifWIP: true });
   render(<PerfilScreen navigation={mockNavigation} />, { wrapper: Wrapper });
@@ -151,8 +152,9 @@ test('notifications toggle: toggling off saves setting and shows no toast', asyn
   fireEvent(switches[1], 'valueChange', false);
   await waitFor(() => {
     expect(saveUserSettings).toHaveBeenCalledWith('test-uid', { notifWIP: false });
+    expect(mockCancelAllScheduledNotificationsAsync).toHaveBeenCalledTimes(1);
   });
-  expect(mockRequestPermission).not.toHaveBeenCalled();
+  expect(mockRequestPermissionsAsync).not.toHaveBeenCalled();
 });
 
 test('export button calls exportUserData with uid', async () => {

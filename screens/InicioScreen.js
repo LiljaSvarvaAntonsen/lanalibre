@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { Plus, Clock, Folder, BookOpen } from 'lucide-react-native';
 import { radii } from '../constants/colors';
@@ -34,17 +35,19 @@ export default function InicioScreen({ navigation }) {
   const { user } = useAuth() ?? {};
   const [userName, setUserName] = useState('');
 
-  useEffect(() => {
-    if (!user?.uid) return;
-    getUserDocument(user.uid)
-      .then((userDoc) => {
-        if (!userDoc) {
-          return createUserDocument(user.uid, { nombre: '', fotoPerfil: null });
-        }
-        if (userDoc.nombre) setUserName(userDoc.nombre);
-      })
-      .catch(() => {});
-  }, [user?.uid]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!user?.uid) return;
+      getUserDocument(user.uid)
+        .then((userDoc) => {
+          if (!userDoc) {
+            return createUserDocument(user.uid, { nombre: '', fotoPerfil: null });
+          }
+          if (userDoc.nombre) setUserName(userDoc.nombre);
+        })
+        .catch(() => {});
+    }, [user?.uid]),
+  );
 
   const greeting = userName
     ? t('inicio.greetingWithName', { name: userName })

@@ -89,13 +89,21 @@ export default function ImageWidget({ element, onResize, selected, onPress }) {
     if (Platform.OS !== 'android' || !element.url) return;
     setOpeningPdf(true);
     try {
-      const localUri = FileSystem.cacheDirectory + 'lanalibere_preview.pdf';
-      await FileSystem.downloadAsync(element.url, localUri);
-      await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
-        data: localUri,
-        flags: 1,
-        type: 'application/pdf',
-      });
+      if (element.url.startsWith('http')) {
+        const localUri = FileSystem.cacheDirectory + 'lanalibere_preview.pdf';
+        await FileSystem.downloadAsync(element.url, localUri);
+        await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
+          data: localUri,
+          flags: 1,
+          type: 'application/pdf',
+        });
+      } else {
+        await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
+          data: element.url,
+          flags: 1,
+          type: 'application/pdf',
+        });
+      }
     } catch (e) {
       console.error('[ImageWidget] openPdf error:', e);
     } finally {

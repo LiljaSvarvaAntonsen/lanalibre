@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import Constants from 'expo-constants';
+import * as Notifications from 'expo-notifications';
 import { Pencil, Moon, Sun, Bell, Download, Trash2, ChevronRight, Camera } from 'lucide-react-native';
 import { radii } from '../constants/colors';
 import { useTheme } from '../contexts/ThemeContext';
@@ -27,7 +28,7 @@ import { useAuth } from '../hooks/useAuth';
 import { getUserDocument, saveUserSettings, updateUserDocument } from '../services/firestore';
 import { deleteAccount } from '../services/auth';
 import { uploadProfilePhoto } from '../services/storage';
-import { exportUserData, EXPORT_UNAVAILABLE_IN_EXPO_GO } from '../services/exportData';
+import { exportUserData } from '../services/exportData';
 import { formatShortDate } from '../utils/dates';
 import ConfirmationModal from '../components/ConfirmationModal';
 import LoadingOverlay from '../components/LoadingOverlay';
@@ -143,7 +144,20 @@ export default function PerfilScreen({ navigation }) {
     setNotifEnabled(value);
     if (uid) saveUserSettings(uid, { notifWIP: value }).catch(() => {});
     if (value) {
-      showToast(t('perfil.notifDevToast'));
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== 'granted') {
+        showToast(t('perfil.notifPermissionDenied'), 'error');
+        setNotifEnabled(false);
+        if (uid) saveUserSettings(uid, { notifWIP: false }).catch(() => {});
+        return;
+      }
+      await Notifications.cancelAllScheduledNotificationsAsync();
+      await Notifications.scheduleNotificationAsync({
+        content: { title: t('perfil.notifTitle'), body: t('perfil.notifBody') },
+        trigger: { seconds: 7 * 24 * 60 * 60, repeats: true },
+      });
+    } else {
+      await Notifications.cancelAllScheduledNotificationsAsync();
     }
   }
 
@@ -153,11 +167,7 @@ export default function PerfilScreen({ navigation }) {
       await exportUserData(uid);
     } catch (e) {
       console.error('[export] handleExport error:', e);
-      if (e.code === EXPORT_UNAVAILABLE_IN_EXPO_GO) {
-        showToast(t('perfil.exportUnavailableInExpoGo'));
-      } else {
-        showToast(t('perfil.exportError'), 'error');
-      }
+      showToast(t('perfil.exportError'), 'error');
     } finally {
       setExportLoading(false);
     }
