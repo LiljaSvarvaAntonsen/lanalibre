@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import * as Google from 'expo-auth-session/providers/google';
+import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
+import Constants from 'expo-constants';
 import i18n from '../i18n';
 import {
   signInWithGoogleCredential,
@@ -21,11 +23,19 @@ export function AuthProvider({ children }) {
   const [error, setError] = useState(null);
 
   const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+  const isExpoGo = Constants.appOwnership === 'expo';
 
-  const [, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? webClientId,
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? webClientId,
     webClientId,
+    useProxy: isExpoGo,
+    redirectUri: isExpoGo
+      ? AuthSession.makeRedirectUri({ useProxy: true })
+      : AuthSession.makeRedirectUri({
+          native: 'com.lanalibere.app:/oauth2redirect/google',
+          scheme: 'lanalibre',
+        }),
   });
 
   useEffect(() => {
